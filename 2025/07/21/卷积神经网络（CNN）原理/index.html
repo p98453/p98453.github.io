@@ -19,19 +19,19 @@
   <meta name="author" content="酷酷的林">
   <meta name="keywords" content="">
   
-    <meta name="description" content="一、何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过滑动卷积核，在每个局部区域上进行“先乘再和”的运算，最终生成">
+    <meta name="description" content="前言：何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 CNN的三大特性：局部连接，权重共享，池化  一、卷积层1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过滑">
 <meta property="og:type" content="article">
 <meta property="og:title" content="卷积神经网络（CNN）原理">
 <meta property="og:url" content="https://p98453.github.io/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/">
 <meta property="og:site_name" content="小牛壮士">
-<meta property="og:description" content="一、何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过滑动卷积核，在每个局部区域上进行“先乘再和”的运算，最终生成">
+<meta property="og:description" content="前言：何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 CNN的三大特性：局部连接，权重共享，池化  一、卷积层1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过滑">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://p98453.github.io/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif">
+<meta property="og:image" content="https://p98453.github.io/img/CNN.png">
 <meta property="article:published_time" content="2025-07-21T06:32:05.000Z">
-<meta property="article:modified_time" content="2025-07-21T07:27:06.812Z">
+<meta property="article:modified_time" content="2025-07-21T11:30:06.385Z">
 <meta property="article:author" content="酷酷的林">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://p98453.github.io/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif">
+<meta name="twitter:image" content="https://p98453.github.io/img/CNN.png">
   
   
   
@@ -183,7 +183,7 @@
   
 
 <div id="banner" class="banner" parallax=true
-     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+     style="background: url('/img/CNN.png') no-repeat center center; background-size: cover;">
   <div class="full-bg-img">
     <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
       <div class="banner-text text-center fade-in-up">
@@ -217,7 +217,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          203 字
+          1k 字
         
       </span>
     
@@ -228,7 +228,7 @@
         
         
         
-          2 分钟
+          9 分钟
         
       </span>
     
@@ -270,11 +270,33 @@
             
               <div class="markdown-body">
                 
-                <h1 id="一、何为卷积神经网络"><a href="#一、何为卷积神经网络" class="headerlink" title="一、何为卷积神经网络"></a>一、何为卷积神经网络</h1><p>卷积神经网络是一种深度学习模型，包括了<strong>卷积层，激活函数，池化层以及全连接层</strong>等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。</p>
-<h2 id="1-1-卷积过程"><a href="#1-1-卷积过程" class="headerlink" title="1.1 卷积过程"></a>1.1 卷积过程</h2><p>卷积层的主要作用是<strong>提取输入数据中的局部特征</strong></p>
+                <h1 id="前言：何为卷积神经网络"><a href="#前言：何为卷积神经网络" class="headerlink" title="前言：何为卷积神经网络"></a>前言：何为卷积神经网络</h1><p>卷积神经网络是一种深度学习模型，包括了<strong>卷积层，激活函数，池化层以及全连接层</strong>等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。</p>
+<p><strong>CNN的三大特性：局部连接，权重共享，池化</strong></p>
+<p><img src="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86%5CCNN.png" srcset="/img/loading.gif" lazyload alt="CNN结构"></p>
+<h1 id="一、卷积层"><a href="#一、卷积层" class="headerlink" title="一、卷积层"></a>一、卷积层</h1><h2 id="1-1-卷积过程"><a href="#1-1-卷积过程" class="headerlink" title="1.1 卷积过程"></a>1.1 卷积过程</h2><p>卷积层的主要作用是<strong>提取输入数据中的局部特征</strong></p>
 <p>这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（<strong>卷积操作是通过滑动卷积核，在每个局部区域上进行“先乘再和”的运算，最终生成一个特征图，每个输出值是一个标量。</strong>）</p>
 <p><img src="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif" srcset="/img/loading.gif" lazyload alt="卷积过程"></p>
-<h2 id="1-2-卷积层的作用"><a href="#1-2-卷积层的作用" class="headerlink" title="1.2 卷积层的作用"></a>1.2 卷积层的作用</h2>
+<h2 id="1-2-卷积层的作用以及涉及的超参数详解"><a href="#1-2-卷积层的作用以及涉及的超参数详解" class="headerlink" title="1.2 卷积层的作用以及涉及的超参数详解"></a>1.2 卷积层的作用以及涉及的超参数详解</h2><p><strong>卷积层主要用来提取局部特征</strong>。</p>
+<p>在实际使用中涉及到的参数有：</p>
+<p>卷积核大小：<strong>决定了卷积核覆盖的局部区域大小，影响特征提取的粒度</strong>。<strong>较小</strong>的卷积核可以捕捉更细粒度的特征，<strong>适合提取边缘和纹理</strong>；<strong>较大</strong>的卷积核可以<strong>捕捉更广泛的特征</strong>，但计算量更大。</p>
+<p>卷积核形状参数一定要是<strong>奇数</strong>，因为奇数大小的卷积核具有<strong>唯一的中心像素</strong>，便于在卷积操作中<strong>均匀取样并保持对称性，同时有助于处理图像边缘，避免模糊和信息损失</strong>。</p>
+<p>步长：每次滑动的位置，控制卷积核每次移动的像素数，影响<strong>输出特征图的尺寸</strong></p>
+<p>填充：在输入数据的边缘添加额外的像素（<strong>通常为零</strong>），以控制<strong>输出特征图的尺寸。</strong></p>
+<h2 id="1-3-特征图尺寸计算公式（重要）"><a href="#1-3-特征图尺寸计算公式（重要）" class="headerlink" title="1.3 特征图尺寸计算公式（重要）"></a>1.3 特征图尺寸计算公式（重要）</h2><p><img src="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E5%B0%BA%E5%AF%B8%E8%AE%A1%E7%AE%97.png" srcset="/img/loading.gif" lazyload alt="特征图计算公式"></p>
+<h1 id="二、池化层"><a href="#二、池化层" class="headerlink" title="二、池化层"></a>二、池化层</h1><p>池化层的主要作用是<strong>对非线性激活后的结果进行下采样</strong>，<strong>以减少参数的数量，避免过拟合，并提高模型的处理速度，提高计算速度，同时提高所提取特征的鲁棒性</strong>。</p>
+<p><strong>分为最大池化和平均池化</strong></p>
+<p><img src="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E6%B1%A0%E5%8C%96%E5%B1%82%E5%8A%A8%E7%94%BB%E6%BC%94%E7%A4%BA01.webp" srcset="/img/loading.gif" lazyload alt="最大池化层动画演示"></p>
+<h1 id="三、多通道卷积"><a href="#三、多通道卷积" class="headerlink" title="三、多通道卷积"></a>三、多通道卷积</h1><p>对于彩色图片有RGB三个<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E9%80%9A%E9%81%93&spm=1001.2101.3001.7020">通道</a>，需要处理多输入通道的场景。输出特征图往往也会具有多个通道，而且在神经网络的计算中常常是把一个批次的样本放在一起计算，最后将每个通道特征图对应位置进行相加得到一张新的特征图，所以卷积算子需要具有批量处理多输入和多输出通道数据的功能。</p>
+<p>![多通道卷积](2025-07-21-卷积神经网络（CNN）原理&#x2F;屏幕截图 2025-07-21 190547.png)</p>
+<h1 id="四、构建一个简单的卷积神经网络"><a href="#四、构建一个简单的卷积神经网络" class="headerlink" title="四、构建一个简单的卷积神经网络"></a>四、构建一个简单的卷积神经网络</h1><p>下面我们将以最经典的LetNet为案例来构建一个简单的CNN网络骨架</p>
+<p>首先我们先贴出LetNet的网络结构图如下</p>
+<p><img src="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/LetNet5%E7%BB%93%E6%9E%84%E5%9B%BE.png" srcset="/img/loading.gif" lazyload alt="LetNet5"></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">from</span> sympy <span class="hljs-keyword">import</span> Sum<br><span class="hljs-keyword">import</span> torch<br><span class="hljs-keyword">import</span> torch.nn <span class="hljs-keyword">as</span> nn<br><span class="hljs-keyword">from</span> torchsummary <span class="hljs-keyword">import</span> summary<br><span class="hljs-keyword">class</span> <span class="hljs-title class_">LeNet</span>(nn.Module):<br>    <span class="hljs-string">&quot;&quot;&quot;</span><br><span class="hljs-string">    下面是比较详细的参数名，具体参数值详见结构图</span><br><span class="hljs-string">    &quot;&quot;&quot;</span><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self</span>):<br>        <span class="hljs-built_in">super</span>(LeNet,<span class="hljs-variable language_">self</span>).__init__()<br>        <span class="hljs-variable language_">self</span>.model = nn.Sequential(<br>            <span class="hljs-comment"># 最初输入卷积核的维度in_channels设置为1，代表输入灰度图的通道数</span><br>            nn.Conv2d(in_channels=<span class="hljs-number">1</span>, out_channels=<span class="hljs-number">6</span>, kernel_size=<span class="hljs-number">5</span>, padding=<span class="hljs-number">2</span>),<span class="hljs-comment"># outchannel即为卷积核维度</span><br>            nn.Sigmoid(),<span class="hljs-comment"># 引入非线性特性</span><br>            nn.AvgPool2d(kernel_size=<span class="hljs-number">2</span>, stride=<span class="hljs-number">2</span>),<br>            nn.Conv2d(in_channels=<span class="hljs-number">6</span>, out_channels=<span class="hljs-number">16</span>, kernel_size=<span class="hljs-number">5</span>, padding=<span class="hljs-number">0</span>),<br>            nn.AvgPool2d(kernel_size=<span class="hljs-number">2</span>),<br>            nn.Flatten(),<span class="hljs-comment"># 不要忘记展平操作</span><br>            nn.Linear(in_features=<span class="hljs-number">16</span>*<span class="hljs-number">5</span>*<span class="hljs-number">5</span>, out_features=<span class="hljs-number">120</span>),<span class="hljs-comment"># 这里需要根据前面的池化层的输出尺寸来计算in_features</span><br>            nn.Linear(in_features=<span class="hljs-number">120</span>, out_features=<span class="hljs-number">84</span>),<br>            nn.Linear(in_features=<span class="hljs-number">84</span>, out_features=<span class="hljs-number">10</span>)<br>        )<br><br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">forward</span>(<span class="hljs-params">self,<span class="hljs-built_in">input</span></span>):<br>        output = <span class="hljs-variable language_">self</span>.model(<span class="hljs-built_in">input</span>)<br>        <span class="hljs-keyword">return</span> output<br><br>letnet = LeNet()<br><span class="hljs-built_in">print</span>(summary(letnet,input_size=(<span class="hljs-number">1</span>,<span class="hljs-number">28</span>,<span class="hljs-number">28</span>),batch_size=<span class="hljs-number">8</span>))<br><br></code></pre></td></tr></table></figure>
+
+<p>最终运行结果：</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc"><span class="hljs-code">----------------------------------------------------------------</span><br><span class="hljs-code">        Layer (type)               Output Shape         Param #</span><br><span class="hljs-code">================================================================</span><br><span class="hljs-code">            Conv2d-1             [8, 6, 28, 28]             156</span><br><span class="hljs-code">           Sigmoid-2             [8, 6, 28, 28]               0</span><br><span class="hljs-code">         AvgPool2d-3             [8, 6, 14, 14]               0</span><br><span class="hljs-code">            Conv2d-4            [8, 16, 10, 10]           2,416</span><br><span class="hljs-code">         AvgPool2d-5              [8, 16, 5, 5]               0</span><br><span class="hljs-code">           Flatten-6                   [8, 400]               0</span><br><span class="hljs-code">            Linear-7                   [8, 120]          48,120</span><br><span class="hljs-code">            Linear-8                    [8, 84]          10,164</span><br><span class="hljs-code">            Linear-9                    [8, 10]             850</span><br><span class="hljs-code">================================================================</span><br><span class="hljs-code">Total params: 61,706</span><br><span class="hljs-code">Trainable params: 61,706</span><br><span class="hljs-code">Non-trainable params: 0</span><br><span class="hljs-code">----------------------------------------------------------------</span><br>Input size (MB): 0.02<br>Forward/backward pass size (MB): 0.81<br>Params size (MB): 0.24<br><span class="hljs-section">Estimated Total Size (MB): 1.06</span><br><span class="hljs-section">----------------------------------------------------------------</span><br>None<br></code></pre></td></tr></table></figure>
+
+
                 
               </div>
             
