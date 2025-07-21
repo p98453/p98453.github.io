@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<search>
+  
+  
+  
+  <entry>
+    <title>卷积神经网络（CNN）原理</title>
+    <link href="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/"/>
+    <url>/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/</url>
+    
+    <content type="html"><![CDATA[<h1 id="一、何为卷积神经网络"><a href="#一、何为卷积神经网络" class="headerlink" title="一、何为卷积神经网络"></a>一、何为卷积神经网络</h1><p>卷积神经网络是一种深度学习模型，包括了<strong>卷积层，激活函数，池化层以及全连接层</strong>等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。</p><h2 id="1-1-卷积过程"><a href="#1-1-卷积过程" class="headerlink" title="1.1 卷积过程"></a>1.1 卷积过程</h2><p>卷积层的主要作用是<strong>提取输入数据中的局部特征</strong></p><p>这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（<strong>卷积操作是通过滑动卷积核，在每个局部区域上进行“先乘再和”的运算，最终生成一个特征图，每个输出值是一个标量。</strong>）</p><p><img src="/2025/07/21/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif" alt="卷积过程"></p><h2 id="1-2-卷积层的作用"><a href="#1-2-卷积层的作用" class="headerlink" title="1.2 卷积层的作用"></a>1.2 卷积层的作用</h2>]]></content>
+    
+    
+    <categories>
+      
+      <category>深度学习</category>
+      
+      <category>卷积神经网络</category>
+      
+    </categories>
+    
+    
+  </entry>
+  
+  
+  
+  <entry>
+    <title>个人博客第一次提交</title>
+    <link href="/2025/07/19/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8F%90%E4%BA%A4/"/>
+    <url>/2025/07/19/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8F%90%E4%BA%A4/</url>
+    
+    <content type="html"><![CDATA[<h1 id="个人博客第一次提交，老天保佑千万别报错啊！！！"><a href="#个人博客第一次提交，老天保佑千万别报错啊！！！" class="headerlink" title="个人博客第一次提交，老天保佑千万别报错啊！！！"></a>个人博客第一次提交，老天保佑千万别报错啊！！！</h1><p><img src="/2025/07/19/%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8F%90%E4%BA%A4/lion.jpg" alt="lion"></p><p>再来个代码：</p><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><code class="hljs python"><span class="hljs-keyword">import</span> torch<br><span class="hljs-keyword">import</span> torchvision<br><span class="hljs-keyword">import</span> torch.nn <span class="hljs-keyword">as</span> nn<br><span class="hljs-keyword">from</span> torchsummary <span class="hljs-keyword">import</span> summary<br><br><span class="hljs-keyword">class</span> <span class="hljs-title class_">Network</span>(nn.Module):<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">__init__</span>(<span class="hljs-params">self, input_size,output_size</span>):<br>        <span class="hljs-built_in">super</span>(Network,<span class="hljs-variable language_">self</span>).__init__()<br><br>        <span class="hljs-variable language_">self</span>.model = nn.Sequential(<br>            nn.Flatten(),<br>            nn.Linear(input_size,<span class="hljs-number">512</span>),<br>            nn.BatchNorm1d(<span class="hljs-number">512</span>),<br>            nn.ReLU(),<br><br>            nn.Linear(<span class="hljs-number">512</span>,<span class="hljs-number">256</span>),<br>            nn.BatchNorm1d(<span class="hljs-number">256</span>),<br>            nn.Linear(<span class="hljs-number">256</span>,<span class="hljs-number">128</span>),<br>            nn.ReLU(),<br><br>            nn.BatchNorm1d(<span class="hljs-number">128</span>),<br>            nn.ReLU(),<br>            nn.Linear(<span class="hljs-number">128</span>,output_size)<br>        )<br><br>        <span class="hljs-keyword">for</span> m <span class="hljs-keyword">in</span> <span class="hljs-variable language_">self</span>.modules():<br>            <span class="hljs-keyword">if</span> <span class="hljs-built_in">isinstance</span>(m, nn.Linear):<br>                <span class="hljs-comment"># 正态分布初始化</span><br>                nn.init.normal_(m.weight, <span class="hljs-number">0</span>, <span class="hljs-number">0.01</span>)<br>                <span class="hljs-keyword">if</span> m.bias <span class="hljs-keyword">is</span> <span class="hljs-keyword">not</span> <span class="hljs-literal">None</span>:<br>                    nn.init.constant_(m.bias, <span class="hljs-number">0</span>)<br>    <span class="hljs-keyword">def</span> <span class="hljs-title function_">forward</span>(<span class="hljs-params">self,x</span>):<br>        <span class="hljs-keyword">return</span> <span class="hljs-variable language_">self</span>.model(x)<br>    <br><span class="hljs-comment"># if __name__ == &quot;__main__&quot;:</span><br><span class="hljs-comment">#     network = Network(input_size=1*28*28,output_size=10)</span><br><span class="hljs-comment">#     # print(network)</span><br><span class="hljs-comment">#     torch.manual_seed(0)</span><br><span class="hljs-comment">#     # x = torch.randn((1,28,28))</span><br><span class="hljs-comment">#     # output = network(x)</span><br><span class="hljs-comment">#     summary(network,input_size=(1, 28, 28),batch_size=16,device=&quot;cpu&quot;)</span><br><br></code></pre></td></tr></table></figure>]]></content>
+    
+    
+    <categories>
+      
+      <category>test</category>
+      
+    </categories>
+    
+    
+  </entry>
+  
+  
+  
+  
+</search>
