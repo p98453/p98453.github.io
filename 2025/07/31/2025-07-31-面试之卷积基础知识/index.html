@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  
+  <title>面试之卷积基础知识 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="01-卷积基础知识问：简述卷积基本操作，分析其与全连接层的区别答：卷积操作是卷积神经网络的核心，用于提取数据的局部特征，他的两大特性是局部连接，参数共享。 卷积层通过一个卷积核在输入数据上滑动，逐步将与卷积核对应的元素相乘后求和得到一个标量值，最终生成一个输出特征图，通过局部连接和参数共享，能够高效的提取局部特征，同时减少参数量 而全连接层中的不同神经元是的参数不同，数量较多，计算量也更大。他将卷">
+<meta property="og:type" content="article">
+<meta property="og:title" content="面试之卷积基础知识">
+<meta property="og:url" content="http://example.com/2025/07/31/2025-07-31-%E9%9D%A2%E8%AF%95%E4%B9%8B%E5%8D%B7%E7%A7%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="01-卷积基础知识问：简述卷积基本操作，分析其与全连接层的区别答：卷积操作是卷积神经网络的核心，用于提取数据的局部特征，他的两大特性是局部连接，参数共享。 卷积层通过一个卷积核在输入数据上滑动，逐步将与卷积核对应的元素相乘后求和得到一个标量值，最终生成一个输出特征图，通过局部连接和参数共享，能够高效的提取局部特征，同时减少参数量 而全连接层中的不同神经元是的参数不同，数量较多，计算量也更大。他将卷">
+<meta property="og:locale" content="en_US">
+<meta property="article:published_time" content="2025-07-31T11:42:36.000Z">
+<meta property="article:modified_time" content="2025-07-31T11:43:09.071Z">
+<meta property="article:author" content="John Doe">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="shortcut icon" href="/favicon.png">
+  
+  
+  
+<link rel="stylesheet" href="/css/style.css">
+
+  
+    
+<link rel="stylesheet" href="/fancybox/jquery.fancybox.min.css">
+
+  
+  
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fork-awesome@1.2.0/css/fork-awesome.min.css">
+
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"><span class="fa fa-bars"></span></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+        
+          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+        
+        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+
+      <div class="outer">
+        <section id="main"><article id="post-2025-07-31-面试之卷积基础知识" class="h-entry article article-type-post" itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+  <div class="article-meta">
+    <a href="/2025/07/31/2025-07-31-%E9%9D%A2%E8%AF%95%E4%B9%8B%E5%8D%B7%E7%A7%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" class="article-date">
+  <time class="dt-published" datetime="2025-07-31T11:42:36.000Z" itemprop="datePublished">2025-07-31</time>
+</a>
+    
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%9D%A2%E8%AF%95/">面试</a>
+  </div>
+
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="p-name article-title" itemprop="headline name">
+      面试之卷积基础知识
+    </h1>
+  
+
+      </header>
+    
+    <div class="e-content article-entry" itemprop="articleBody">
+      
+        <h1 id="01-卷积基础知识"><a href="#01-卷积基础知识" class="headerlink" title="01-卷积基础知识"></a>01-卷积基础知识</h1><h2 id="问：简述卷积基本操作，分析其与全连接层的区别"><a href="#问：简述卷积基本操作，分析其与全连接层的区别" class="headerlink" title="问：简述卷积基本操作，分析其与全连接层的区别"></a>问：简述卷积基本操作，分析其与全连接层的区别</h2><p>答：卷积操作是卷积神经网络的核心，用于提取数据的局部特征，他的两大特性是<strong>局部连接，参数共享。</strong></p>
+<p><strong>卷积层通过一个卷积核在输入数据上滑动，逐步将与卷积核对应的元素相乘后求和得到一个标量值，最终生成一个输出特征图，通过局部连接和参数共享，能够高效的提取局部特征，同时减少参数量</strong></p>
+<p>而全连接层中的不同神经元是的参数不同，数量较多，计算量也更大。他将卷积层提取的特征进行综合处理，输出最终的预测结果，适合处理一维的特征向量。</p>
+<h2 id="问：卷积神经网络中，如何计算各层感受野大小"><a href="#问：卷积神经网络中，如何计算各层感受野大小" class="headerlink" title="问：卷积神经网络中，如何计算各层感受野大小"></a>问：卷积神经网络中，如何计算各层感受野大小</h2><p>答：感受野是指网络中某个神经元能够感知到的输入数据的区域大小，感受野越大，神经元能够感知到的输入数据的范围就越广<br>$$<br>R_i &#x3D; k_i + (R_{i-1} - 1) \cdot s_{i-1}<br>$$<br>其中R是感受野，k是卷积核大小，s是步长</p>
+<h2 id="问：卷积层，池化层，全连接层的作用是什么？"><a href="#问：卷积层，池化层，全连接层的作用是什么？" class="headerlink" title="问：卷积层，池化层，全连接层的作用是什么？"></a>问：卷积层，池化层，全连接层的作用是什么？</h2><p>答：</p>
+<ul>
+<li><strong>卷积层</strong>：提取输入数据的局部特征，通过多层结构逐步提取更高级别的特征。<strong>（特征提取）</strong></li>
+<li><strong>池化层</strong>：降低特征图的空间维度，保留重要信息，减少计算量，增强平移不变性。<strong>（降维）</strong></li>
+<li><strong>全连接层</strong>：综合处理提取的特征，输出最终的分类或回归结果。<strong>（分类）</strong></li>
+</ul>
+<h1 id="02-卷积的变种"><a href="#02-卷积的变种" class="headerlink" title="02-卷积的变种"></a>02-卷积的变种</h1><h2 id="问：简述分组卷积及其应用场景"><a href="#问：简述分组卷积及其应用场景" class="headerlink" title="问：简述分组卷积及其应用场景"></a>问：简述分组卷积及其应用场景</h2><p>答：分组卷积将输入通道分成多个组进行独立的卷积运算，能够显著提高计算效率盒模型的非线性能力</p>
+<p>目前分组卷积更多被用来构建用于移动设备的小型网络结构，例如深度可分离卷积</p>
+<h1 id="03-卷积神经网络的整体结构"><a href="#03-卷积神经网络的整体结构" class="headerlink" title="03-卷积神经网络的整体结构"></a>03-卷积神经网络的整体结构</h1><h2 id="问：简述经典卷积神经网络发展和变迁"><a href="#问：简述经典卷积神经网络发展和变迁" class="headerlink" title="问：简述经典卷积神经网络发展和变迁"></a>问：简述经典卷积神经网络发展和变迁</h2><p>答：LeNet：<strong>简单的卷积层和池化层堆叠</strong>，参数有限，难以处理复杂的图像任务，用于识别手写数字</p>
+<p>AlexNet：<strong>引入RELU激活函数</strong>解决了梯度消失的问题，加速了训练；<strong>使用Dropout</strong>来防止过拟合；使用<strong>GPU</strong>对模型进行加速。但是网络较深，参数量巨大</p>
+<p>VGG：使用<strong>3×3卷积核替代大卷积核</strong>，减少了参数量的同时通过堆叠小卷积核增强了模型的非线性能力。但是参数量巨大</p>
+<p>GoogLeNet：使用并行的卷积和池化操作的<strong>Inception模块</strong>增加网络深度和宽度，同时减小参数量；在分类的最后使用<strong>全局平均池化</strong>提高模型的泛化能力</p>
+<p>ResNet：通过残<strong>差模块</strong>解决了深层网络训练的梯度消失问题，应用<strong>批量归一化</strong>加速了模型训练过程</p>
+<h1 id="04-卷积神经网络基础组件"><a href="#04-卷积神经网络基础组件" class="headerlink" title="04-卷积神经网络基础组件"></a>04-卷积神经网络基础组件</h1><h2 id="问：批量归一化是为了解决什么问题？它的参数有什么意义？在网络中一般放在什么位置？☆"><a href="#问：批量归一化是为了解决什么问题？它的参数有什么意义？在网络中一般放在什么位置？☆" class="headerlink" title="问：批量归一化是为了解决什么问题？它的参数有什么意义？在网络中一般放在什么位置？☆"></a>问：批量归一化是为了解决什么问题？它的参数有什么意义？在网络中一般放在什么位置？☆</h2><p>答：批量归一化主要用于解决“<strong>内部协变量偏移</strong>”的问题（训练过程中，<strong>每一层的输入分布会随着前面层的参数更新而发生变化</strong>。这种输入分布的变化会影响网络的训练速度和稳定性，导致训练过程变得复杂且难以收敛），批量归一化通过<strong>归一化每一层的输入，使均值为0，方差为1，从而稳定训练过程，加速收敛，并且一定程度上环节梯度消失和爆炸的问题</strong></p>
+<p>BN引入两个参数（在反向传播中更新）：缩放参数γ：恢复特征尺度；偏移参数β：恢复特征的偏移<br>$$<br>y &#x3D; \gamma \hat{x} + \beta<br>$$<br><strong>接收上一层输出作为x，经过变换的y输入下一层</strong></p>
+<p><strong>位置：激活函数前后</strong></p>
+<h2 id="问：用于分类任务的卷积神经网络的最后几层一般是什么层？可以用什么来替代？"><a href="#问：用于分类任务的卷积神经网络的最后几层一般是什么层？可以用什么来替代？" class="headerlink" title="问：用于分类任务的卷积神经网络的最后几层一般是什么层？可以用什么来替代？"></a>问：用于分类任务的卷积神经网络的最后几层一般是什么层？可以用什么来替代？</h2><p>答：网络末端一般是<strong>全连接层</strong>，也可以用<strong>全局平均池化</strong>来替代，能够使<strong>参数量和计算量大大降低，并且具有较好的可解释性</strong></p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://example.com/2025/07/31/2025-07-31-%E9%9D%A2%E8%AF%95%E4%B9%8B%E5%8D%B7%E7%A7%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/" data-id="cmdyamvxy000hjg5n31yh7yw4" data-title="面试之卷积基础知识" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+    <a href="/2025/08/04/2025-08-04-yolov5%E7%90%86%E8%AE%BA%E5%8F%8A%E5%AE%9E%E6%93%8D/" id="article-nav-newer" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Newer</strong>
+      <div class="article-nav-title">
+        
+          yolov5源码解析及实操
+        
+      </div>
+    </a>
+  
+  
+    <a href="/2025/07/31/2025-07-31-yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">yolov1-v3原理与实战</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Categories</h3>
+    <div class="widget">
+      <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/test/">test</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/yolo%E7%B3%BB%E5%88%97/">yolo系列</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">卷积神经网络</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%9D%A2%E8%AF%95/">面试</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2025/08/04/2025-08-04-yolov5%E7%90%86%E8%AE%BA%E5%8F%8A%E5%AE%9E%E6%93%8D/">yolov5源码解析及实操</a>
+          </li>
+        
+          <li>
+            <a href="/2025/07/31/2025-07-31-%E9%9D%A2%E8%AF%95%E4%B9%8B%E5%8D%B7%E7%A7%AF%E5%9F%BA%E7%A1%80%E7%9F%A5%E8%AF%86/">面试之卷积基础知识</a>
+          </li>
+        
+          <li>
+            <a href="/2025/07/31/2025-07-31-yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/">yolov1-v3原理与实战</a>
+          </li>
+        
+          <li>
+            <a href="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/">yolo目标检测基础</a>
+          </li>
+        
+          <li>
+            <a href="/2025/07/22/2025-07-22-%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BLetNet/">经典神经网络之LeNet</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      
+      &copy; 2025 John Doe<br>
+      Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+
+<script src="/js/jquery-3.6.4.min.js"></script>
+
+
+
+  
+<script src="/fancybox/jquery.fancybox.min.js"></script>
+
+
+
+
+<script src="/js/script.js"></script>
+
+
+
+
+
+  </div>
+</body>
+</html>
