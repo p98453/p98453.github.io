@@ -4,15 +4,15 @@
   <meta charset="utf-8">
   
   
-  <title>卷积神经网络（CNN）原理 | Hexo</title>
+  <title>卷积神经网络（CNN）原理 | 小牛壮士</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <meta name="description" content="前言：何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 CNN的三大特性：局部连接，权重共享，池化  一、卷积层1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过滑">
 <meta property="og:type" content="article">
 <meta property="og:title" content="卷积神经网络（CNN）原理">
 <meta property="og:url" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/index.html">
-<meta property="og:site_name" content="Hexo">
+<meta property="og:site_name" content="小牛壮士">
 <meta property="og:description" content="前言：何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 CNN的三大特性：局部连接，权重共享，池化  一、卷积层1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过滑">
-<meta property="og:locale" content="en_US">
+<meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/CNN.png">
 <meta property="og:image" content="http://example.com/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif">
 <meta property="og:image" content="http://example.com/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E5%B0%BA%E5%AF%B8%E8%AE%A1%E7%AE%97.png">
@@ -20,11 +20,11 @@
 <meta property="og:image" content="http://example.com/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/LetNet5%E7%BB%93%E6%9E%84%E5%9B%BE.png">
 <meta property="article:published_time" content="2025-07-21T06:32:05.000Z">
 <meta property="article:modified_time" content="2025-07-21T11:46:55.504Z">
-<meta property="article:author" content="John Doe">
+<meta property="article:author" content="lin">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:image" content="http://example.com/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/CNN.png">
   
-    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+    <link rel="alternate" href="/atom.xml" title="小牛壮士" type="application/atom+xml">
   
   
     <link rel="shortcut icon" href="/favicon.png">
@@ -51,8 +51,12 @@
   <div id="header-outer" class="outer">
     <div id="header-title" class="inner">
       <h1 id="logo-wrap">
-        <a href="/" id="logo">Hexo</a>
+        <a href="/" id="logo">小牛壮士</a>
       </h1>
+      
+        <h2 id="subtitle-wrap">
+          <a href="/" id="subtitle">博客重搭建</a>
+        </h2>
       
     </div>
     <div id="header-inner" class="inner">
@@ -67,12 +71,12 @@
       <nav id="sub-nav">
         
         
-          <a class="nav-icon" href="/atom.xml" title="RSS Feed"><span class="fa fa-rss"></span></a>
+          <a class="nav-icon" href="/atom.xml" title="RSS 订阅"><span class="fa fa-rss"></span></a>
         
-        <a class="nav-icon nav-search-btn" title="Search"><span class="fa fa-search"></span></a>
+        <a class="nav-icon nav-search-btn" title="搜索"><span class="fa fa-search"></span></a>
       </nav>
       <div id="search-form-wrap">
-        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="搜索"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://example.com"></form>
       </div>
     </div>
   </div>
@@ -135,7 +139,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/" data-id="cmdyas9ut0001wk5n2375fvb3" data-title="卷积神经网络（CNN）原理" class="article-share-link"><span class="fa fa-share">Share</span></a>
+      <a data-url="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/" data-id="cmdyayk8w0001nw5nd51wdu4h" data-title="卷积神经网络（CNN）原理" class="article-share-link"><span class="fa fa-share">分享</span></a>
       
       
       
@@ -146,7 +150,7 @@
 <nav id="article-nav">
   
     <a href="/2025/07/22/2025-07-22-%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BLetNet/" id="article-nav-newer" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Newer</strong>
+      <strong class="article-nav-caption">前一篇</strong>
       <div class="article-nav-title">
         
           经典神经网络之LeNet
@@ -156,7 +160,7 @@
   
   
     <a href="/2025/07/19/2025-07-19-%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8F%90%E4%BA%A4/" id="article-nav-older" class="article-nav-link-wrap">
-      <strong class="article-nav-caption">Older</strong>
+      <strong class="article-nav-caption">后一篇</strong>
       <div class="article-nav-title">个人博客第一次提交</div>
     </a>
   
@@ -172,7 +176,7 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Categories</h3>
+    <h3 class="widget-title">分类</h3>
     <div class="widget">
       <ul class="category-list"><li class="category-list-item"><a class="category-list-link" href="/categories/test/">test</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/yolo%E7%B3%BB%E5%88%97/">yolo系列</a></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/">深度学习</a><ul class="category-list-child"><li class="category-list-item"><a class="category-list-link" href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">卷积神经网络</a></li></ul></li><li class="category-list-item"><a class="category-list-link" href="/categories/%E9%9D%A2%E8%AF%95/">面试</a></li></ul>
     </div>
@@ -187,9 +191,9 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Archives</h3>
+    <h3 class="widget-title">归档</h3>
     <div class="widget">
-      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">August 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">July 2025</a></li></ul>
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/08/">八月 2025</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2025/07/">七月 2025</a></li></ul>
     </div>
   </div>
 
@@ -197,7 +201,7 @@
   
     
   <div class="widget-wrap">
-    <h3 class="widget-title">Recent Posts</h3>
+    <h3 class="widget-title">最新文章</h3>
     <div class="widget">
       <ul>
         
@@ -234,7 +238,7 @@
   <div class="outer">
     <div id="footer-info" class="inner">
       
-      &copy; 2025 John Doe<br>
+      &copy; 2025 lin<br>
       Powered by <a href="https://hexo.io/" target="_blank">Hexo</a>
     </div>
   </div>
