@@ -1,35 +1,434 @@
-extends includes/layout.pug
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-block content
-  #post
-    if top_img === false
-      include includes/header/post-info.pug
+<link rel="stylesheet" href="/css/main.css">
 
-    article#article-container.container.post-content
-      if theme.noticeOutdate.enable && page.noticeOutdate !== false
-        include includes/post/outdate-notice.pug
-      else
-        !=page.content
-    include includes/post/post-copyright.pug
-    .tag_share
-      if (page.tags.length > 0 && theme.post_meta.post.tags)
-        .post-meta__tag-list
-          each item, index in page.tags.data
-            a(href=url_for(item.path)).post-meta__tags #[=item.name]
-      include includes/third-party/share/index.pug
 
-    if theme.reward.enable && theme.reward.QR_code
-      !=partial('includes/post/reward', {}, {cache: true})
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
-    //- ad
-    if theme.ad && theme.ad.post
-      .ads-wrap!=theme.ad.post
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
 
-    if theme.post_pagination
-      include includes/pagination.pug
-    if theme.related_post && theme.related_post.enable
-      != related_posts(page,site.posts)
+  <meta name="description" content="前言：何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 CNN的三大特性：局部连接，权重共享，池化   一、卷积层1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过">
+<meta property="og:type" content="article">
+<meta property="og:title" content="卷积神经网络（CNN）原理">
+<meta property="og:url" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="前言：何为卷积神经网络卷积神经网络是一种深度学习模型，包括了卷积层，激活函数，池化层以及全连接层等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。 CNN的三大特性：局部连接，权重共享，池化   一、卷积层1.1 卷积过程卷积层的主要作用是提取输入数据中的局部特征 这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（卷积操作是通过">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/CNN.png">
+<meta property="og:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif">
+<meta property="og:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E5%B0%BA%E5%AF%B8%E8%AE%A1%E7%AE%97.png">
+<meta property="og:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E6%B1%A0%E5%8C%96%E5%B1%82%E5%8A%A8%E7%94%BB%E6%BC%94%E7%A4%BA01.webp">
+<meta property="og:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-07-21%20190547.png">
+<meta property="og:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/LetNet5%E7%BB%93%E6%9E%84%E5%9B%BE.png">
+<meta property="article:published_time" content="2025-07-21T06:32:05.000Z">
+<meta property="article:modified_time" content="2025-07-21T11:46:55.504Z">
+<meta property="article:author" content="lin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/CNN.png">
 
-    if page.comments !== false && theme.comments.use
-      - var commentsJsLoad = true
-      !=partial('includes/third-party/comments/index', {}, {cache: true})
+<link rel="canonical" href="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>卷积神经网络（CNN）原理 | 小牛壮士</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">小牛壮士</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">博客重搭建</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="lin">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小牛壮士">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          卷积神经网络（CNN）原理
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2025-07-21 14:32:05 / 修改时间：19:46:55" itemprop="dateCreated datePublished" datetime="2025-07-21T14:32:05+08:00">2025-07-21</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/" itemprop="url" rel="index"><span itemprop="name">深度学习</span></a>
+                </span>
+                  ，
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0/%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" itemprop="url" rel="index"><span itemprop="name">卷积神经网络</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="前言：何为卷积神经网络"><a href="#前言：何为卷积神经网络" class="headerlink" title="前言：何为卷积神经网络"></a>前言：何为卷积神经网络</h1><p>卷积神经网络是一种深度学习模型，包括了<strong>卷积层，激活函数，池化层以及全连接层</strong>等等，他的设计灵感来自于生物学中的视觉系统，旨在模拟人类视觉处理的方式。</p>
+<p><strong>CNN的三大特性：局部连接，权重共享，池化</strong></p>
+<img src="/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/CNN.png" class="" title="CNN结构">
+
+<h1 id="一、卷积层"><a href="#一、卷积层" class="headerlink" title="一、卷积层"></a>一、卷积层</h1><h2 id="1-1-卷积过程"><a href="#1-1-卷积过程" class="headerlink" title="1.1 卷积过程"></a>1.1 卷积过程</h2><p>卷积层的主要作用是<strong>提取输入数据中的局部特征</strong></p>
+<p>这张动画中蓝色的框就是指一个数据窗口，红色框为卷积核（滤波器），最后得到的绿色方形就是卷积的结果（<strong>卷积操作是通过滑动卷积核，在每个局部区域上进行“先乘再和”的运算，最终生成一个特征图，每个输出值是一个标量。</strong>）</p>
+<img src="/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/d0172774f7e42ae2f6310b63e59b4906.gif" class="" title="卷积过程">
+
+<h2 id="1-2-卷积层的作用以及涉及的超参数详解"><a href="#1-2-卷积层的作用以及涉及的超参数详解" class="headerlink" title="1.2 卷积层的作用以及涉及的超参数详解"></a>1.2 卷积层的作用以及涉及的超参数详解</h2><p><strong>卷积层主要用来提取局部特征</strong>。</p>
+<p>在实际使用中涉及到的参数有：</p>
+<p>卷积核大小：<strong>决定了卷积核覆盖的局部区域大小，影响特征提取的粒度</strong>。<strong>较小</strong>的卷积核可以捕捉更细粒度的特征，<strong>适合提取边缘和纹理</strong>；<strong>较大</strong>的卷积核可以<strong>捕捉更广泛的特征</strong>，但计算量更大。</p>
+<p>卷积核形状参数一定要是<strong>奇数</strong>，因为奇数大小的卷积核具有<strong>唯一的中心像素</strong>，便于在卷积操作中<strong>均匀取样并保持对称性，同时有助于处理图像边缘，避免模糊和信息损失</strong>。</p>
+<p>步长：每次滑动的位置，控制卷积核每次移动的像素数，影响<strong>输出特征图的尺寸</strong></p>
+<p>填充：在输入数据的边缘添加额外的像素（<strong>通常为零</strong>），以控制<strong>输出特征图的尺寸。</strong></p>
+<h2 id="1-3-特征图尺寸计算公式（重要）"><a href="#1-3-特征图尺寸计算公式（重要）" class="headerlink" title="1.3 特征图尺寸计算公式（重要）"></a>1.3 特征图尺寸计算公式（重要）</h2><img src="/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E5%B0%BA%E5%AF%B8%E8%AE%A1%E7%AE%97.png" class="" title="特征图计算公式">
+
+<h1 id="二、池化层"><a href="#二、池化层" class="headerlink" title="二、池化层"></a>二、池化层</h1><p>池化层的主要作用是<strong>对非线性激活后的结果进行下采样</strong>，<strong>以减少参数的数量，避免过拟合，并提高模型的处理速度，提高计算速度，同时提高所提取特征的鲁棒性</strong>。</p>
+<p><strong>分为最大池化和平均池化</strong></p>
+<img src="/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E6%B1%A0%E5%8C%96%E5%B1%82%E5%8A%A8%E7%94%BB%E6%BC%94%E7%A4%BA01.webp" class="" title="最大池化层动画演示">
+
+<h1 id="三、多通道卷积"><a href="#三、多通道卷积" class="headerlink" title="三、多通道卷积"></a>三、多通道卷积</h1><p>对于彩色图片有RGB三个<a target="_blank" rel="noopener" href="https://so.csdn.net/so/search?q=%E9%80%9A%E9%81%93&spm=1001.2101.3001.7020">通道</a>，需要处理多输入通道的场景。输出特征图往往也会具有多个通道，而且在神经网络的计算中常常是把一个批次的样本放在一起计算，最后将每个通道特征图对应位置进行相加得到一张新的特征图，所以卷积算子需要具有批量处理多输入和多输出通道数据的功能。</p>
+<img src="/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/%E5%B1%8F%E5%B9%95%E6%88%AA%E5%9B%BE%202025-07-21%20190547.png" class="" title="多通道卷积">
+
+<h1 id="四、构建一个简单的卷积神经网络"><a href="#四、构建一个简单的卷积神经网络" class="headerlink" title="四、构建一个简单的卷积神经网络"></a>四、构建一个简单的卷积神经网络</h1><p>下面我们将以最经典的LetNet为案例来构建一个简单的CNN网络骨架</p>
+<p>首先我们先贴出LetNet的网络结构图如下</p>
+<img src="/2025/07/21/2025-07-21-%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%EF%BC%88CNN%EF%BC%89%E5%8E%9F%E7%90%86/LetNet5%E7%BB%93%E6%9E%84%E5%9B%BE.png" class="" title="LetNet5">
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> sympy <span class="keyword">import</span> Sum</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">from</span> torchsummary <span class="keyword">import</span> summary</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">LeNet</span>(nn.Module):</span><br><span class="line">    <span class="string">&quot;&quot;&quot;</span></span><br><span class="line"><span class="string">    下面是比较详细的参数名，具体参数值详见结构图</span></span><br><span class="line"><span class="string">    &quot;&quot;&quot;</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self</span>):</span><br><span class="line">        <span class="built_in">super</span>(LeNet,<span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.model = nn.Sequential(</span><br><span class="line">            <span class="comment"># 最初输入卷积核的维度in_channels设置为1，代表输入灰度图的通道数</span></span><br><span class="line">            nn.Conv2d(in_channels=<span class="number">1</span>, out_channels=<span class="number">6</span>, kernel_size=<span class="number">5</span>, padding=<span class="number">2</span>),<span class="comment"># outchannel即为卷积核维度</span></span><br><span class="line">            nn.Sigmoid(),<span class="comment"># 引入非线性特性</span></span><br><span class="line">            nn.AvgPool2d(kernel_size=<span class="number">2</span>, stride=<span class="number">2</span>),</span><br><span class="line">            nn.Conv2d(in_channels=<span class="number">6</span>, out_channels=<span class="number">16</span>, kernel_size=<span class="number">5</span>, padding=<span class="number">0</span>),</span><br><span class="line">            nn.AvgPool2d(kernel_size=<span class="number">2</span>),</span><br><span class="line">            nn.Flatten(),<span class="comment"># 不要忘记展平操作</span></span><br><span class="line">            nn.Linear(in_features=<span class="number">16</span>*<span class="number">5</span>*<span class="number">5</span>, out_features=<span class="number">120</span>),<span class="comment"># 这里需要根据前面的池化层的输出尺寸来计算in_features</span></span><br><span class="line">            nn.Linear(in_features=<span class="number">120</span>, out_features=<span class="number">84</span>),</span><br><span class="line">            nn.Linear(in_features=<span class="number">84</span>, out_features=<span class="number">10</span>)</span><br><span class="line">        )</span><br><span class="line"></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self,<span class="built_in">input</span></span>):</span><br><span class="line">        output = <span class="variable language_">self</span>.model(<span class="built_in">input</span>)</span><br><span class="line">        <span class="keyword">return</span> output</span><br><span class="line"></span><br><span class="line">letnet = LeNet()</span><br><span class="line"><span class="built_in">print</span>(summary(letnet,input_size=(<span class="number">1</span>,<span class="number">28</span>,<span class="number">28</span>),batch_size=<span class="number">8</span>))</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>最终运行结果：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">----------------------------------------------------------------</span><br><span class="line">        Layer (type)               Output Shape         Param #</span><br><span class="line">================================================================</span><br><span class="line">            Conv2d-1             [8, 6, 28, 28]             156</span><br><span class="line">           Sigmoid-2             [8, 6, 28, 28]               0</span><br><span class="line">         AvgPool2d-3             [8, 6, 14, 14]               0</span><br><span class="line">            Conv2d-4            [8, 16, 10, 10]           2,416</span><br><span class="line">         AvgPool2d-5              [8, 16, 5, 5]               0</span><br><span class="line">           Flatten-6                   [8, 400]               0</span><br><span class="line">            Linear-7                   [8, 120]          48,120</span><br><span class="line">            Linear-8                    [8, 84]          10,164</span><br><span class="line">            Linear-9                    [8, 10]             850</span><br><span class="line">================================================================</span><br><span class="line">Total params: 61,706</span><br><span class="line">Trainable params: 61,706</span><br><span class="line">Non-trainable params: 0</span><br><span class="line">----------------------------------------------------------------</span><br><span class="line">Input size (MB): 0.02</span><br><span class="line">Forward/backward pass size (MB): 0.81</span><br><span class="line">Params size (MB): 0.24</span><br><span class="line">Estimated Total Size (MB): 1.06</span><br><span class="line">----------------------------------------------------------------</span><br><span class="line">None</span><br></pre></td></tr></table></figure>
+
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/19/2025-07-19-%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2%E7%AC%AC%E4%B8%80%E6%AC%A1%E6%8F%90%E4%BA%A4/" rel="prev" title="个人博客第一次提交">
+      <i class="fa fa-chevron-left"></i> 个人博客第一次提交
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/07/22/2025-07-22-%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BLetNet/" rel="next" title="经典神经网络之LeNet">
+      经典神经网络之LeNet <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A%E4%BD%95%E4%B8%BA%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="nav-number">1.</span> <span class="nav-text">前言：何为卷积神经网络</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E5%8D%B7%E7%A7%AF%E5%B1%82"><span class="nav-number">2.</span> <span class="nav-text">一、卷积层</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-1-%E5%8D%B7%E7%A7%AF%E8%BF%87%E7%A8%8B"><span class="nav-number">2.1.</span> <span class="nav-text">1.1 卷积过程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-2-%E5%8D%B7%E7%A7%AF%E5%B1%82%E7%9A%84%E4%BD%9C%E7%94%A8%E4%BB%A5%E5%8F%8A%E6%B6%89%E5%8F%8A%E7%9A%84%E8%B6%85%E5%8F%82%E6%95%B0%E8%AF%A6%E8%A7%A3"><span class="nav-number">2.2.</span> <span class="nav-text">1.2 卷积层的作用以及涉及的超参数详解</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-3-%E7%89%B9%E5%BE%81%E5%9B%BE%E5%B0%BA%E5%AF%B8%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F%EF%BC%88%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-number">2.3.</span> <span class="nav-text">1.3 特征图尺寸计算公式（重要）</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%B1%A0%E5%8C%96%E5%B1%82"><span class="nav-number">3.</span> <span class="nav-text">二、池化层</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E5%A4%9A%E9%80%9A%E9%81%93%E5%8D%B7%E7%A7%AF"><span class="nav-number">4.</span> <span class="nav-text">三、多通道卷积</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%9E%84%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E5%8D%B7%E7%A7%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C"><span class="nav-number">5.</span> <span class="nav-text">四、构建一个简单的卷积神经网络</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">lin</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lin</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>

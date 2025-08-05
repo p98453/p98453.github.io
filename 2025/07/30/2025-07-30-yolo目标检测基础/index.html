@@ -1,35 +1,513 @@
-extends includes/layout.pug
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 7.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
 
-block content
-  #post
-    if top_img === false
-      include includes/header/post-info.pug
+<link rel="stylesheet" href="/css/main.css">
 
-    article#article-container.container.post-content
-      if theme.noticeOutdate.enable && page.noticeOutdate !== false
-        include includes/post/outdate-notice.pug
-      else
-        !=page.content
-    include includes/post/post-copyright.pug
-    .tag_share
-      if (page.tags.length > 0 && theme.post_meta.post.tags)
-        .post-meta__tag-list
-          each item, index in page.tags.data
-            a(href=url_for(item.path)).post-meta__tags #[=item.name]
-      include includes/third-party/share/index.pug
 
-    if theme.reward.enable && theme.reward.QR_code
-      !=partial('includes/post/reward', {}, {cache: true})
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
 
-    //- ad
-    if theme.ad && theme.ad.post
-      .ads-wrap!=theme.ad.post
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"example.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
 
-    if theme.post_pagination
-      include includes/pagination.pug
-    if theme.related_post && theme.related_post.enable
-      != related_posts(page,site.posts)
+  <meta name="description" content="一、概念目标检测需要识别图片或视频帧中的物体是什么类别，并确定他们的位置**（where and what）**，通常用于多个物体的识别，并为每个示例提供一个边界框和类别标签。  目标检测的本质：使用边界框将物体在图中圈出，边界框上会存在两个指标：类别信息，置信度  yolo(you only look once)：是一个单阶段的目标检测算法，能够用于实时监测 人工智能领域的上游任务和下游任务">
+<meta property="og:type" content="article">
+<meta property="og:title" content="yolo目标检测基础">
+<meta property="og:url" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="一、概念目标检测需要识别图片或视频帧中的物体是什么类别，并确定他们的位置**（where and what）**，通常用于多个物体的识别，并为每个示例提供一个边界框和类别标签。  目标检测的本质：使用边界框将物体在图中圈出，边界框上会存在两个指标：类别信息，置信度  yolo(you only look once)：是一个单阶段的目标检测算法，能够用于实时监测 人工智能领域的上游任务和下游任务">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730191503282.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730193026126.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730193014800.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730193128880.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730194104477.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/Figure_1.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730195330071.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730195658950.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730200705615.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250731190715425.png">
+<meta property="og:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250731191843164.png">
+<meta property="article:published_time" content="2025-07-30T09:15:36.000Z">
+<meta property="article:modified_time" content="2025-07-31T11:18:44.187Z">
+<meta property="article:author" content="lin">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730191503282.png">
 
-    if page.comments !== false && theme.comments.use
-      - var commentsJsLoad = true
-      !=partial('includes/third-party/comments/index', {}, {cache: true})
+<link rel="canonical" href="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>yolo目标检测基础 | 小牛壮士</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">小牛壮士</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">博客重搭建</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="lin">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="小牛壮士">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          yolo目标检测基础
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-07-30 17:15:36" itemprop="dateCreated datePublished" datetime="2025-07-30T17:15:36+08:00">2025-07-30</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2025-07-31 19:18:44" itemprop="dateModified" datetime="2025-07-31T19:18:44+08:00">2025-07-31</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/yolo%E7%B3%BB%E5%88%97/" itemprop="url" rel="index"><span itemprop="name">yolo系列</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h1 id="一、概念"><a href="#一、概念" class="headerlink" title="一、概念"></a>一、概念</h1><p><strong>目标检测</strong>需要识别图片或视频帧中的物体是什么类别，并确定他们的位置**（where and what）**，通常用于多个物体的识别，并为每个示例提供一个边界框和类别标签。</p>
+<ul>
+<li>目标检测的本质：使用边界框将物体在图中圈出，边界框上会存在两个指标：类别信息，置信度</li>
+</ul>
+<p><strong>yolo(you only look once)</strong>：是一个单阶段的目标检测算法，能够用于实时监测</p>
+<p>人工智能领域的上游任务和下游任务</p>
+<ul>
+<li><p>上游任务通常是指为后续任务提供基础支持的任务，主要关注数据的收集、处理、模型的预训练等基础性工作。这些任务的输出通常是一个通用的模型或者数据集，可以被多个下游任务复用</p>
+</li>
+<li><p>下游任务是指在上游任务的基础上，针对具体的业务场景或应用需求进行的模型微调和应用开发。这些任务通常具有明确的目标和应用场景，需要在预训练模型的基础上进行进一步的优化和调整，以满足特定任务的需求</p>
+</li>
+</ul>
+<h1 id="二、数据标注"><a href="#二、数据标注" class="headerlink" title="二、数据标注"></a>二、数据标注</h1><p>数据标注是在图片中框选标注出我们需要模型训练用来检测的实例，用作监督模型训练的标签</p>
+<p>步骤：</p>
+<ol>
+<li><p>创建一个专门用于数据标注的虚拟环境</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">conda create -n yololabel python=3.12</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>激活虚拟环境，下载labelimg工具</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">conda activate yololabel</span><br><span class="line">pip install labelimg -i https://pypi.tuna.tsinghua.edu.cn/simpl</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>输入命令激活程序</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">labelimg</span><br></pre></td></tr></table></figure>
+
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730191503282.png" class="" title="labelimg"></li>
+</ol>
+<h1 id="三、目标检测，图像分类，图像分割的区别"><a href="#三、目标检测，图像分类，图像分割的区别" class="headerlink" title="三、目标检测，图像分类，图像分割的区别"></a>三、目标检测，图像分类，图像分割的区别</h1><p><strong>目标检测</strong>需要识别图片或视频帧中的物体是什么类别，并确定他们的位置**（where and what）**，通常用于多个物体的识别，并为每个示例提供一个边界框和类别标签。</p>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730193026126.png" class="" title="目标检测">
+
+<p><strong>图像分类</strong>是指识别图像中主要物体的类别，而不关心物体的具体位置**（what）**</p>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730193014800.png" class="" title="图像分类">
+
+<p><strong>图像分割</strong>指在图像中识别特定类别的物体，并用像素级别的标签来表示这些物体的位置。它<strong>不仅需要识别物体是什么，还需要精确地描绘物体的轮廓</strong></p>
+<ul>
+<li><strong>语义分割</strong>：将图像中的每个像素分类为不同的语义类别（如“天空”“道路”“汽车”），不区分同一类别中的不同个体。</li>
+<li><strong>实例分割</strong>：不仅将图像中的像素分类到语义类别，还能区分同一类别中的不同个体（如区分不同的汽车），并为每个个体生成独立的分割掩膜。</li>
+</ul>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730193128880.png" class="" title="语义分割">
+
+<h1 id="四、one-stage和two-stage的简要区别"><a href="#四、one-stage和two-stage的简要区别" class="headerlink" title="四、one-stage和two-stage的简要区别"></a>四、one-stage和two-stage的简要区别</h1><ul>
+<li><strong>One-stage（单阶段）检测器</strong>：直接在输入图像上预测目标的类别和位置，无需先生成候选区域，<strong>速度快但精度可能稍低</strong>。<strong>(yolo)</strong></li>
+<li><strong>Two-stage（两阶段）检测器</strong>：先生成候选区域，再对这些区域进行分类和精确定位，<strong>精度高但速度较慢。****(R-CNN、Fast R-CNN、Faster R-CNN)</strong></li>
+</ul>
+<h1 id="五、评测指标"><a href="#五、评测指标" class="headerlink" title="五、评测指标"></a>五、评测指标</h1><h2 id="5-1-边界框"><a href="#5-1-边界框" class="headerlink" title="5.1 边界框"></a>5.1 边界框</h2><p>边界框包含以下三个信息：</p>
+<ul>
+<li>类别标签：表示物体类别</li>
+<li>置信度分数：0到1之间的值</li>
+<li>边界框坐标：表示矩形框的位置和大小（x,y和w,h）</li>
+</ul>
+<h2 id="5-2-交并比（IoU）"><a href="#5-2-交并比（IoU）" class="headerlink" title="5.2 交并比（IoU）"></a>5.2 交并比（IoU）</h2><p>交并比用于评估预测框与真实框的重合程度，交集除以并集</p>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730194104477.png" class="" title="形象表示">
+
+<h2 id="5-3-置信度"><a href="#5-3-置信度" class="headerlink" title="5.3 置信度"></a>5.3 置信度</h2><p>表示模型对<strong>预测结果的可靠性或正确性的信心程度</strong>。数值越高，表示模型越有信心认为预测结果是正确的</p>
+<h2 id="5-4-混淆矩阵"><a href="#5-4-混淆矩阵" class="headerlink" title="5.4 混淆矩阵"></a>5.4 混淆矩阵</h2><p>混淆矩阵依赖于IoU值，在混淆矩阵中：</p>
+<ul>
+<li>列（Columns）：表示真实类别（True Labels）</li>
+<li>行（Rows）：表示预测类别（Predicted Labels）</li>
+<li>单元格中的数值：表示在该真实类别与预测类别组合下的样本数量</li>
+</ul>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/Figure_1.png" class="" title="混淆矩阵">
+
+<p>混淆矩阵结合以下四个统计指标，我们有精确度，召回率，准确率和F1分数来评判分类模型好坏</p>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730195330071.png" class="" title="image-20250730195330071">
+
+<h3 id="5-4-1-精确度和召回率"><a href="#5-4-1-精确度和召回率" class="headerlink" title="5.4.1 精确度和召回率"></a>5.4.1 精确度和召回率</h3><ul>
+<li>精确度：所有预测为正类的样本中预测正确的比例</li>
+<li>召回率：所有实际为正类的样本中，预测正确的比例（可以反映模型优化的可行性）</li>
+<li>F1分数：精确度和召回率的调和平均数，用于平衡这两个指标</li>
+</ul>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730195658950.png" class="" title="公式">
+
+<h1 id="六、-mAP"><a href="#六、-mAP" class="headerlink" title="六、 mAP"></a>六、 mAP</h1><h2 id="6-1-PR曲线"><a href="#6-1-PR曲线" class="headerlink" title="6.1 PR曲线"></a>6.1 PR曲线</h2><p><strong>横轴为召回率，纵轴为精确率</strong>，主要用于衡量模型在<strong>不同阈值下对正样本的识别能力</strong></p>
+<p>PR曲线通过改变分类阈值（例如，模型输出的概率阈值）来生成一系列点，<strong>每个点对应一个特定的召回率和精确率</strong>，绘制在二维平面上。随着阈值的变化，模型的预测结果会改变，从而影响召回率和精确率</p>
+<p><strong>越靠近右上角，模型性能越好</strong></p>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250730200705615.png" class="" title="PR曲线示例">
+
+<h2 id="6-2-AP"><a href="#6-2-AP" class="headerlink" title="6.2 AP"></a>6.2 AP</h2><p>通俗来讲，AP（平均精确率）是通过计算<strong>PR曲线下的面积</strong>，表示模型在不同召回率水平下的平均精确率。它是一个<strong>介于0到1之间的数值，值越高，表示模型的性能越好</strong></p>
+<h2 id="6-3-mAP"><a href="#6-3-mAP" class="headerlink" title="6.3 mAP"></a>6.3 mAP</h2><p>mAP（平均平均精度）衡量模型整体性能的综合指标，值越高表示模型在所有类别上的平均表现越好，计算步骤：</p>
+<ul>
+<li>计算每个类别的 AP：对于数据集中包含的每个类别，分别计算 AP</li>
+<li>计算 mAP：将所有类别的 AP 取平均值，得到 mAP</li>
+</ul>
+<h1 id="七、-NMS非极大值抑制"><a href="#七、-NMS非极大值抑制" class="headerlink" title="七、 NMS非极大值抑制"></a>七、 NMS非极大值抑制</h1><p>在目标检测任务中，一个物体可能被多个检测框覆盖，每个检测框都对应一个置信度，NMS用于根据置信度的大小<strong>保留置信度最高的检测框</strong>，同时<strong>抑制（即去除）与之重叠度较高的其他检测框</strong>，保留最准确的检测结果。</p>
+<p>NMS步骤：</p>
+<p><strong>①计算IoU —-&gt;②按照置信度（分类概率 × 目标存在概率）对检测框进行排序—-&gt;③选择置信度最高的检测框—-&gt;④计算其他框与当前框的 IoU—-&gt;⑤移除超过IoU阈值的框—-&gt;⑥重复到②—-&gt;⑦输出</strong></p>
+<p><strong>每个目标最终只会有一个检测框，如果NMS输出了多个结果框，可能检测目标不止一个</strong></p>
+<h1 id="八、处理速度"><a href="#八、处理速度" class="headerlink" title="八、处理速度"></a>八、处理速度</h1><p>yolo进行目标检测时会返回三个阶段的时间</p>
+<ul>
+<li>前处理阶段耗时：数据预处理</li>
+<li>网络前向传播耗时：从输入图像经过网络各层计算得到输出结果的时间</li>
+<li>后处理阶段耗时：NMS，置信度过滤，类别筛选等</li>
+</ul>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250731190715425.png" class="" title="yolov1输出为例">
+
+<h1 id="九、FPS和FLOPS"><a href="#九、FPS和FLOPS" class="headerlink" title="九、FPS和FLOPS"></a>九、FPS和FLOPS</h1><ul>
+<li>FPS（每秒帧数）：是指模型每秒钟可以处理的图像帧数，是衡量实时性的重要指标</li>
+<li>FLOPS：每秒浮点数运算次数，衡量计算设备性能</li>
+</ul>
+<h1 id="十、yolo的三层整体结构"><a href="#十、yolo的三层整体结构" class="headerlink" title="十、yolo的三层整体结构"></a>十、yolo的三层整体结构</h1><ul>
+<li>Backbone network（<strong>主干网络</strong>）：由卷积网络构成，特征提取</li>
+<li>Neck network（<strong>颈部网络</strong>）：整合主干网络输出的特征，全连接层或池化层</li>
+<li>Detection head（<strong>检测头</strong>）：进行目标检测时，输出物体类别和位置</li>
+</ul>
+<img src="/2025/07/30/2025-07-30-yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/image-20250731191843164.png" class="" title="image-20250731191843164">
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2025/07/22/2025-07-22-%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BLetNet/" rel="prev" title="经典神经网络之LeNet">
+      <i class="fa fa-chevron-left"></i> 经典神经网络之LeNet
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2025/07/31/2025-07-31-yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" rel="next" title="yolov1-v3原理与实战">
+      yolov1-v3原理与实战 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E6%A6%82%E5%BF%B5"><span class="nav-number">1.</span> <span class="nav-text">一、概念</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%95%B0%E6%8D%AE%E6%A0%87%E6%B3%A8"><span class="nav-number">2.</span> <span class="nav-text">二、数据标注</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%EF%BC%8C%E5%9B%BE%E5%83%8F%E5%88%86%E7%B1%BB%EF%BC%8C%E5%9B%BE%E5%83%8F%E5%88%86%E5%89%B2%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.</span> <span class="nav-text">三、目标检测，图像分类，图像分割的区别</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%9B%9B%E3%80%81one-stage%E5%92%8Ctwo-stage%E7%9A%84%E7%AE%80%E8%A6%81%E5%8C%BA%E5%88%AB"><span class="nav-number">4.</span> <span class="nav-text">四、one-stage和two-stage的简要区别</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E8%AF%84%E6%B5%8B%E6%8C%87%E6%A0%87"><span class="nav-number">5.</span> <span class="nav-text">五、评测指标</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-1-%E8%BE%B9%E7%95%8C%E6%A1%86"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 边界框</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-2-%E4%BA%A4%E5%B9%B6%E6%AF%94%EF%BC%88IoU%EF%BC%89"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 交并比（IoU）</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-3-%E7%BD%AE%E4%BF%A1%E5%BA%A6"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 置信度</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-4-%E6%B7%B7%E6%B7%86%E7%9F%A9%E9%98%B5"><span class="nav-number">5.4.</span> <span class="nav-text">5.4 混淆矩阵</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-1-%E7%B2%BE%E7%A1%AE%E5%BA%A6%E5%92%8C%E5%8F%AC%E5%9B%9E%E7%8E%87"><span class="nav-number">5.4.1.</span> <span class="nav-text">5.4.1 精确度和召回率</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AD%E3%80%81-mAP"><span class="nav-number">6.</span> <span class="nav-text">六、 mAP</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#6-1-PR%E6%9B%B2%E7%BA%BF"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 PR曲线</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-2-AP"><span class="nav-number">6.2.</span> <span class="nav-text">6.2 AP</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-3-mAP"><span class="nav-number">6.3.</span> <span class="nav-text">6.3 mAP</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B8%83%E3%80%81-NMS%E9%9D%9E%E6%9E%81%E5%A4%A7%E5%80%BC%E6%8A%91%E5%88%B6"><span class="nav-number">7.</span> <span class="nav-text">七、 NMS非极大值抑制</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%A4%84%E7%90%86%E9%80%9F%E5%BA%A6"><span class="nav-number">8.</span> <span class="nav-text">八、处理速度</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E4%B9%9D%E3%80%81FPS%E5%92%8CFLOPS"><span class="nav-number">9.</span> <span class="nav-text">九、FPS和FLOPS</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#%E5%8D%81%E3%80%81yolo%E7%9A%84%E4%B8%89%E5%B1%82%E6%95%B4%E4%BD%93%E7%BB%93%E6%9E%84"><span class="nav-number">10.</span> <span class="nav-text">十、yolo的三层整体结构</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">lin</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">7</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">分类</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2025</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">lin</span>
+</div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/muse.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
