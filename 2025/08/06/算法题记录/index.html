@@ -1,0 +1,167 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>算法题记录 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="2025年8月6日   123456789101112131415161718192021222324252627282930313233number_to_letter &#x3D; &#123;chr(96 + i): i for i in range(1, 27)&#125;def fn(str1,str2,number_to_letter):    steps &#x3D; []    length &#x3D; le">
+<meta property="og:type" content="article">
+<meta property="og:title" content="算法题记录">
+<meta property="og:url" content="http://example.com/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="2025年8月6日   123456789101112131415161718192021222324252627282930313233number_to_letter &#x3D; &#123;chr(96 + i): i for i in range(1, 27)&#125;def fn(str1,str2,number_to_letter):    steps &#x3D; []    length &#x3D; le">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-08-06T12:18:52.000Z">
+<meta property="article:modified_time" content="2025-08-06T12:19:39.591Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "算法题记录",
+  "url": "http://example.com/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-08-06T12:18:52.000Z",
+  "dateModified": "2025-08-06T12:19:39.591Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '算法题记录',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">算法题记录</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">算法题记录</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-06T12:18:52.000Z" title="发表于 2025-08-06 20:18:52">2025-08-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-08-06T12:19:39.591Z" title="更新于 2025-08-06 20:19:39">2025-08-06</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">数据结构与算法</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">137</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>1分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>2025年8月6日</p>
+<img src="/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/image-20250806201753876.png" class="" title="阿里云算法岗">
+
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">number_to_letter = &#123;<span class="built_in">chr</span>(<span class="number">96</span> + i): i <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="number">1</span>, <span class="number">27</span>)&#125;</span><br><span class="line"><span class="keyword">def</span> <span class="title function_">fn</span>(<span class="params">str1,str2,number_to_letter</span>):</span><br><span class="line">    steps = []</span><br><span class="line">    length = <span class="built_in">len</span>(str1)</span><br><span class="line">    <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(str2[:length])+<span class="number">1</span>):</span><br><span class="line">      </span><br><span class="line">        <span class="comment"># print(&quot;---&quot;)</span></span><br><span class="line">        step = <span class="number">0</span></span><br><span class="line">        <span class="comment"># 第一个循环是取出所有子串</span></span><br><span class="line">        str2_ = str2[i:i+length]</span><br><span class="line">        <span class="keyword">if</span> length &gt; <span class="built_in">len</span>(str2_):</span><br><span class="line">            <span class="keyword">break</span></span><br><span class="line">        <span class="built_in">print</span>(str1,str2_)</span><br><span class="line">        </span><br><span class="line">            </span><br><span class="line">        <span class="keyword">for</span> i <span class="keyword">in</span> <span class="built_in">range</span>(<span class="built_in">len</span>(str1)):</span><br><span class="line">            <span class="comment"># 第二个循环是计算每一个子串的距离</span></span><br><span class="line">            </span><br><span class="line">            left = str1[i]</span><br><span class="line">            right = str2_[i]</span><br><span class="line">            diff = <span class="built_in">abs</span>(number_to_letter[left] - number_to_letter[right])</span><br><span class="line">            <span class="keyword">if</span> diff &gt;= <span class="number">13</span>:</span><br><span class="line">              diff = <span class="number">26</span>-diff</span><br><span class="line">            step+=diff</span><br><span class="line">            <span class="comment"># print(&quot;diff&quot;,diff)</span></span><br><span class="line">        steps.append(step)</span><br><span class="line">        <span class="comment"># print(&quot;step&quot;,step)</span></span><br><span class="line">    <span class="keyword">return</span> steps</span><br><span class="line"></span><br><span class="line">str1 = <span class="string">&quot;ddhnayalcs&quot;</span></span><br><span class="line">str2 = <span class="string">&quot;tffivyioexdqifmeadcz&quot;</span></span><br><span class="line">steps = fn(str1,str2,number_to_letter)</span><br><span class="line"><span class="built_in">min</span>(steps)</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/">http://example.com/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/08/07/NLP%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/" title="NLP特征工程"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">NLP特征工程</div></div><div class="info-2"><div class="info-item-1">前言自然语言处理（NLP）是计算机科学与语言学交叉领域，旨在使计算机能够理解、生成和处理人类语言，通过算法和模型分析语言结构与语义，实现机器翻译、情感分析、语音识别等功能，推动人机交互智能化发展。 一、NLP中的特征工程特征工程在自然语言处理（NLP）中是将文本数据转换为机器学习模型可处理的数值形式的过程，通过提取词性、语法、相似度等信息，将非结构化的文本转化为对预测有用且模型能理解的特征。 说人话就是机器理解不了人类常用的字母和汉字，如果我们要进行文本处理就必须将这些转换为数值形式，也就是词向量，用这些向量来代替文字体现他们之间的语义关系，进而帮助计算机理解文本信息 举个例子，现在有“猫”，“狗”，“爱情”三个词语，通过词向量技术，将他们映射到向量空间(0.2,0.1,0.3)，(0.2,0.2,0.2)，(-0.4,-0.5,-0.2)，在词嵌入模型的最初始阶段，单词的向量通常是由随机初始化的，需要经过模型的训练（后续会介绍）。例如通过这些向量，我们可以得到他们的余弦相似性   1.1 独热编码 one - hot一个简单示例：   1.2 n-gramsn-grams是一种...</div></div></div></a><a class="pagination-related" href="/2025/07/16/yolov11%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2%E5%8F%8A%E6%A8%A1%E5%9E%8B%E5%88%86%E6%9E%90/" title="基于AutoDL云服务器部署yolov11项目及模型分析"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">基于AutoDL云服务器部署yolov11项目及模型分析</div></div><div class="info-2"><div class="info-item-1">前言因为yolov11训练需要的配置要求已经超过我电脑了，所以我还是在AutoDL上租用一台GPU来跑，租用云服务器实际上就是租用一台装配了GPU显卡的Linux虚拟机来跑自己的模型，那么我们就需要提前把自己的代码和数据通过传输软件传上服务器（也可以直接拖到窗口，但是太慢了，这里我用的软件是Xftp），下面配备了比较完整的流程，在前面的yolov5相关操作教程中写的也比较详细了，这篇博客主要是用来分析yolov11训练后产生的结果文件。 一、项目部署教程我们在注册并登录AutoDL后，选择合适型号的GPU，建议如果是学习过程的话可以租用便宜一点的，比如2080ti，相对性能也够用了   记得在选择镜像时去使用就已经创建好的yolov11镜像，可以免去很多麻烦 在容器实例中选择刚才租的实例，选择更多–无卡模式开机，这样我们在传输数据时成本就要低一点，不然他就会一直按照0.88元来扣费，无卡模式除了没有GPU，其他都是一样的   打开后我们进入vscode，下载扩展远程资源管理器   点击图标输入ssh指令和密码（在容器实例上复制），我之前登录过，就只用输密码了   完成后我们就成功...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GraphRAG的构建"/></a><div class="content"><a class="title" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建">GraphRAG的构建</a><time datetime="2025-09-07T10:56:52.000Z" title="发表于 2025-09-07 18:56:52">2025-09-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG的评估（RAGAS）和检索优化"/></a><div class="content"><a class="title" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化">RAG的评估（RAGAS）和检索优化</a><time datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vLLM的优势——KV cache与PageAttention"/></a><div class="content"><a class="title" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention">vLLM的优势——KV cache与PageAttention</a><time datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG——检索增强生成"/></a><div class="content"><a class="title" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成">RAG——检索增强生成</a><time datetime="2025-09-01T04:09:02.000Z" title="发表于 2025-09-01 12:09:02">2025-09-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="大模型的端到端全栈部署思路"/></a><div class="content"><a class="title" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路">大模型的端到端全栈部署思路</a><time datetime="2025-08-23T05:19:16.000Z" title="发表于 2025-08-23 13:19:16">2025-08-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

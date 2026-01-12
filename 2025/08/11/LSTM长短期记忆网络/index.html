@@ -1,0 +1,236 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>LSTM长短期记忆网络 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言前面说到RNN虽然能捕捉时序数据，但是在一些比较长的序列上面会出现梯度问题，而LSTM（长短期记忆网络）通过引入门控机制有效地解决了传统RNN中的梯度消失和梯度爆炸问题。 LSTM单元包含输入门、遗忘门和输出门，这些门控结构允许模型有选择性地保留或丢弃信息，从而控制信息流动。  遗忘门帮助模型决定哪些信息应该被遗忘 输入门决定哪些新信息应该被存储 输出门决定哪些信息应该被输出到下一个时间步">
+<meta property="og:type" content="article">
+<meta property="og:title" content="LSTM长短期记忆网络">
+<meta property="og:url" content="http://example.com/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="前言前面说到RNN虽然能捕捉时序数据，但是在一些比较长的序列上面会出现梯度问题，而LSTM（长短期记忆网络）通过引入门控机制有效地解决了传统RNN中的梯度消失和梯度爆炸问题。 LSTM单元包含输入门、遗忘门和输出门，这些门控结构允许模型有选择性地保留或丢弃信息，从而控制信息流动。  遗忘门帮助模型决定哪些信息应该被遗忘 输入门决定哪些新信息应该被存储 输出门决定哪些信息应该被输出到下一个时间步">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-08-11T07:47:55.000Z">
+<meta property="article:modified_time" content="2025-08-26T12:06:06.730Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "LSTM长短期记忆网络",
+  "url": "http://example.com/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-08-11T07:47:55.000Z",
+  "dateModified": "2025-08-26T12:06:06.730Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'LSTM长短期记忆网络',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">LSTM长短期记忆网络</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">LSTM长短期记忆网络</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-08-11T07:47:55.000Z" title="发表于 2025-08-11 15:47:55">2025-08-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-08-26T12:06:06.730Z" title="更新于 2025-08-26 20:06:06">2025-08-26</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>4分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>前面说到RNN虽然能捕捉时序数据，但是在一些比较长的序列上面会出现梯度问题，而LSTM（长短期记忆网络）通过引入<strong>门控机制</strong>有效地解决了传统RNN中的梯度消失和梯度爆炸问题。</p>
+<p>LSTM单元包含输入门、遗忘门和输出门，这些门控结构允许模型有选择性地保留或丢弃信息，从而控制信息流动。</p>
+<ul>
+<li>遗忘门帮助模型决定<strong>哪些信息应该被遗忘</strong></li>
+<li>输入门决定<strong>哪些新信息应该被存储</strong></li>
+<li>输出门决定<strong>哪些信息应该被输出到下一个时间步</strong></li>
+</ul>
+<p>这种设计使得LSTM能够在长时间序列中保持梯度的稳定性，避免梯度在反向传播过程中的指数级衰减或增长，从而允许模型学习并记忆长期依赖关系。</p>
+<h1 id="一、模型结构"><a href="#一、模型结构" class="headerlink" title="一、模型结构"></a>一、模型结构</h1><img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/image-20250811162250799.png" class="">
+
+<h2 id="1-1-非常精辟的理解"><a href="#1-1-非常精辟的理解" class="headerlink" title="1.1 非常精辟的理解"></a>1.1 非常精辟的理解</h2><p>LSTM单元通过<strong>当前步的输入，前一步的隐藏状态和细胞状态</strong>，得到<strong>当前步的输出</strong>和<strong>下一步的隐藏状态</strong></p>
+<p>在遗忘门得到了一个<strong>历史细胞状态保留的比例</strong>①</p>
+<p>在输入门得到了一个<strong>当前时间步的新信息②</strong>以及该<strong>新信息能被写入细胞状态的比例③</strong></p>
+<p>①与历史细胞状态相乘，<strong>保留历史细胞状态的一部分</strong>，②与③相乘，<strong>将新信息的一部分写入细胞状态</strong>，相加得到<strong>新的细胞状态④</strong></p>
+<p>在输出门结合前一步的隐藏状态得到了<strong>当前步的输出⑤</strong>，又以④得到<strong>当前步的隐藏状态⑥</strong>（当前步的输出并不独立于之前，而是既受到前一步的隐藏状态影响，也影响当前步的隐藏状态）</p>
+<h2 id="1-2-遗忘门"><a href="#1-2-遗忘门" class="headerlink" title="1.2 遗忘门"></a>1.2 遗忘门</h2><p>公式：</p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/image-20250811161558308.png" class="" title="image-20250811161558308">
+
+<p><strong>遗忘门通过接受当前时间步的输入$x_t$以及前一时间步的隐藏状态$h_{t-1}$，与遗忘门权重矩阵($W_f$，用于学习$\left[h_{t-1}, x_t\right]$中需要遗忘哪些信息)相乘后经过sigmoid函数，最终得到细胞状态中每个元素应该被保留的比例</strong></p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/605afb9ac22df3ff0f778845d16b4517-17548991052163.gif" class="">
+
+<h2 id="1-3-输入门"><a href="#1-3-输入门" class="headerlink" title="1.3 输入门"></a>1.3 输入门</h2><p>公式：</p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/image-20250811161228529.png" class="">
+
+<p><strong>它结合了输入数据和先前的细胞状态，利用sigmoid函数来确定更新的量，并通过tanh函数来产生新的候选值，然后结合遗忘门确定最终的更新</strong></p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/3ede78ba0a5b8f8f378db46a0b29e98c.gif" class="">
+
+<h2 id="1-4-细胞状态更新"><a href="#1-4-细胞状态更新" class="headerlink" title="1.4 细胞状态更新"></a>1.4 细胞状态更新</h2><p>公式：</p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/image-20250811161524390.png" class="">
+
+<p>遗忘门找到了需要忘掉的信息$ f_t $后，再将它与旧状态相乘，丢弃掉确定需要丢弃的信息。再将结果加上$ i_t \times C_t $使细胞状态获得新的信息，这样就完成了细胞状态的更新。</p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/8779a9f345fbfe34a4c452c621fc339b.gif" class="">
+
+<h2 id="1-5-输出门"><a href="#1-5-输出门" class="headerlink" title="1.5 输出门"></a>1.5 输出门</h2><p>公式：</p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/image-20250811161831570.png" class="">
+
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/4f3e97ef1b375ef4c1c7c29bcb667011.gif" class="">
+
+<h1 id="二、LSTM的维度解析"><a href="#二、LSTM的维度解析" class="headerlink" title="二、LSTM的维度解析"></a>二、LSTM的维度解析</h1><p>模型定义代码：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch.nn <span class="keyword">as</span> nn</span><br><span class="line"><span class="keyword">import</span> torch</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">lstm</span>(nn.Module):</span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">__init__</span>(<span class="params">self, word_size, input_dim=<span class="number">256</span>, output_dim=<span class="number">2</span>, hidden_dim=<span class="number">128</span>, num_layers=<span class="number">2</span></span>):</span><br><span class="line">        <span class="built_in">super</span>(lstm, <span class="variable language_">self</span>).__init__()</span><br><span class="line">        <span class="variable language_">self</span>.word_size = word_size  <span class="comment"># 词汇表大小</span></span><br><span class="line">        <span class="variable language_">self</span>.input_dim = input_dim  <span class="comment"># 词向量维度，也是输入特征维度</span></span><br><span class="line">        <span class="variable language_">self</span>.output_dim = output_dim  <span class="comment"># 输出维度</span></span><br><span class="line">        <span class="variable language_">self</span>.hidden_dim = hidden_dim  <span class="comment"># LSTM隐藏层维度</span></span><br><span class="line">        <span class="variable language_">self</span>.num_layers = num_layers  <span class="comment"># LSTM层数</span></span><br><span class="line"></span><br><span class="line">        <span class="comment"># 嵌入层：将词汇索引映射到嵌入向量</span></span><br><span class="line">        <span class="variable language_">self</span>.embed = nn.Embedding(word_size, input_dim)  <span class="comment"># 输入维度：(batch_size, seq_len) → 输出维度：(batch_size, seq_len, input_dim)</span></span><br><span class="line">        <span class="comment"># LSTM层：处理序列数据</span></span><br><span class="line">        <span class="variable language_">self</span>.lstm = nn.LSTM(input_dim, hidden_dim, num_layers, batch_first=<span class="literal">True</span>)  <span class="comment"># 输入维度：(batch_size, seq_len, input_dim) → 输出维度：(batch_size, seq_len, hidden_dim)</span></span><br><span class="line">        <span class="comment"># 全连接层：将LSTM的输出映射到目标维度</span></span><br><span class="line">        <span class="variable language_">self</span>.fc = nn.Linear(hidden_dim, output_dim)  <span class="comment"># 输入维度：(batch_size, hidden_dim) → 输出维度：(batch_size, output_dim)</span></span><br><span class="line"></span><br><span class="line">    <span class="comment"># x: 输入数据，形状为 (batch_size, seq_len)</span></span><br><span class="line">    <span class="keyword">def</span> <span class="title function_">forward</span>(<span class="params">self, x</span>):</span><br><span class="line">        <span class="comment"># 嵌入层：将词汇索引转换为嵌入向量</span></span><br><span class="line">        x = <span class="variable language_">self</span>.embed(x)  <span class="comment"># 输入维度：(32, 255) → 输出维度：(32, 255, 256)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 初始化隐藏状态和细胞状态</span></span><br><span class="line">        device_choose = torch.device(<span class="string">&quot;cuda&quot;</span> <span class="keyword">if</span> torch.cuda.is_available() <span class="keyword">else</span> <span class="string">&quot;cpu&quot;</span>)</span><br><span class="line">        c0 = torch.zeros(<span class="variable language_">self</span>.num_layers, x.size(<span class="number">0</span>), <span class="variable language_">self</span>.hidden_dim, device=device_choose)  <span class="comment"># 形状：(num_layers, batch_size, hidden_dim) = (2, 32, 128)</span></span><br><span class="line">        h0 = torch.zeros(<span class="variable language_">self</span>.num_layers, x.size(<span class="number">0</span>), <span class="variable language_">self</span>.hidden_dim, device=device_choose)  <span class="comment"># 形状：(num_layers, batch_size, hidden_dim) = (2, 32, 128)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># LSTM层：处理序列数据</span></span><br><span class="line">        x, _ = <span class="variable language_">self</span>.lstm(x, (h0, c0))  <span class="comment"># 输入维度：(32, 255, 256) → 输出维度：(32, 255, 128)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 激活函数：对LSTM的输出应用tanh激活函数</span></span><br><span class="line">        x = torch.tanh(x)  <span class="comment"># 形状不变：(32, 255, 128)</span></span><br><span class="line">        </span><br><span class="line">        <span class="comment"># 取最后一个时间步的输出</span></span><br><span class="line">        out = <span class="variable language_">self</span>.fc(x[:, -<span class="number">1</span>, :])  <span class="comment"># 输入维度：(32, 128) → 输出维度：(32, 2)</span></span><br><span class="line">        </span><br><span class="line">        <span class="keyword">return</span> out</span><br></pre></td></tr></table></figure>
+
+<p>对于文本处理而言，一个简单的LSTM模型涉及到嵌入层，LSTM层（其中又包含输入层，隐藏层和输出层），全连接层</p>
+<ul>
+<li><p><strong>嵌入层</strong></p>
+<ul>
+<li><code>word_size</code>通常指的是词汇表中单词数量（大于或等于），定义词向量的行数</li>
+<li><code>input_dim</code>输入到LSTM的维度，既定义词向量的列数</li>
+</ul>
+<p>当一个句子的分词数量小于<code>input_dim</code>时，填不满他所需要的维度，此时使用0来填充到（<code>word_size</code>，<code>input_dim</code>）形状</p>
+</li>
+<li><p><strong>LSTM层</strong></p>
+<ul>
+<li><strong><code>input_dim</code></strong>：输入特征的维度，即每个时间步的输入向量长度。</li>
+<li><strong><code>hidden_dim</code></strong>：隐藏状态的维度，即LSTM单元的输出特征向量长度。</li>
+<li><strong><code>num_layers</code></strong>：LSTM的层数，即LSTM单元的堆叠层数，<strong>不同隐藏层的 <code>hidden_size</code> 不一定必须相同，但通常在实践中会设置为相同的值</strong>。</li>
+<li><strong><code>batch_first</code></strong>：输入和输出张量的维度顺序。输出形状<ul>
+<li><strong><code>batch_first=True</code></strong>：<strong>(batch_size, seq_len,  hidden_size)</strong>（常用）</li>
+<li><strong><code>batch_first=False</code>：(seq_len, batch_size, hidden_size)</strong></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>下面这张图很好地剖解了LSTM的整体和局部结构，但是需要注意的是<strong>左下角的每一个“A”结构对应的是左上角的一个层</strong></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/baidu_38963740/article/details/117197619">图的出处</a></p>
+<img src="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/image-20250812153330814.png" class="">
+
+<ul>
+<li><p><strong>全连接层</strong></p>
+<ul>
+<li>输入为lstm层最后一个时间步的隐藏状态，形状为（batch_size,hidden_size）,输出为（batch_size,num_class）,这个num_class就是我们的标签类别数</li>
+</ul>
+</li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/">http://example.com/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/08/13/%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6/" title="Transformer自注意力机制"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Transformer自注意力机制</div></div><div class="info-2"><div class="info-item-1">前言：什么是注意力机制？注意力机制是一种模拟人类注意力的神经网络模型机制，它能够让模型在处理信息时集中关注部分重要信息，而忽略其他不重要的信息，从而提高模型的效率和性能。 一、Q，K，V自注意力机制是要回答：“我（某个位置）应该关注谁（其他位置）？以及关注了之后该怎么融合信息？”，因此我们先来了解三个关键名词  查询向量（Query）：表示当前词的“查询需求”，用于寻找与之相关的上下文信息。 键向量（Key）：作为每个词的“特征标识”，与查询向量匹配，判断相关性。 值向量（Value）：包含每个词的“实际内容”，匹配成功后从中提取信息，丰富上下文表示。    二、单层注意力机制以4个步长句子“I am a man”作为一个输入，图中X代表每个单词经过嵌入层得到的低维词嵌入矩阵 1234567891011121314151617181920import torch import torch.nn as nnimport mathfrom torch.nn import functional as Fdocument = (    &quot;[UNK] I Love Nature ...</div></div></div></a><a class="pagination-related" href="/2025/08/10/RNN%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" title="RNN循环神经网络"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">RNN循环神经网络</div></div><div class="info-2"><div class="info-item-1">前言对于图像识别，数据顺序不重要，因为图像像素是独立无序的。然而，对于文本、股票、天气和语音等具有时间或逻辑顺序的数据，顺序对结果有显著影响。例如，文本中词语的顺序改变会导致意义完全不同，而股票和天气数据的顺序也很重要，因为后续数据可能受之前数据的影响。 文本理解中，顺序同样关键，如古诗中诗句顺序的改变会改变整首诗的意境。因此，在处理具有时间或逻辑顺序的数据时，必须考虑顺序的重要性，并设计相应的模型来利用数据的前后关系，如循环神经网络（RNN），以获得更准确和有意义的结果。 一、模型架构1.1 整体结构RNN（循环神经网络）通过在网络内部添加循环连接，使其能够利用先前时间步的信息，从而在处理序列数据时能够捕捉和利用结构信息。   RNN在处理一个序列，比如一句话或者一系列的数字时，会同时考虑当前的数据和之前的数据。它通过更新一个内部的“记忆”（隐藏状态），来“记住”过去的信息，并用这些信息来帮助理解新的数据。这样，RNN就能捕捉到数据中的顺序和模式，就像你通过记忆来理解连续剧一样。这一过程可以通过数学公式简化为：   其中，S_t表示在时间步t的隐藏状态，是当前时间步t的输入，U...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%A8%A1%E5%9E%8B%E7%BB%93%E6%9E%84"><span class="toc-number">2.</span> <span class="toc-text">一、模型结构</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E9%9D%9E%E5%B8%B8%E7%B2%BE%E8%BE%9F%E7%9A%84%E7%90%86%E8%A7%A3"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 非常精辟的理解</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E9%81%97%E5%BF%98%E9%97%A8"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 遗忘门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-%E8%BE%93%E5%85%A5%E9%97%A8"><span class="toc-number">2.3.</span> <span class="toc-text">1.3 输入门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-4-%E7%BB%86%E8%83%9E%E7%8A%B6%E6%80%81%E6%9B%B4%E6%96%B0"><span class="toc-number">2.4.</span> <span class="toc-text">1.4 细胞状态更新</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-5-%E8%BE%93%E5%87%BA%E9%97%A8"><span class="toc-number">2.5.</span> <span class="toc-text">1.5 输出门</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81LSTM%E7%9A%84%E7%BB%B4%E5%BA%A6%E8%A7%A3%E6%9E%90"><span class="toc-number">3.</span> <span class="toc-text">二、LSTM的维度解析</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GraphRAG的构建"/></a><div class="content"><a class="title" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建">GraphRAG的构建</a><time datetime="2025-09-07T10:56:52.000Z" title="发表于 2025-09-07 18:56:52">2025-09-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG的评估（RAGAS）和检索优化"/></a><div class="content"><a class="title" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化">RAG的评估（RAGAS）和检索优化</a><time datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vLLM的优势——KV cache与PageAttention"/></a><div class="content"><a class="title" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention">vLLM的优势——KV cache与PageAttention</a><time datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG——检索增强生成"/></a><div class="content"><a class="title" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成">RAG——检索增强生成</a><time datetime="2025-09-01T04:09:02.000Z" title="发表于 2025-09-01 12:09:02">2025-09-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="大模型的端到端全栈部署思路"/></a><div class="content"><a class="title" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路">大模型的端到端全栈部署思路</a><time datetime="2025-08-23T05:19:16.000Z" title="发表于 2025-08-23 13:19:16">2025-08-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>小牛壮士 - 个人博客</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="林勇的个人博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="小牛壮士">
+<meta property="og:url" content="http://example.com/page/4/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="林勇的个人博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E5%A4%B4%E5%83%8F.png">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E5%A4%B4%E5%83%8F.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/page/4/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '小牛壮士',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">小牛壮士</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/2025/04/30/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E7%90%86%E8%AE%BA%E4%BB%A5%E5%8F%8A%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%8E%B0/" title="逻辑回归理论以及代码复现"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="逻辑回归理论以及代码复现"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/04/30/%E9%80%BB%E8%BE%91%E5%9B%9E%E5%BD%92%E7%90%86%E8%AE%BA%E4%BB%A5%E5%8F%8A%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%8E%B0/" title="逻辑回归理论以及代码复现">逻辑回归理论以及代码复现</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-04-30T11:18:45.000Z" title="发表于 2025-04-30 19:18:45">2025-04-30</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/">人工智能基础</a></span></div><div class="content">前言在上一系列文章我们讲了线性回归的相关知识，回归和分类是机器学习中两种核心的任务类型，它们的根本区别在于目标变量的性质。回归任务旨在预测一个连续的数值输出，例如预测房价、温度或销售额等，其目标是建立一个模型来拟合输入特征与连续目标值之间的关系。而分类任务则是预测离散的类别标签，比如判断邮件是否为垃圾邮件、图像中的人物身份，或者是疾病诊断等，其目的是通过模型将输入数据划分到预定义的类别中。本系列文章主要来讲讲如何应用逻辑回归来对数据进行分类。 一、基础理论部分逻辑回归（Logistic Regression）是一种广泛应用于二分类问题的统计学习方法，通过将系数与自变量的线性计算结果输入到sigmoid函数中，得到概率预测值，从而达到分类的效果。 1.1 sigmoid函数在逻辑回归中，Sigmoid函数用于将线性组合的输出映射到(0, 1)区间，从而将问题转化为概率预测问题   下面是一个对Sigmoid函数解释以及逻辑回归的预测函数推导    这里值得注意的是sigmoid函数的输入部分，笔记里写的是线性预测值，实际上是线性计算值，意思是并非线性回归得到的参数，这里的参数the...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/04/20/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E4%B8%89%E7%A7%8D%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95%E5%AF%B9%E6%AF%94%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%8C%96%E8%A7%A3%E5%86%B3%E8%BF%87%E6%8B%9F%E5%90%88%E9%97%AE%E9%A2%98/" title="线性回归（二）：三种梯度下降法对比以及如何通过正则化解决过拟合问题"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="线性回归（二）：三种梯度下降法对比以及如何通过正则化解决过拟合问题"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/04/20/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%EF%BC%88%E4%BA%8C%EF%BC%89%EF%BC%9A%E4%B8%89%E7%A7%8D%E6%A2%AF%E5%BA%A6%E4%B8%8B%E9%99%8D%E6%B3%95%E5%AF%B9%E6%AF%94%E4%BB%A5%E5%8F%8A%E5%A6%82%E4%BD%95%E9%80%9A%E8%BF%87%E6%AD%A3%E5%88%99%E5%8C%96%E8%A7%A3%E5%86%B3%E8%BF%87%E6%8B%9F%E5%90%88%E9%97%AE%E9%A2%98/" title="线性回归（二）：三种梯度下降法对比以及如何通过正则化解决过拟合问题">线性回归（二）：三种梯度下降法对比以及如何通过正则化解决过拟合问题</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-04-20T08:20:41.000Z" title="发表于 2025-04-20 16:20:41">2025-04-20</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/">人工智能基础</a></span></div><div class="content">前言上一篇文章讲了线性回归的基础理论以及sklearn库底层代码实现，这一篇文章我们来讲讲对于不同的梯度下降法，模型参数的更新效果有什么不同，这里列出了批量梯度下降法，随机梯度下降法和小批量梯度下降法三种，并且在文章的最后，还介绍了多项式回归以及如何通过岭回归对数据进行正则化从而降低模型过拟合风险。 首先回归一下之前的知识，对回归参数进行优化的本质实际上是使用梯度下降最小化目标损失函数，也就是求损失函数对参数的导数。   这里的 θ是模型输入特征对应的参数，在梯度下降中，每次迭代选定一个样本（或一批样本），然后根据这个样本计算所有参数的梯度，并根据这些梯度更新所有参数。   一、三种梯度下降对比1.1 BGD批量梯度下降简单粗暴的每次都选取所用样本来进行梯度下降，这样虽然能达到优化参数的效果，并且迭代次数相对较小，但是在大数据样本中，这样的矩阵计算量是比较大的 12345678910111213141516171819202122232425262728293031323334353637383940n_iterations = 1000#迭代次数m = len(x_b)#样本数...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/04/15/%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0%E6%96%B9%E6%B3%95/" title="模型评估方法"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="模型评估方法"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/04/15/%E6%A8%A1%E5%9E%8B%E8%AF%84%E4%BC%B0%E6%96%B9%E6%B3%95/" title="模型评估方法">模型评估方法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-04-15T05:34:05.000Z" title="发表于 2025-04-15 13:34:05">2025-04-15</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/">人工智能基础</a></span></div><div class="content">前言这一篇文章我们基于随机梯度下降分类器（一种线性分类器）来讲讲如何对模型准确度进行评估，涉及到交叉验证，混淆矩阵以及ROC曲线等内容 一、交叉验证在机器学习中，我们通常把数据分成训练集和验证集，交叉验证可以确保模型在不同的数据子集上都能表现良好。如果模型在某些子集上表现很好，但在其他子集上表现很差，这可能表明模型存在过拟合或欠拟合的问题。通过交叉验证，可以更全面地评估模型的泛化能力，从而避免过拟合和欠拟合。 下面对比两种检查验证的特点   可以看出似乎K折检查验证更加科学，接下来我们展示一个K折交叉验证的案例 当然，也可以用**StratifiedKFold实现** 123456789101112131415161718192021222324252627282930313233343536373839404142434445import numpy as npimport osimport matplotlib.pyplot as pltimport pandas as pdplt.rcParams[&quot;axes.labelsize&quot;] = 14plt.rc...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/04/10/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E7%90%86%E8%AE%BA%E4%BB%A5%E5%8F%8A%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%8E%B0/" title="线性回归（一）：线性回归理论以及代码复现"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="线性回归（一）：线性回归理论以及代码复现"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/04/10/%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%EF%BC%88%E4%B8%80%EF%BC%89%EF%BC%9A%E7%BA%BF%E6%80%A7%E5%9B%9E%E5%BD%92%E7%90%86%E8%AE%BA%E4%BB%A5%E5%8F%8A%E4%BB%A3%E7%A0%81%E5%A4%8D%E7%8E%B0/" title="线性回归（一）：线性回归理论以及代码复现">线性回归（一）：线性回归理论以及代码复现</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-04-10T03:31:25.000Z" title="发表于 2025-04-10 11:31:25">2025-04-10</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/">人工智能基础</a></span></div><div class="content">前言​    线性回归是一种统计方法，用于建立一个或多个自变量（解释变量）与因变量（响应变量）之间的关系。线性回归模型假设因变量与自变量之间存在线性关系，即因变量可以表示为自变量的线性组合加上一个随机误差项。通俗来讲，线性回归就是找到一条直线（或者平面）来拟合数据点，在这条直线后面，我们加入了一个误差项，并且假设这个误差符合正态分布并且相互独立。 说到假设：  线性关系：因变量与自变量之间存在线性关系。  独立性：自变量之间相互独立，没有多重共线性。  正态性：随机误差项 ϵ 服从正态分布。  同方差性：随机误差项 ϵ 的方差在所有自变量的取值范围内保持不变。  无自相关：随机误差项 ϵ 之间相互独立，没有自相关性。       一、理论部分简单概述对于简单线性回归的每个样本x以及对应的输出y,我们假设：   对于多元线性回归的每个样本矩阵X以及对应的输出y,我们假设：     y 是因变量向量，大小为 n×1。 X 是设计矩阵，大小为 n×(p+1)，其中第一列是常数项（全为1），其余列是自变量的值。 β 是参数向量，大小为 (p+1)×1。这里p+1的1表示截距项 β_0 ϵ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/03/22/%E6%95%B0%E7%BB%84%E4%B8%8E%E9%93%BE%E8%A1%A8/" title="数组与链表"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="数组与链表"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/03/22/%E6%95%B0%E7%BB%84%E4%B8%8E%E9%93%BE%E8%A1%A8/" title="数组与链表">数组与链表</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-03-22T08:40:57.000Z" title="发表于 2025-03-22 16:40:57">2025-03-22</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">数据结构与算法</a></span></div><div class="content">前言力扣刷题知识笔记和思路记录 刷题指南参考：CyC2018&#x2F;CS-Notes: :books: 技术面试必备基础知识、Leetcode、计算机操作系统、计算机网络、系统设计https://github.com/CyC2018/CS-Notes/tree/master/ 知识点参考：Hello 算法!https://www.hello-algo.com/ 一、数组（1）280-移动零给定一个数组 nums，编写一个函数将所有 0 移动到数组的末尾，同时保持非零元素的相对顺序。 请注意 ，必须在不复制数组的情况下原地对数组进行操作。 示例 1: 123输入: nums = [0,1,0,3,12]输出: [1,3,12,0,0]  示例 2: 123输入: nums = [0]输出: [0]  12345678910111213141516171819class Solution(object):    def moveZeroes(self, nums):        &quot;&quot;&quot;        :type nums: List[int]   ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/03/17/%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE/" title="二分查找"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="二分查找"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/03/17/%E4%BA%8C%E5%88%86%E6%9F%A5%E6%89%BE/" title="二分查找">二分查找</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-03-17T12:41:40.000Z" title="发表于 2025-03-17 20:41:40">2025-03-17</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">数据结构与算法</a></span></div><div class="content"> 刷题指南参考：CyC2018&#x2F;CS-Notes: :books: 技术面试必备基础知识、Leetcode、计算机操作系统、计算机网络、系统设计https://github.com/CyC2018/CS-Notes/tree/master/ 知识点参考：Hello 算法https://www.hello-algo.com/ 前言力扣刷题学习笔记和思路记录 1.基础知识​    在一个已经排好序的数组中（可能需要自己来排序），我们需要用尽可能快速的方法来查找一个元素，通常想到的方法是线性查找，既通过遍历的方法来进行暴力搜索 1.1 线性查找时间复杂度计算： 最坏情况：O(n)，平均情况：O(n)，空间复杂度：O(1) 1234567891011121314151617def linear_search(arr, x):    for i in range(len(arr)):        if arr[i] == x:            return i    return -1nums = [4,5,9,10,12,15,17]target = 9index = ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/03/09/python%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/" title="python基础语法"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="python基础语法"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/03/09/python%E5%9F%BA%E7%A1%80%E8%AF%AD%E6%B3%95/" title="python基础语法">python基础语法</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-03-09T07:01:02.000Z" title="发表于 2025-03-09 15:01:02">2025-03-09</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/">人工智能基础</a></span></div><div class="content"> 前言语言：Python（python&#x3D;&#x3D;3.9） 编译软件：VScode、PyCharm 环境：Anaconda 一、Python注释和输入输出注释分为单行注释，多行注释，被注释的代码不会运行，快捷键：选中代码+Ctrl+&#x2F; 主要功能有： 1.对代码进行注释，方便进行理解 2.对代码进行禁用 1.单行注释1234# 单行注释# 我是一个注释 不是运行的代码 写代码的时候：Ctrl+/# print(&quot;hello&quot;)print(123)   **运行结果：**123 2.多行注释123456&quot;&quot;&quot;三引号引号内代码都注释随便写多少行&quot;&quot;&quot;print(&quot;hello&quot;)   **运行结果：**hello 3.输入和输出1234567# 输出print(&quot;打印文本&quot;)print(&quot;打印数字：&quot;,123)print(&quot;文本1&quot;,&quot;文本2&quot;,&quot;文本3&quot;,sep = ...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/03/07/numpy%EF%BC%8Cpandas%EF%BC%8Cmatplotlib%E5%BA%93%E7%9A%84%E4%BD%BF%E7%94%A8/" title="numpy，pandas，matplotlib库的使用"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="numpy，pandas，matplotlib库的使用"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/03/07/numpy%EF%BC%8Cpandas%EF%BC%8Cmatplotlib%E5%BA%93%E7%9A%84%E4%BD%BF%E7%94%A8/" title="numpy，pandas，matplotlib库的使用">numpy，pandas，matplotlib库的使用</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-03-07T11:10:52.000Z" title="发表于 2025-03-07 19:10:52">2025-03-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/">人工智能基础</a></span></div><div class="content">前言：Python三个常用库的学习笔记 一、numpy1.1 数组创建创建函数：array() 几个参数： object：默认参数，输入一个列表，列表中又可以嵌套列表来表示多维数据 dtype:指定数据类型，可选，如果不指定则自动识别 order：指定存储方式，C-按行（先存储第一行的所有元素，然后是第二行的所有元素） F-按列（先存储第一列的所有元素，然后是第二列的所有元素，依此类推） ndmin: 设置数组维度，一般嵌套有几层列表就是几维 1234a = np.array([[1,2,3],[4,5,6]],             dtype = np.float32,             order = &quot;F&quot;,             ndmin = 3)    运行结果： array([[[1., 2., 3.],     [4., 5., 6.]]], dtype&#x3D;float32) 打印数组形状 返回一个元组（行，列） 12a = np.array([[1,2,3],[4,5,6],[7,8,9]])print(a.shape)  ...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/page/3/#content-inner"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/#content-inner">3</a><span class="page-number current">4</span></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GraphRAG的构建"/></a><div class="content"><a class="title" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建">GraphRAG的构建</a><time datetime="2025-09-07T10:56:52.000Z" title="发表于 2025-09-07 18:56:52">2025-09-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG的评估（RAGAS）和检索优化"/></a><div class="content"><a class="title" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化">RAG的评估（RAGAS）和检索优化</a><time datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vLLM的优势——KV cache与PageAttention"/></a><div class="content"><a class="title" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention">vLLM的优势——KV cache与PageAttention</a><time datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG——检索增强生成"/></a><div class="content"><a class="title" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成">RAG——检索增强生成</a><time datetime="2025-09-01T04:09:02.000Z" title="发表于 2025-09-01 12:09:02">2025-09-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="大模型的端到端全栈部署思路"/></a><div class="content"><a class="title" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路">大模型的端到端全栈部署思路</a><time datetime="2025-08-23T05:19:16.000Z" title="发表于 2025-08-23 13:19:16">2025-08-23</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/yolo%E7%B3%BB%E5%88%97/"><span class="card-category-list-name">yolo系列</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/"><span class="card-category-list-name">人工智能基础</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BC%80%E5%8F%91/"><span class="card-category-list-name">大模型开发</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%B7%A5%E5%85%B7-%E9%83%A8%E7%BD%B2/"><span class="card-category-list-name">工具/部署</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/"><span class="card-category-list-name">数据结构与算法</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"><span class="card-category-list-name">神经网络</span><span class="card-category-list-count">9</span></a></li>
+          </ul></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/09/">
+            <span class="card-archive-list-date">
+              九月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/08/">
+            <span class="card-archive-list-date">
+              八月 2025
+            </span>
+            <span class="card-archive-list-count">10</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/07/">
+            <span class="card-archive-list-date">
+              七月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/06/">
+            <span class="card-archive-list-date">
+              六月 2025
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/05/">
+            <span class="card-archive-list-date">
+              五月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/04/">
+            <span class="card-archive-list-date">
+              四月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/03/">
+            <span class="card-archive-list-date">
+              三月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">38</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">118.7k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-01-12T15:36:35.208Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (true) {
+      const sub = ["<i class=\"fas fa-quote-left\"></i> 学无止境","<i class=\"fas fa-quote-left\"></i> 千里之行，始于足下 —— 老子","<i class=\"fas fa-quote-left\"></i> 读书破万卷，下笔如有神","<i class=\"fas fa-quote-left\"></i> 吾日三省吾身","<i class=\"fas fa-quote-left\"></i> 星光不问赶路人，时光不负有心人","<i class=\"fas fa-quote-left\"></i> 人生没有白走的路，每一步都算数","<i class=\"fas fa-quote-left\"></i> 保持热爱，奔赴山海","<i class=\"fas fa-quote-left\"></i> 纸上得来终觉浅，绝知此事要躬行","<i class=\"fas fa-quote-left\"></i> 成功的秘诀在于坚持","<i class=\"fas fa-quote-left\"></i> The best way to predict the future is to invent it","<i class=\"fas fa-quote-left\"></i> 生活是一场马拉松，你需要不断地奔跑","<i class=\"fas fa-quote-left\"></i> 成功不是将来才有的，而是从决定去做的那一刻起，持续累积而成"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  typedJSFn.processSubtitle(["<i class=\"fas fa-quote-left\"></i> 学无止境","<i class=\"fas fa-quote-left\"></i> 千里之行，始于足下 —— 老子","<i class=\"fas fa-quote-left\"></i> 读书破万卷，下笔如有神","<i class=\"fas fa-quote-left\"></i> 吾日三省吾身","<i class=\"fas fa-quote-left\"></i> 星光不问赶路人，时光不负有心人","<i class=\"fas fa-quote-left\"></i> 人生没有白走的路，每一步都算数","<i class=\"fas fa-quote-left\"></i> 保持热爱，奔赴山海","<i class=\"fas fa-quote-left\"></i> 纸上得来终觉浅，绝知此事要躬行","<i class=\"fas fa-quote-left\"></i> 成功的秘诀在于坚持","<i class=\"fas fa-quote-left\"></i> The best way to predict the future is to invent it","<i class=\"fas fa-quote-left\"></i> 生活是一场马拉松，你需要不断地奔跑","<i class=\"fas fa-quote-left\"></i> 成功不是将来才有的，而是从决定去做的那一刻起，持续累积而成"])
+}
+typedJSFn.run(subtitleType)</script></div></div></body></html>

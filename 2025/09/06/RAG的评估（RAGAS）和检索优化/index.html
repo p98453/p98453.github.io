@@ -1,0 +1,402 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>RAG的评估（RAGAS）和检索优化 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言：评估RAG有效性主要采用两种方法：独立评估和端到端评估。这两种方法从不同角度检验RAG系统的效能，确保其在各个组成部分均表现出色。 一、独立评估独立评估侧重于对RAG系统中检索模块和生成模块的单独评估，以确保每个模块都能有效地完成其任务 1.1 检索模块评估检索模块能够从知识库中检索到与输入查询最相关的内容的能力，这些指标衡量了系统在给定查询或任务下的项目排名效能，包括**命中率（Hit R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RAG的评估（RAGAS）和检索优化">
+<meta property="og:url" content="http://example.com/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="前言：评估RAG有效性主要采用两种方法：独立评估和端到端评估。这两种方法从不同角度检验RAG系统的效能，确保其在各个组成部分均表现出色。 一、独立评估独立评估侧重于对RAG系统中检索模块和生成模块的单独评估，以确保每个模块都能有效地完成其任务 1.1 检索模块评估检索模块能够从知识库中检索到与输入查询最相关的内容的能力，这些指标衡量了系统在给定查询或任务下的项目排名效能，包括**命中率（Hit R">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-09-06T06:22:02.000Z">
+<meta property="article:modified_time" content="2025-09-19T10:56:03.199Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "RAG的评估（RAGAS）和检索优化",
+  "url": "http://example.com/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-09-06T06:22:02.000Z",
+  "dateModified": "2025-09-19T10:56:03.199Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'RAG的评估（RAGAS）和检索优化',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">RAG的评估（RAGAS）和检索优化</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">RAG的评估（RAGAS）和检索优化</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-09-19T10:56:03.199Z" title="更新于 2025-09-19 18:56:03">2025-09-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BC%80%E5%8F%91/">大模型开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.6k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>评估RAG有效性主要采用两种方法：独立评估和端到端评估。这两种方法从不同角度检验RAG系统的效能，确保其在各个组成部分均表现出色。</p>
+<h1 id="一、独立评估"><a href="#一、独立评估" class="headerlink" title="一、独立评估"></a>一、独立评估</h1><p>独立评估侧重于对RAG系统中检索模块和生成模块的单独评估，以确保每个模块都能有效地完成其任务</p>
+<h2 id="1-1-检索模块评估"><a href="#1-1-检索模块评估" class="headerlink" title="1.1 检索模块评估"></a>1.1 检索模块评估</h2><p>检索模块<strong>能够从知识库中检索到与输入查询最相关的内容的能力</strong>，这些指标衡量了系统在给定查询或任务下的项目排名效能，包括**命中率（Hit Rate）、平均排名倒数（MRR）、归一化折损累积增益（NDCG）、精度（Precision）**等。</p>
+<h3 id="1-1-1-命中率（Hit-Rate）"><a href="#1-1-1-命中率（Hit-Rate）" class="headerlink" title="1.1.1 命中率（Hit Rate）"></a>1.1.1 命中率（Hit Rate）</h3><p>很好理解，就是看总<strong>的查询里面有几次查到了文档</strong></p>
+<img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919162247985.png" class="" title="image-20250919162247985">
+
+<p>举例：</p>
+<ul>
+<li><p><strong>检索系统命中率计算示例</strong>：</p>
+<p>假设我们有一个简单的检索系统和以下的查询记录：</p>
+<ul>
+<li><p>总共有10次查询。</p>
+</li>
+<li><p>在这10次查询中，有7次查询检索到了至少一个相关的文档。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>命中率计算公式</strong>：</p>
+<img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919162415988.png" class="" title="image-20250919162415988">
+
+
+</li>
+<li><p><strong>结果解释</strong>：在所有查询中，有 $70%$ 的查询至少检索到了一个相关文档，显示出检索系统对用户查询有较好的响应能力。</p>
+</li>
+</ul>
+<h3 id="1-1-2-平均排名倒数（MRR）"><a href="#1-1-2-平均排名倒数（MRR）" class="headerlink" title="1.1.2 平均排名倒数（MRR）"></a>1.1.2 平均排名倒数（MRR）</h3><img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919162510642.png" class="" title="image-20250919162510642">
+
+<p>在文档A、文档B、文档C、文档D中，我们人工标注<strong>文档C</strong>为目标文档，然后使用RAG进行查询</p>
+<p><strong>查询1</strong>：</p>
+<ul>
+<li>检索结果：文档A、文档B、文档C、文档D</li>
+<li>正确答案：文档C</li>
+<li>正确答案的排名：2</li>
+</ul>
+<p>那么总共查询了一轮，当前MRR &#x3D; 1&#x2F;2,进行多次查询后累计的N和累加的rank就是MRR</p>
+<h2 id="1-2-生成模块评估"><a href="#1-2-生成模块评估" class="headerlink" title="1.2 生成模块评估"></a>1.2 生成模块评估</h2><p>生成模块的评估关注于检索到的文档如何增强输入，以形成对查询的响应。与端到端评估中的最终答案&#x2F;响应生成不同，这里更注重于评估过程中的<strong>上下文相关性</strong>。评估指标主要包括<strong>BLEU、ROUGE</strong>等。</p>
+<h3 id="1-2-1-BLEU"><a href="#1-2-1-BLEU" class="headerlink" title="1.2.1 BLEU"></a>1.2.1 BLEU</h3><img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919163919862.png" class="" title="image-20250919163919862">
+
+<p>评估步骤：</p>
+<ol>
+<li><p><strong>n-gram精度计算</strong>：</p>
+<p>计算生成文本和参考文本中各个 n-gram 的匹配度。</p>
+</li>
+<li><p><strong>长度惩罚</strong>：</p>
+<p>设置乘法参数BP若生成文本长度比参考文本短，则会受到惩罚，避免模型生成过短的文本。</p>
+<img src="/2025/09/06/RAG的评估（RAGAS）和检索优化/image-20250919164006480.png"  alt="image-20250919164006480" style="zoom: 50%;" />
+</li>
+<li><p><strong>加权平均</strong>：</p>
+<p>对每个 n-gram 精度取对数并加权平均，得到最终的 BLEU 值。</p>
+<p><strong>案例：</strong></p>
+</li>
+</ol>
+<p>用户问题：巴黎的埃菲尔铁塔有多高？</p>
+<p>人工标注的真实答案：埃菲尔铁塔的高度为330米</p>
+<p>模型输出：埃菲尔铁塔的高度是330米</p>
+<p><strong>计算 n-gram 匹配：</strong> 从生成答案和参考答案中提取不同长度的 n-gram（假设计算 1-gram 和 2-gram）</p>
+<ul>
+<li><p>1-gram：单个词</p>
+<ul>
+<li>参考答案的 1-gram：[“埃菲尔铁塔”, “的”, “高度”, “为”, “330”, “米”]</li>
+<li>生成答案的 1-gram：[“埃菲尔铁塔”, “的”, “高度”, “是”, “330”, “米”]</li>
+<li>匹配的 1-gram 有：[“埃菲尔铁塔”, “的”, “高度”, “330”, “米”]</li>
+<li>共有 5 个匹配的 1-gram（参考答案有 6 个，生成答案有 6 个）。</li>
+</ul>
+<p><strong>1-gram 精度</strong>：<br>$$<br>p_1 &#x3D; \frac{5}{6} &#x3D; 0.8333<br>$$</p>
+</li>
+<li><p>2-gram：连续的两个词</p>
+<ul>
+<li>参考答案的 2-gram：[“埃菲尔铁塔 的”, “的 高度”, “高度 为”, “为 330”, “330 米”]</li>
+<li>生成答案的 2-gram：[“埃菲尔铁塔 的”, “的 高度”, “高度 是”, “是 330”, “330 米”]</li>
+<li>匹配的 2-gram 有：[“埃菲尔铁塔 的”, “的 高度”, “330 米”]</li>
+<li>共有 3 个匹配的 2-gram（参考答案有 5 个，生成答案有 5 个）。</li>
+</ul>
+<p><strong>2-gram 精度</strong>：<br>$$<br>p_2 &#x3D; \frac{3}{5} &#x3D; 0.6<br>$$</p>
+</li>
+</ul>
+<p>长度惩罚：生成答案的长度为 6，参考答案的长度也是 6，长度惩罚为 1：<br>$$<br>BP &#x3D; 1 \quad (\text{因为生成文本长度不小于参考文本长度})<br>$$<br>BLEU 计算：假设只计算 1-gram 和 2-gram 的精度，且每个 n-gram 的权重为 0.5<br>$$<br>BLEU &#x3D; BP \times \exp \left( 0.5 \log p_1 + 0.5 \log p_2 \right)<br>\<br>BLEU &#x3D; 1 \times \exp \left( 0.5 \log 0.8333 + 0.5 \log 0.6 \right)<br>$$<br>计算结果为：<br>$$<br>BLEU \approx 1 \times \exp \left( 0.5 \times (-0.1823) + 0.5 \times (-0.2218) \right)<br>\<br>BLEU \approx 1 \times \exp \left( -0.20205 \right) \approx 0.817<br>$$<br>因此，BLEU 分数为 <strong>0.817</strong>，说明生成的答案与参考答案在 n-gram 匹配上有一定的相似度，生成文本的质量较好。</p>
+<h1 id="二、RAGAS"><a href="#二、RAGAS" class="headerlink" title="二、RAGAS"></a>二、RAGAS</h1><p>专为RAG系统设计，用于无需参考答案的情况下评估系统性能。<strong>它通过自动化的方式评估生成文本在三个质量维度上的表现：忠实度、答案相关性、上下文相关性。</strong></p>
+<p><strong>NLI：自然语言推理</strong>	NLU：自然语言理解	NLG：自然语言生成</p>
+<h2 id="2-1-忠实度"><a href="#2-1-忠实度" class="headerlink" title="2.1 忠实度"></a>2.1 忠实度</h2><p><strong>判断原子化的答案能够从上下文中推断出来</strong></p>
+<p><strong>案例：</strong></p>
+<p>Query:</p>
+<p><code>乔布斯是做什么的？他什么时候去世的？</code></p>
+<p>answer:</p>
+<p><code>乔布斯是苹果公司的联合创始人，同时也是皮克斯动画工作室的前CEO。他于2011年10月5日因胰腺癌去世。</code></p>
+<p>RAG检索到的上下文：</p>
+<p><code>乔布斯是苹果公司的联合创始人。他推动了iPhone、iPod和Mac的发展。乔布斯曾是皮克斯动画公司的CEO，后来被迪士尼收购。他于2011年10月5日去世，死因为胰腺神经内分泌肿瘤。</code></p>
+<p><strong>第一步</strong>：将生成的答案中提取声明（原子化的答案）</p>
+<table>
+<thead>
+<tr>
+<th>序号</th>
+<th>声明 $s_i$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>s₁</td>
+<td>乔布斯是苹果公司的联合创始人。</td>
+</tr>
+<tr>
+<td>s₂</td>
+<td>乔布斯是皮克斯动画工作室的前CEO。</td>
+</tr>
+<tr>
+<td>s₃</td>
+<td>乔布斯于2011年10月5日去世。</td>
+</tr>
+<tr>
+<td>s₄</td>
+<td>他因胰腺癌去世。</td>
+</tr>
+</tbody></table>
+<p>因此，S&#x3D;4</p>
+<p><strong>第二步</strong>：验证每个声明 $v(s_i, c(q))$：使用 LLM&#x2F;NLI 判断每个 $s_i$ 是否可以从 $c(q)$ 推断出来</p>
+<table>
+<thead>
+<tr>
+<th>声明</th>
+<th>上下文中是否支持？</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>s₁</td>
+<td>✅ 是</td>
+<td>“乔布斯是苹果公司的联合创始人。” → 直接支持</td>
+</tr>
+<tr>
+<td>s₂</td>
+<td>✅ 是</td>
+<td>“乔布斯曾是皮克斯动画公司的CEO” → 表述略有不同但语义等价</td>
+</tr>
+<tr>
+<td>s₃</td>
+<td>✅ 是</td>
+<td>“他于2011年10月5日去世。” → 直接支持</td>
+</tr>
+<tr>
+<td>s₄</td>
+<td>❌ 否</td>
+<td>上下文说的是“胰腺神经内分泌肿瘤”，不是“胰腺癌”，细节不完全一致</td>
+</tr>
+</tbody></table>
+<p>所以，V&#x3D;3</p>
+<p><strong>第三步</strong>：计算忠实度得分F &#x3D; V&#x2F;F &#x3D; 0.75</p>
+<h2 id="2-2-答案相关性"><a href="#2-2-答案相关性" class="headerlink" title="2.2 答案相关性"></a>2.2 答案相关性</h2><p><strong>这是基于大模型的回答，反向来验证解决用户提问的相关性</strong></p>
+<p><strong>案例：</strong></p>
+<p>Query:</p>
+<p><code>量子计算的主要优势是什么？？</code></p>
+<p>answer:</p>
+<p><code>量子计算的主要优势包括并行性、解决复杂问题的速度远超经典计算机，以及在密码学和药物研发等领域的潜在应用。</code></p>
+<p><strong>第一步：</strong></p>
+<p>基于大模型提出的回答生成用户可能询问的问题</p>
+<p><code>Q1: 量子计算相比经典计算机有哪些优势？   </code></p>
+<p> <code>Q2: 为什么量子计算在密码学中有应用潜力？</code></p>
+<p> <code> Q3: 量子计算的并行性如何提升计算速度？  </code></p>
+<p><strong>第二步：</strong></p>
+<p>使用词向量模型计算生成的问题与用户的提问的相关性，取平均</p>
+<ul>
+<li><p>首先，计算嵌入相似度</p>
+<p>对原始问题 $q$ 和生成问题 $q_i$ 进行嵌入，并计算余弦相似度：  </p>
+<ul>
+<li><p>$\text{sim}(q, q_1) &#x3D; 0.92$（高度相关）  </p>
+</li>
+<li><p>$\text{sim}(q, q_2) &#x3D; 0.75$（部分相关，聚焦子领域）  </p>
+</li>
+<li><p>$\text{sim}(q, q_3) &#x3D; 0.85$（较强相关）</p>
+</li>
+</ul>
+</li>
+<li><p>然后，计算答案相关性得分</p>
+</li>
+</ul>
+<p>$$<br>AR &#x3D; \frac{0.92 + 0.75 + 0.85}{3} &#x3D; 0.84<br>$$</p>
+<p>该答案相关性得分为 <strong>0.84</strong>（满分 1.0），表明答案与问题高度相关。  </p>
+<h2 id="2-3-上下文相关性"><a href="#2-3-上下文相关性" class="headerlink" title="2.3 上下文相关性"></a>2.3 上下文相关性</h2><p><strong>根据通过用户的回答检索到的上下文，再次提交到大模型中来评测与问题的相关性</strong></p>
+<p><strong>案例：</strong></p>
+<p>Query:</p>
+<p><code>量子计算的主要优势是什么？？</code></p>
+<p>上下文：</p>
+<ol>
+<li><code>量子计算机利用量子比特进行计算。</code></li>
+<li><code>传统计算机使用二进制位0和1。</code></li>
+<li><code>量子比特可以同时处于叠加态。</code></li>
+<li><code>北京是中国的首都。</code></li>
+<li><code>量子纠缠是实现量子计算的关键特性之一。</code></li>
+</ol>
+<p><strong>第一步</strong>：将上下文和用户问题加入提示词，让大模型评判有哪些是相关的</p>
+<p><code>请从提供的上下文中提取可能有助于回答&quot;量子计算机的工作原理是什么？&quot;的相关句子。如果没有找到相关句子，请返回&quot;信息不足&quot;。</code></p>
+<p><strong>第二步</strong>：计算指标：</p>
+<ul>
+<li>提取的相关句子数：3</li>
+<li>上下文总句子数：5</li>
+</ul>
+<img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919172802986.png" class="" title="image-20250919172802986">
+
+<h1 id="三、代码参考（在metrics中选择自己想要的指标）："><a href="#三、代码参考（在metrics中选择自己想要的指标）：" class="headerlink" title="三、代码参考（在metrics中选择自己想要的指标）："></a>三、代码参考（在metrics中选择自己想要的指标）：</h1><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> ragas.evaluation <span class="keyword">import</span> evaluate</span><br><span class="line"><span class="keyword">from</span> datasets <span class="keyword">import</span> Dataset</span><br><span class="line"><span class="keyword">from</span> ragas.metrics._aspect_critic <span class="keyword">import</span> (</span><br><span class="line">    harmfulness,</span><br><span class="line">    maliciousness,</span><br><span class="line">    coherence,</span><br><span class="line">    correctness,</span><br><span class="line">    conciseness,</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="keyword">from</span> langchain_openai <span class="keyword">import</span> ChatOpenAI</span><br><span class="line"></span><br><span class="line">critic_llm = ChatOpenAI(</span><br><span class="line">    model=base_model_name,</span><br><span class="line">    temperature=<span class="number">0</span>,</span><br><span class="line">    max_tokens=<span class="number">1024</span>,</span><br><span class="line">    api_key=os.getenv(<span class="string">&quot;OPENAI_API_KEY&quot;</span>),</span><br><span class="line">    base_url=os.getenv(<span class="string">&quot;OPENAI_API_BASE&quot;</span>),</span><br><span class="line">    streaming=<span class="literal">False</span>,</span><br><span class="line">)</span><br><span class="line"><span class="keyword">if</span> __name__ == <span class="string">&quot;__main__&quot;</span>:</span><br><span class="line">    data_samples = &#123;</span><br><span class="line">        <span class="string">&quot;user_input&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;人工智能的三个主要分支是什么？&quot;</span>,</span><br><span class="line">            <span class="string">&quot;什么是向量数据库？它在RAG系统中有什么作用？&quot;</span>,</span><br><span class="line">            <span class="string">&quot;解释一下大语言模型的微调过程&quot;</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">&quot;response&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;人工智能的三个主要分支是机器学习、深度学习和自然语言处理。&quot;</span>,</span><br><span class="line">            <span class="string">&quot;向量数据库是专门存储和检索向量嵌入的数据库系统，在RAG系统中用于高效地检索语义相似的文档。&quot;</span>,</span><br><span class="line">            <span class="string">&quot;大语言模型的微调是在预训练模型的基础上，使用特定任务的数据进一步训练模型的过程。&quot;</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">&quot;reference&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;人工智能的三个主要分支是机器学习、自然语言处理和计算机视觉。&quot;</span>,</span><br><span class="line">            <span class="string">&quot;向量数据库是专门设计用于存储和检索向量嵌入的数据库系统。在RAG系统中，它用于存储文档的向量表示，并通过相似性搜索快速检索与查询最相关的文档。&quot;</span>,</span><br><span class="line">            <span class="string">&quot;大语言模型的微调是一个过程，其中预训练的基础模型使用特定领域或任务的数据进行额外训练，以优化其在特定应用场景的性能。&quot;</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">&quot;ground_truth&quot;</span>: [</span><br><span class="line">            <span class="string">&quot;人工智能的三个主要分支是机器学习、自然语言处理和计算机视觉。&quot;</span>,</span><br><span class="line">            <span class="string">&quot;向量数据库是专门设计用于存储和检索向量嵌入的数据库系统。在RAG系统中，它用于存储文档的向量表示，并通过相似性搜索快速检索与查询最相关的文档。&quot;</span>,</span><br><span class="line">            <span class="string">&quot;大语言模型的微调是一个过程，其中预训练的基础模型使用特定领域或任务的数据进行额外训练，以优化其在特定应用场景的性能。&quot;</span>,</span><br><span class="line">        ],</span><br><span class="line">        <span class="string">&quot;retrieved_contexts&quot;</span>: [</span><br><span class="line">            [<span class="string">&quot;人工智能主要包括机器学习、深度学习、自然语言处理和计算机视觉等领域。&quot;</span>],</span><br><span class="line">            [</span><br><span class="line">                <span class="string">&quot;向量数据库是专门用于向量数据存储和检索的系统。在RAG应用中，向量数据库存储文档嵌入，通过计算相似度快速找到匹配查询的文档。&quot;</span></span><br><span class="line">            ],</span><br><span class="line">            [</span><br><span class="line">                <span class="string">&quot;大语言模型微调是在已预训练的模型基础上，使用特定数据集进行额外训练的过程，目的是使模型适应特定任务或领域。&quot;</span></span><br><span class="line">            ],</span><br><span class="line">        ],</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    dataset = Dataset.from_dict(data_samples)</span><br><span class="line"></span><br><span class="line">    result = evaluate(</span><br><span class="line">        dataset,</span><br><span class="line">        metrics=[harmfulness, maliciousness, coherence, correctness, conciseness],</span><br><span class="line">        llm=critic_llm,</span><br><span class="line">    )</span><br><span class="line">    <span class="built_in">print</span>(result)</span><br></pre></td></tr></table></figure>
+
+<h1 id="四、RAG性能提升"><a href="#四、RAG性能提升" class="headerlink" title="四、RAG性能提升"></a>四、RAG性能提升</h1><p>主要提升点在于<strong>prompt和检索的优化</strong></p>
+<h2 id="4-1-查询增强"><a href="#4-1-查询增强" class="headerlink" title="4.1 查询增强"></a>4.1 查询增强</h2><p>查询增强常见方法： <strong>prompt + LLM</strong>，把用户的输入丢给大模型再进行一轮优化</p>
+<img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919182904042.png" class="" title="image-20250919182904042">
+
+<h3 id="4-1-1-Query2Doc"><a href="#4-1-1-Query2Doc" class="headerlink" title="4.1.1 Query2Doc"></a>4.1.1 Query2Doc</h3><p>把用户原始查询转化为更适合检索的文档式表达，从而提升召回的相关性和丰富度。</p>
+<p><strong>如何写好提示词：角色扮演+思维链（CoT）</strong></p>
+<p><strong>提示词模板：</strong></p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">请将用户提出的简短查询，扩展为一段详细的文档式检索请求。请尽可能补充背景信息、应用场景、相关细节和可能涉及的子问题，目标是生成一段结构化且信息丰富的检索文本，以便后续检索到更加全面和高质量的文档。用户查询为：**&#123;用户Query&#125;**</span><br></pre></td></tr></table></figure>
+
+<p><strong>示例模板：</strong></p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">你是检索增强生成（RAG）系统中的查询扩展专家。请将以下简短查询转化为详细、信息丰富的文档式检索请求，目标是：</span><br><span class="line">- 扩展背景信息</span><br><span class="line">- 提出相关子问题</span><br><span class="line">- 提供应用场景</span><br><span class="line">- 包含技术细节或历史沿革（如适用）</span><br><span class="line"></span><br><span class="line">请扩展的内容尽量包含：</span><br><span class="line">- 定义或基本解释</span><br><span class="line">- 相关领域应用</span><br><span class="line">- 可能的争议或不同观点</span><br><span class="line">- 关键人物、组织或事件（如适用）</span><br><span class="line">- 具体实例或案例（如适用）</span><br><span class="line"></span><br><span class="line">用户查询：&#123;用户Query&#125;</span><br><span class="line"></span><br><span class="line">请输出详细的检索请求，不要生成答案，仅生成扩展后的检索描述。</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-1-2-HyDE"><a href="#4-1-2-HyDE" class="headerlink" title="4.1.2 HyDE"></a>4.1.2 HyDE</h3><p><strong>先把用户的问题丢给大模型生成一个假设性文档，根据这个文档来检索知识块</strong></p>
+<p><code>你现在是一名知识检索助手，请根据用户的问题生成一段关于该问题的详细描述，用于向量检索，不用回答问题，只需要生成假设性的答案文本。</code></p>
+<p><code>用户问题：&#123;query&#125;</code></p>
+<p><code>假设文档</code>：</p>
+<p>Query</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;什么是量子计算？&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第一步</strong>：<strong>使用 LLM 生成一个可能的答案（假设文档）：</strong></p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&quot;量子计算是一种利用量子比特进行并行计算的新型计算模式，它通过量子叠加和量子纠缠...&quot;</span><br></pre></td></tr></table></figure>
+
+<p><strong>第二步</strong>：将这段生成的假设文档向量化。</p>
+<p><strong>第三步</strong>：用这个假设文档的向量去检索数据库，找到与这个“答案”最相似的真实文档。</p>
+<h2 id="4-2-多索引检索增强"><a href="#4-2-多索引检索增强" class="headerlink" title="4.2 多索引检索增强"></a>4.2 多索引检索增强</h2><img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919183856681.png" class="" title="image-20250919183856681">
+
+<h3 id="4-2-1-父子文档-small2big"><a href="#4-2-1-父子文档-small2big" class="headerlink" title="4.2.1 父子文档 small2big"></a>4.2.1 父子文档 small2big</h3><p>把大的知识块切割成小块后放到词向量数据库中，用户输入问题后在数据库中和小块进行匹配，返回输出小块对应的大块</p>
+<img src="/2025/09/06/RAG的评估（RAGAS）和检索优化/image-20250919184233993.png"  alt="image-20250919184233993" style="zoom:50%;" />
+
+<h3 id="4-2-2-诸如此类"><a href="#4-2-2-诸如此类" class="headerlink" title="4.2.2 诸如此类"></a>4.2.2 诸如此类</h3><p><strong>总结索引：</strong></p>
+<img src="/2025/09/06/RAG的评估（RAGAS）和检索优化/image-20250919184636753.png"  alt="image-20250919184636753" style="zoom:50%;" />
+
+<p><strong>文档假设问题</strong>：</p>
+<img src="/2025/09/06/RAG的评估（RAGAS）和检索优化/image-20250919184615721.png"  alt="image-20250919184615721" style="zoom:50%;" />
+
+<h2 id="4-3-融合检索"><a href="#4-3-融合检索" class="headerlink" title="4.3 融合检索"></a>4.3 融合检索</h2><img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919184800724.png" class="" title="image-20250919184800724">
+
+<p><strong>架构如下：BM25+embedding</strong></p>
+<img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919184921037.png" class="">
+
+<h1 id="4-4-Rerank"><a href="#4-4-Rerank" class="headerlink" title="4.4 Rerank"></a>4.4 Rerank</h1><p>使用Rerank大模型对检索结果进行再次排序</p>
+<img src="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/image-20250919185019928.png" class="" title="image-20250919185019928">
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/">http://example.com/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">GraphRAG的构建</div></div><div class="info-2"><div class="info-item-1">前言：经典RAG应用的范式与架构已经非常流行，我们可以在很短的时间内借助成熟框架开发一个简单能用的RAG应用。 但是传统RAG需要对文本进行分块，然后进行向量化存储，这种处理模式就会天然导致RAG在全局查询或总结上的表现不会太好。比如面对这样的问题，“《跨越鸿沟》这本书整体上讲了什么？请撰写一份2000字的总结”，传统RAG大概率会表现不及格。并且在对文本分块之后，可能会丢失一些信息之间的关系和因果性 这正是知识图谱和GraphRAG可以发挥作用的场景 一、neo4j的搭建Neo4j安装与配置以及JDK安装与配置教程（超详细）-CSDN博客 二、积累一些专用名词实体（Entity） 知识图谱中的“点”，代表现实世界中的事物，例如“华为”“张三”“北京大学”。 关系（Relation &#x2F; Edge） 实体之间的联系，图中的“边”，例如“张三–就读于–北京大学”。 属性（Attribute &#x2F; Property） 实体或关系的特征值，例如“张三–年龄–25岁”。 三元组（Triple） 知识图谱的基本单元，形式为 (头实体, 关系, 尾实体)，如 (张三, 就读于...</div></div></div></a><a class="pagination-related" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">vLLM的优势——KV cache与PageAttention</div></div><div class="info-2"><div class="info-item-1">前言参考文章： (19 封私信) 长篇白话解读vLLM：让大模型推理快得飞起的“黑魔法” - 知乎 (19 封私信) 一文详解八款主流大模型推理框架 - 知乎 训练好的大模型本质上就是一堆参数文件（权重）+ 结构定义，它自己不能直接对外服务。要真正让别人（前端、业务系统、APP 用户）用起来，就必须把它部署成一个可调用的系统。 理解为：  训练完的模型 &#x3D; 一本厚厚的书，放在你电脑里，别人看不到。 部署好的模型服务 &#x3D; 建了一个图书馆窗口，别人能来借书、问问题。  目前主流的大模型推理框架有Hugging Face（国外），ModelScope（国内），Ollama，以及本篇文章要着重介绍的vLLM。 对于获取句子嵌入向量的大模型，可以使用更加便捷的Sentence Transformers库，我们在后面的文章中会介绍。 一、Hugging Face&#x2F;ModelScope（魔塔社区）这两个平台本质都差不多，都是通过调用 API 或 SDK 来下载、加载和推理模型，适合用来下载到本地部署和运行推理，只是 Hugging Face 更国际化、生态更全，而...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80%EF%BC%9A"><span class="toc-number">1.</span> <span class="toc-text">前言：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E7%8B%AC%E7%AB%8B%E8%AF%84%E4%BC%B0"><span class="toc-number">2.</span> <span class="toc-text">一、独立评估</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E6%A3%80%E7%B4%A2%E6%A8%A1%E5%9D%97%E8%AF%84%E4%BC%B0"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 检索模块评估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-%E5%91%BD%E4%B8%AD%E7%8E%87%EF%BC%88Hit-Rate%EF%BC%89"><span class="toc-number">2.1.1.</span> <span class="toc-text">1.1.1 命中率（Hit Rate）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-%E5%B9%B3%E5%9D%87%E6%8E%92%E5%90%8D%E5%80%92%E6%95%B0%EF%BC%88MRR%EF%BC%89"><span class="toc-number">2.1.2.</span> <span class="toc-text">1.1.2 平均排名倒数（MRR）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E7%94%9F%E6%88%90%E6%A8%A1%E5%9D%97%E8%AF%84%E4%BC%B0"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 生成模块评估</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-1-BLEU"><span class="toc-number">2.2.1.</span> <span class="toc-text">1.2.1 BLEU</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81RAGAS"><span class="toc-number">3.</span> <span class="toc-text">二、RAGAS</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%BF%A0%E5%AE%9E%E5%BA%A6"><span class="toc-number">3.1.</span> <span class="toc-text">2.1 忠实度</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E7%AD%94%E6%A1%88%E7%9B%B8%E5%85%B3%E6%80%A7"><span class="toc-number">3.2.</span> <span class="toc-text">2.2 答案相关性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-3-%E4%B8%8A%E4%B8%8B%E6%96%87%E7%9B%B8%E5%85%B3%E6%80%A7"><span class="toc-number">3.3.</span> <span class="toc-text">2.3 上下文相关性</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E4%BB%A3%E7%A0%81%E5%8F%82%E8%80%83%EF%BC%88%E5%9C%A8metrics%E4%B8%AD%E9%80%89%E6%8B%A9%E8%87%AA%E5%B7%B1%E6%83%B3%E8%A6%81%E7%9A%84%E6%8C%87%E6%A0%87%EF%BC%89%EF%BC%9A"><span class="toc-number">4.</span> <span class="toc-text">三、代码参考（在metrics中选择自己想要的指标）：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9B%9B%E3%80%81RAG%E6%80%A7%E8%83%BD%E6%8F%90%E5%8D%87"><span class="toc-number">5.</span> <span class="toc-text">四、RAG性能提升</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#4-1-%E6%9F%A5%E8%AF%A2%E5%A2%9E%E5%BC%BA"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 查询增强</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-1-Query2Doc"><span class="toc-number">5.1.1.</span> <span class="toc-text">4.1.1 Query2Doc</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-2-HyDE"><span class="toc-number">5.1.2.</span> <span class="toc-text">4.1.2 HyDE</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-2-%E5%A4%9A%E7%B4%A2%E5%BC%95%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 多索引检索增强</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-1-%E7%88%B6%E5%AD%90%E6%96%87%E6%A1%A3-small2big"><span class="toc-number">5.2.1.</span> <span class="toc-text">4.2.1 父子文档 small2big</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-2-%E8%AF%B8%E5%A6%82%E6%AD%A4%E7%B1%BB"><span class="toc-number">5.2.2.</span> <span class="toc-text">4.2.2 诸如此类</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-3-%E8%9E%8D%E5%90%88%E6%A3%80%E7%B4%A2"><span class="toc-number">5.3.</span> <span class="toc-text">4.3 融合检索</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#4-4-Rerank"><span class="toc-number">6.</span> <span class="toc-text">4.4 Rerank</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GraphRAG的构建"/></a><div class="content"><a class="title" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建">GraphRAG的构建</a><time datetime="2025-09-07T10:56:52.000Z" title="发表于 2025-09-07 18:56:52">2025-09-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG的评估（RAGAS）和检索优化"/></a><div class="content"><a class="title" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化">RAG的评估（RAGAS）和检索优化</a><time datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vLLM的优势——KV cache与PageAttention"/></a><div class="content"><a class="title" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention">vLLM的优势——KV cache与PageAttention</a><time datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG——检索增强生成"/></a><div class="content"><a class="title" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成">RAG——检索增强生成</a><time datetime="2025-09-01T04:09:02.000Z" title="发表于 2025-09-01 12:09:02">2025-09-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="大模型的端到端全栈部署思路"/></a><div class="content"><a class="title" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路">大模型的端到端全栈部署思路</a><time datetime="2025-08-23T05:19:16.000Z" title="发表于 2025-08-23 13:19:16">2025-08-23</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

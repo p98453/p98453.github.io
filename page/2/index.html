@@ -1,0 +1,271 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>小牛壮士 - 个人博客</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="林勇的个人博客">
+<meta property="og:type" content="website">
+<meta property="og:title" content="小牛壮士">
+<meta property="og:url" content="http://example.com/page/2/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="林勇的个人博客">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E5%A4%B4%E5%83%8F.png">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E5%A4%B4%E5%83%8F.png"><script type="application/ld+json"></script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/page/2/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '小牛壮士',
+  isHighlightShrink: false,
+  isToc: false,
+  pageType: 'home'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="page" id="body-wrap"><header class="full_page" id="page-header" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="site-info"><h1 id="site-title">小牛壮士</h1><div id="site-subtitle"><span id="subtitle"></span></div><div id="site_social_icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div id="scroll-down"><i class="fas fa-angle-down scroll-down-effects"></i></div></header><main class="layout" id="content-inner"><div class="recent-posts nc" id="recent-posts"><div class="recent-post-items"><div class="recent-post-item"><div class="post_cover left"><a href="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/" title="LSTM长短期记忆网络"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="LSTM长短期记忆网络"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/08/11/LSTM%E9%95%BF%E7%9F%AD%E6%9C%9F%E8%AE%B0%E5%BF%86%E7%BD%91%E7%BB%9C/" title="LSTM长短期记忆网络">LSTM长短期记忆网络</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-11T07:47:55.000Z" title="发表于 2025-08-11 15:47:55">2025-08-11</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a></span></div><div class="content">前言前面说到RNN虽然能捕捉时序数据，但是在一些比较长的序列上面会出现梯度问题，而LSTM（长短期记忆网络）通过引入门控机制有效地解决了传统RNN中的梯度消失和梯度爆炸问题。 LSTM单元包含输入门、遗忘门和输出门，这些门控结构允许模型有选择性地保留或丢弃信息，从而控制信息流动。  遗忘门帮助模型决定哪些信息应该被遗忘 输入门决定哪些新信息应该被存储 输出门决定哪些信息应该被输出到下一个时间步  这种设计使得LSTM能够在长时间序列中保持梯度的稳定性，避免梯度在反向传播过程中的指数级衰减或增长，从而允许模型学习并记忆长期依赖关系。 一、模型结构  1.1 非常精辟的理解LSTM单元通过当前步的输入，前一步的隐藏状态和细胞状态，得到当前步的输出和下一步的隐藏状态 在遗忘门得到了一个历史细胞状态保留的比例① 在输入门得到了一个当前时间步的新信息②以及该新信息能被写入细胞状态的比例③ ①与历史细胞状态相乘，保留历史细胞状态的一部分，②与③相乘，将新信息的一部分写入细胞状态，相加得到新的细胞状态④ 在输出门结合前一步的隐藏状态得到了当前步的输出⑤，又以④得到当前步的隐藏状态⑥（当前步的输...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/08/10/RNN%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" title="RNN循环神经网络"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RNN循环神经网络"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/08/10/RNN%E5%BE%AA%E7%8E%AF%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/" title="RNN循环神经网络">RNN循环神经网络</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-10T13:33:16.000Z" title="发表于 2025-08-10 21:33:16">2025-08-10</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a></span></div><div class="content">前言对于图像识别，数据顺序不重要，因为图像像素是独立无序的。然而，对于文本、股票、天气和语音等具有时间或逻辑顺序的数据，顺序对结果有显著影响。例如，文本中词语的顺序改变会导致意义完全不同，而股票和天气数据的顺序也很重要，因为后续数据可能受之前数据的影响。 文本理解中，顺序同样关键，如古诗中诗句顺序的改变会改变整首诗的意境。因此，在处理具有时间或逻辑顺序的数据时，必须考虑顺序的重要性，并设计相应的模型来利用数据的前后关系，如循环神经网络（RNN），以获得更准确和有意义的结果。 一、模型架构1.1 整体结构RNN（循环神经网络）通过在网络内部添加循环连接，使其能够利用先前时间步的信息，从而在处理序列数据时能够捕捉和利用结构信息。   RNN在处理一个序列，比如一句话或者一系列的数字时，会同时考虑当前的数据和之前的数据。它通过更新一个内部的“记忆”（隐藏状态），来“记住”过去的信息，并用这些信息来帮助理解新的数据。这样，RNN就能捕捉到数据中的顺序和模式，就像你通过记忆来理解连续剧一样。这一过程可以通过数学公式简化为：   其中，S_t表示在时间步t的隐藏状态，是当前时间步t的输入，U...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/08/07/NLP%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/" title="NLP特征工程"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="NLP特征工程"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/08/07/NLP%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/" title="NLP特征工程">NLP特征工程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-07T11:42:35.000Z" title="发表于 2025-08-07 19:42:35">2025-08-07</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BC%80%E5%8F%91/">大模型开发</a></span></div><div class="content">前言自然语言处理（NLP）是计算机科学与语言学交叉领域，旨在使计算机能够理解、生成和处理人类语言，通过算法和模型分析语言结构与语义，实现机器翻译、情感分析、语音识别等功能，推动人机交互智能化发展。 一、NLP中的特征工程特征工程在自然语言处理（NLP）中是将文本数据转换为机器学习模型可处理的数值形式的过程，通过提取词性、语法、相似度等信息，将非结构化的文本转化为对预测有用且模型能理解的特征。 说人话就是机器理解不了人类常用的字母和汉字，如果我们要进行文本处理就必须将这些转换为数值形式，也就是词向量，用这些向量来代替文字体现他们之间的语义关系，进而帮助计算机理解文本信息 举个例子，现在有“猫”，“狗”，“爱情”三个词语，通过词向量技术，将他们映射到向量空间(0.2,0.1,0.3)，(0.2,0.2,0.2)，(-0.4,-0.5,-0.2)，在词嵌入模型的最初始阶段，单词的向量通常是由随机初始化的，需要经过模型的训练（后续会介绍）。例如通过这些向量，我们可以得到他们的余弦相似性   1.1 独热编码 one - hot一个简单示例：   1.2 n-gramsn-grams是一种...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/" title="算法题记录"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="算法题记录"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/08/06/%E7%AE%97%E6%B3%95%E9%A2%98%E8%AE%B0%E5%BD%95/" title="算法题记录">算法题记录</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-08-06T12:18:52.000Z" title="发表于 2025-08-06 20:18:52">2025-08-06</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/">数据结构与算法</a></span></div><div class="content">2025年8月6日   123456789101112131415161718192021222324252627282930313233number_to_letter = &#123;chr(96 + i): i for i in range(1, 27)&#125;def fn(str1,str2,number_to_letter):    steps = []    length = len(str1)    for i in range(len(str2[:length])+1):              # print(&quot;---&quot;)        step = 0        # 第一个循环是取出所有子串        str2_ = str2[i:i+length]        if length &gt; len(str2_):            break        print(str1,str2_)                            for i in range(len(str1)):           ...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/07/16/yolov11%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2%E5%8F%8A%E6%A8%A1%E5%9E%8B%E5%88%86%E6%9E%90/" title="基于AutoDL云服务器部署yolov11项目及模型分析"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="基于AutoDL云服务器部署yolov11项目及模型分析"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/07/16/yolov11%E9%A1%B9%E7%9B%AE%E9%83%A8%E7%BD%B2%E5%8F%8A%E6%A8%A1%E5%9E%8B%E5%88%86%E6%9E%90/" title="基于AutoDL云服务器部署yolov11项目及模型分析">基于AutoDL云服务器部署yolov11项目及模型分析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-07-16T05:34:04.000Z" title="发表于 2025-07-16 13:34:04">2025-07-16</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E5%B7%A5%E5%85%B7-%E9%83%A8%E7%BD%B2/">工具/部署</a></span></div><div class="content">前言因为yolov11训练需要的配置要求已经超过我电脑了，所以我还是在AutoDL上租用一台GPU来跑，租用云服务器实际上就是租用一台装配了GPU显卡的Linux虚拟机来跑自己的模型，那么我们就需要提前把自己的代码和数据通过传输软件传上服务器（也可以直接拖到窗口，但是太慢了，这里我用的软件是Xftp），下面配备了比较完整的流程，在前面的yolov5相关操作教程中写的也比较详细了，这篇博客主要是用来分析yolov11训练后产生的结果文件。 一、项目部署教程我们在注册并登录AutoDL后，选择合适型号的GPU，建议如果是学习过程的话可以租用便宜一点的，比如2080ti，相对性能也够用了   记得在选择镜像时去使用就已经创建好的yolov11镜像，可以免去很多麻烦 在容器实例中选择刚才租的实例，选择更多–无卡模式开机，这样我们在传输数据时成本就要低一点，不然他就会一直按照0.88元来扣费，无卡模式除了没有GPU，其他都是一样的   打开后我们进入vscode，下载扩展远程资源管理器   点击图标输入ssh指令和密码（在容器实例上复制），我之前登录过，就只用输密码了   完成后我们就成功...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/07/14/yolov5%E7%90%86%E8%AE%BA%E5%8F%8A%E5%AE%9E%E6%93%8D/" title="yolov5源项目部署教程"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="yolov5源项目部署教程"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/07/14/yolov5%E7%90%86%E8%AE%BA%E5%8F%8A%E5%AE%9E%E6%93%8D/" title="yolov5源项目部署教程">yolov5源项目部署教程</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-07-14T10:34:53.000Z" title="发表于 2025-07-14 18:34:53">2025-07-14</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/yolo%E7%B3%BB%E5%88%97/">yolo系列</a></span></div><div class="content">前言：这一篇目主要用于介绍yolov5的实战部分，包括如何部署项目以及模型的训练和推理，最后还会结合orc技术来进行车牌识别项目实战 一、项目来源项目可以在 github 搜到：【https://github.com/ultralytics/yolov5】（选择合适的预训练模型，可以直接下载，也可以直接git到本地） 将下载好的文件解压，最后在vscode中打开的文件目录如下，一定要确保项目名即为最开始的yolov5中没有另外一层yolov5文件结构：   二、环境配置首先需要创建虚拟环境（这里我是直接在云GPU上部署的项目，可以直接选择别人已经创建好并且很稳定的虚拟环境）   对于 yolo 系列目前来说，需要安装的 python 版本 &gt;&#x3D; 3.8 的，pytorch 版本&gt;&#x3D; 1.8 如果是在本地部署的话，那么在创建激活并切换环境后需要运行如下命令安装依赖包 1pip install -r requirements.txt  注意：这里运行后只能默认是CPU的版本，如果想安装GPU版本还需要安装合适版本cuda后去官网下载对应pytorch，...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="yolov1-v3原理解析"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="yolov1-v3原理解析"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="yolov1-v3原理解析">yolov1-v3原理解析</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-07-11T11:28:25.000Z" title="发表于 2025-07-11 19:28:25">2025-07-11</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/yolo%E7%B3%BB%E5%88%97/">yolo系列</a></span></div><div class="content">一、yolov1导航YOLOv1YOLOV1 论文地址：【https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf?spm=5176.28103460.0.0.359a5d27d0cimU&amp;file=Redmon_You_Only_Look_CVPR_2016_paper.pdf】 YOLOV1 论文中文翻译地址：【https://blog.csdn.net/muye_IT/article/details/124612829】 1.1、网络结构yolov1是在GoogLeNet 的基础上进行改编的一种单阶段目标检测网络，把目标检测转变成一个回归问题，实现端到端的检测 包含24个卷积层，4个池化层，2个全连接层 缺陷：yolov1使用的仍然是全连接层，这就导致主干结构的输入要求必须是448x448的固定尺寸 问：那为什么在预训练阶段可以输入224x224的图像呢？  在预训练阶段，YOLOv1 使用 224×224 的图...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/07/03/yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/" title="yolo目标检测基础"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="yolo目标检测基础"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/07/03/yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/" title="yolo目标检测基础">yolo目标检测基础</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-07-03T09:15:36.000Z" title="发表于 2025-07-03 17:15:36">2025-07-03</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/yolo%E7%B3%BB%E5%88%97/">yolo系列</a></span></div><div class="content">一、概念目标检测需要识别图片或视频帧中的物体是什么类别，并确定他们的位置**（where and what）**，通常用于多个物体的识别，并为每个示例提供一个边界框和类别标签。  目标检测的本质：使用边界框将物体在图中圈出，边界框上会存在两个指标：类别信息，置信度  yolo(you only look once)：是一个单阶段的目标检测算法，能够用于实时监测 人工智能领域的上游任务和下游任务  上游任务通常是指为后续任务提供基础支持的任务，主要关注数据的收集、处理、模型的预训练等基础性工作。这些任务的输出通常是一个通用的模型或者数据集，可以被多个下游任务复用  下游任务是指在上游任务的基础上，针对具体的业务场景或应用需求进行的模型微调和应用开发。这些任务通常具有明确的目标和应用场景，需要在预训练模型的基础上进行进一步的优化和调整，以满足特定任务的需求   二、数据标注数据标注是在图片中框选标注出我们需要模型训练用来检测的实例，用作监督模型训练的标签 步骤：  创建一个专门用于数据标注的虚拟环境 1conda create -n yololabel python=3.12  激活...</div></div></div><div class="recent-post-item"><div class="post_cover left"><a href="/2025/06/26/%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BResNet/" title="经典神经网络之ResNet"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="经典神经网络之ResNet"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/06/26/%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BResNet/" title="经典神经网络之ResNet">经典神经网络之ResNet</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-26T04:11:55.000Z" title="发表于 2025-06-26 12:11:55">2025-06-26</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a></span></div><div class="content">前言ResNet通过引入残差结构解决了深层网络中的梯度消失、梯度爆炸及退化问题，借助Batch Normalization加速训练，成功搭建了超深网络（突破1000层）。   一、残差结构（residual）（★）ResNet中的残差块（Residual Block）是其核心组件，用于解决深层网络训练中的梯度消失和退化问题，让实现更深层的网络成为可能。 残差块包含两条路径：  一条是主路径，用于学习输入和输出之间的残差（即差异） 另一条是捷径路径，直接将输入添加到主路径的输出上，这里的添加是对应元素进行数值相加    二、批量归一化（Batch Normalization）（★）Batch Normalization（批量归一化）用于加速神经网络的训练过程并提高其稳定性。 它通过在每个小批量（Batch）上对输入数据进行归一化处理，使每层的输入数据具有均值为0、标准差为1的分布。 三、模型代码12345678910111213141516171819202122232425262728293031323334353637383940414243444546474849505152...</div></div></div><div class="recent-post-item"><div class="post_cover right"><a href="/2025/06/25/%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BGoogLeNet/" title="经典神经网络之GoogLeNet"><img class="post-bg" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="经典神经网络之GoogLeNet"></a></div><div class="recent-post-info"><a class="article-title" href="/2025/06/25/%E7%BB%8F%E5%85%B8%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C%E4%B9%8BGoogLeNet/" title="经典神经网络之GoogLeNet">经典神经网络之GoogLeNet</a><div class="article-meta-wrap"><span class="post-meta-date"><i class="far fa-calendar-alt"></i><span class="article-meta-label">发表于</span><time datetime="2025-06-25T07:21:11.000Z" title="发表于 2025-06-25 15:21:11">2025-06-25</time></span><span class="article-meta"><span class="article-meta-separator">|</span><i class="fas fa-inbox"></i><a class="article-meta__categories" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/">神经网络</a></span></div><div class="content">前言GoogLeNet 于 2014 年由 Google 团队提出，凭借其创新的 Inception 结构（融合多尺度特征）、1×1 卷积核降维以及用平均池化层替代全连接层（大幅减少参数）等设计，斩获当年 ImageNet 分类任务第一名。   一、inception结构和之前提到的线性排列的网络结构不同，inception模块采用并联结构，将特征同时输入多个分支，最后将每个分支得到的等宽等高的输出进行拼接   这里大小为1x1的卷积层，目的是为了降维（使用通道数更小的卷积核来改变原结构通道数），减少模型训练参数，减少计算量 二、全局平均池化层GAP平均池化层通过计算特征图的平均值将其压缩为全局特征表示，减少参数量和计算量，避免过拟合，提升泛化能力和训练效率，从而可替代全连接层。   在大多数实际应用中，特征图的通道数 ( C ) 与类别数 ( N ) 不同。因此，全局池化后的输出 ( (1, 1, C) ) 通常需要通过一个全连接层将其映射到类别数 ( N )。全连接层的作用是将特征向量 ( C ) 映射到类别数 ( N )。 三、模型代码（训练自己的数据集）3.1 模型结构代...</div></div></div></div><nav id="pagination"><div class="pagination"><a class="extend prev" rel="prev" href="/"><i class="fas fa-chevron-left fa-fw"></i></a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/#content-inner">3</a><a class="page-number" href="/page/4/#content-inner">4</a><a class="extend next" rel="next" href="/page/3/#content-inner"><i class="fas fa-chevron-right fa-fw"></i></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">38</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GraphRAG的构建"/></a><div class="content"><a class="title" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建">GraphRAG的构建</a><time datetime="2025-09-07T10:56:52.000Z" title="发表于 2025-09-07 18:56:52">2025-09-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG的评估（RAGAS）和检索优化"/></a><div class="content"><a class="title" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化">RAG的评估（RAGAS）和检索优化</a><time datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vLLM的优势——KV cache与PageAttention"/></a><div class="content"><a class="title" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention">vLLM的优势——KV cache与PageAttention</a><time datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG——检索增强生成"/></a><div class="content"><a class="title" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成">RAG——检索增强生成</a><time datetime="2025-09-01T04:09:02.000Z" title="发表于 2025-09-01 12:09:02">2025-09-01</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="大模型的端到端全栈部署思路"/></a><div class="content"><a class="title" href="/2025/08/23/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E7%AB%AF%E5%88%B0%E7%AB%AF%E7%9A%84%E5%85%A8%E6%A0%88%E9%83%A8%E7%BD%B2%E6%80%9D%E8%B7%AF/" title="大模型的端到端全栈部署思路">大模型的端到端全栈部署思路</a><time datetime="2025-08-23T05:19:16.000Z" title="发表于 2025-08-23 13:19:16">2025-08-23</time></div></div></div></div><div class="card-widget card-categories"><div class="item-headline">
+            <i class="fas fa-folder-open"></i>
+            <span>分类</span>
+            
+          </div>
+          <ul class="card-category-list" id="aside-cat-list">
+            <li class="card-category-list-item "><a class="card-category-list-link" href="/categories/yolo%E7%B3%BB%E5%88%97/"><span class="card-category-list-name">yolo系列</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E4%BA%BA%E5%B7%A5%E6%99%BA%E8%83%BD%E5%9F%BA%E7%A1%80/"><span class="card-category-list-name">人工智能基础</span><span class="card-category-list-count">11</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BC%80%E5%8F%91/"><span class="card-category-list-name">大模型开发</span><span class="card-category-list-count">9</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E5%B7%A5%E5%85%B7-%E9%83%A8%E7%BD%B2/"><span class="card-category-list-name">工具/部署</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E7%AE%97%E6%B3%95/"><span class="card-category-list-name">数据结构与算法</span><span class="card-category-list-count">3</span></a></li><li class="card-category-list-item "><a class="card-category-list-link" href="/categories/%E7%A5%9E%E7%BB%8F%E7%BD%91%E7%BB%9C/"><span class="card-category-list-name">神经网络</span><span class="card-category-list-count">9</span></a></li>
+          </ul></div><div class="card-widget card-archives">
+    <div class="item-headline">
+      <i class="fas fa-archive"></i>
+      <span>归档</span>
+      
+    </div>
+  
+    <ul class="card-archive-list">
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/09/">
+            <span class="card-archive-list-date">
+              九月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/08/">
+            <span class="card-archive-list-date">
+              八月 2025
+            </span>
+            <span class="card-archive-list-count">10</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/07/">
+            <span class="card-archive-list-date">
+              七月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/06/">
+            <span class="card-archive-list-date">
+              六月 2025
+            </span>
+            <span class="card-archive-list-count">8</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/05/">
+            <span class="card-archive-list-date">
+              五月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/04/">
+            <span class="card-archive-list-date">
+              四月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+        <li class="card-archive-list-item">
+          <a class="card-archive-list-link" href="/archives/2025/03/">
+            <span class="card-archive-list-date">
+              三月 2025
+            </span>
+            <span class="card-archive-list-count">4</span>
+          </a>
+        </li>
+      
+    </ul>
+  </div><div class="card-widget card-webinfo"><div class="item-headline"><i class="fas fa-chart-line"></i><span>网站信息</span></div><div class="webinfo"><div class="webinfo-item"><div class="item-name">文章数目 :</div><div class="item-count">38</div></div><div class="webinfo-item"><div class="item-name">本站总字数 :</div><div class="item-count">118.7k</div></div><div class="webinfo-item"><div class="item-name">最后更新时间 :</div><div class="item-count" id="last-push-date" data-lastPushDate="2026-01-12T15:36:35.208Z"><i class="fa-solid fa-spinner fa-spin"></i></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"><script>window.typedJSFn = {
+  init: str => {
+    window.typed = new Typed('#subtitle', Object.assign({
+      strings: str,
+      startDelay: 300,
+      typeSpeed: 150,
+      loop: true,
+      backSpeed: 50,
+    }, null))
+  },
+  run: subtitleType => {
+    if (true) {
+      if (typeof Typed === 'function') {
+        subtitleType()
+      } else {
+        btf.getScript('https://cdn.jsdelivr.net/npm/typed.js/dist/typed.umd.min.js').then(subtitleType)
+      }
+    } else {
+      subtitleType()
+    }
+  },
+  processSubtitle: (content, extraContents = []) => {
+    if (true) {
+      const sub = ["<i class=\"fas fa-quote-left\"></i> 学无止境","<i class=\"fas fa-quote-left\"></i> 千里之行，始于足下 —— 老子","<i class=\"fas fa-quote-left\"></i> 读书破万卷，下笔如有神","<i class=\"fas fa-quote-left\"></i> 吾日三省吾身","<i class=\"fas fa-quote-left\"></i> 星光不问赶路人，时光不负有心人","<i class=\"fas fa-quote-left\"></i> 人生没有白走的路，每一步都算数","<i class=\"fas fa-quote-left\"></i> 保持热爱，奔赴山海","<i class=\"fas fa-quote-left\"></i> 纸上得来终觉浅，绝知此事要躬行","<i class=\"fas fa-quote-left\"></i> 成功的秘诀在于坚持","<i class=\"fas fa-quote-left\"></i> The best way to predict the future is to invent it","<i class=\"fas fa-quote-left\"></i> 生活是一场马拉松，你需要不断地奔跑","<i class=\"fas fa-quote-left\"></i> 成功不是将来才有的，而是从决定去做的那一刻起，持续累积而成"].slice()
+
+      if (extraContents.length > 0) {
+        sub.unshift(...extraContents)
+      }
+
+      if (typeof content === 'string') {
+        sub.unshift(content)
+      } else if (Array.isArray(content)) {
+        sub.unshift(...content)
+      }
+
+      sub.length > 0 && typedJSFn.init(sub)
+    } else {
+      document.getElementById('subtitle').textContent = typeof content === 'string' ? content :
+        (Array.isArray(content) && content.length > 0 ? content[0] : '')
+    }
+  }
+}
+btf.addGlobalFn('pjaxSendOnce', () => { typed.destroy() }, 'typedDestroy')
+</script><script>function subtitleType () {
+  typedJSFn.processSubtitle(["<i class=\"fas fa-quote-left\"></i> 学无止境","<i class=\"fas fa-quote-left\"></i> 千里之行，始于足下 —— 老子","<i class=\"fas fa-quote-left\"></i> 读书破万卷，下笔如有神","<i class=\"fas fa-quote-left\"></i> 吾日三省吾身","<i class=\"fas fa-quote-left\"></i> 星光不问赶路人，时光不负有心人","<i class=\"fas fa-quote-left\"></i> 人生没有白走的路，每一步都算数","<i class=\"fas fa-quote-left\"></i> 保持热爱，奔赴山海","<i class=\"fas fa-quote-left\"></i> 纸上得来终觉浅，绝知此事要躬行","<i class=\"fas fa-quote-left\"></i> 成功的秘诀在于坚持","<i class=\"fas fa-quote-left\"></i> The best way to predict the future is to invent it","<i class=\"fas fa-quote-left\"></i> 生活是一场马拉松，你需要不断地奔跑","<i class=\"fas fa-quote-left\"></i> 成功不是将来才有的，而是从决定去做的那一刻起，持续累积而成"])
+}
+typedJSFn.run(subtitleType)</script></div></div></body></html>
