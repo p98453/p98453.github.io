@@ -1,0 +1,474 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>开源项目DeepAnalyze部署历程 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="运行方式： 项目文件下 vllm serve models&#x2F;DeepAnalyze-8B –max-model-len 8192 –gpu-memory-utilization 0.9 cd demo&#x2F; bash start.sh 端口4000 显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G这个错误的根本原因很清楚： 👉 你的 GP">
+<meta property="og:type" content="article">
+<meta property="og:title" content="开源项目DeepAnalyze部署历程">
+<meta property="og:url" content="http://example.com/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="运行方式： 项目文件下 vllm serve models&#x2F;DeepAnalyze-8B –max-model-len 8192 –gpu-memory-utilization 0.9 cd demo&#x2F; bash start.sh 端口4000 显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G这个错误的根本原因很清楚： 👉 你的 GP">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-10-09T09:09:51.000Z">
+<meta property="article:modified_time" content="2026-02-10T09:14:05.052Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="实习笔记">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "开源项目DeepAnalyze部署历程",
+  "url": "http://example.com/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-10-09T09:09:51.000Z",
+  "dateModified": "2026-02-10T09:14:05.052Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '开源项目DeepAnalyze部署历程',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">开源项目DeepAnalyze部署历程</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">开源项目DeepAnalyze部署历程</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-10-09T09:09:51.000Z" title="发表于 2025-10-09 17:09:51">2025-10-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T09:14:05.052Z" title="更新于 2026-02-10 17:14:05">2026-02-10</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.4k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>9分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>运行方式：</p>
+<p>项目文件下</p>
+<p>vllm serve models&#x2F;DeepAnalyze-8B –max-model-len 8192 –gpu-memory-utilization 0.9</p>
+<p>cd demo&#x2F;</p>
+<p>bash start.sh</p>
+<p>端口4000</p>
+<h1 id="显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G"><a href="#显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G" class="headerlink" title="显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G"></a>显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G</h1><p>这个错误的<strong>根本原因</strong>很清楚：<br> 👉 <strong>你的 GPU（RTX 2080 Ti, 11GB VRAM）在加载 <code>DeepAnalyze-8B</code> 模型时显存不足。</strong><br> vLLM 尝试分配额外的 192MB 时失败，因为模型本身几乎吃满了 GPU 全部 10.5GB 显存。</p>
+<hr>
+<h2 id="🔍-一、错误核心点"><a href="#🔍-一、错误核心点" class="headerlink" title="🔍 一、错误核心点"></a>🔍 一、错误核心点</h2><figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">torch</span>.OutOfMemoryError: CUDA out of memory. Tried to allocate <span class="number">192</span>.<span class="number">00</span> MiB.</span><br><span class="line"><span class="attribute">GPU</span> <span class="number">0</span> has total capacity <span class="number">10</span>.<span class="number">57</span> GiB of which <span class="number">121</span>.<span class="number">06</span> MiB is free.</span><br></pre></td></tr></table></figure>
+
+<p>而且日志还提到：</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Compute Capability &lt; <span class="number">8</span>.<span class="number">0</span> is not supported <span class="keyword">by </span>the <span class="built_in">V1</span> Engine. Falling <span class="keyword">back </span>to <span class="built_in">V0</span>.</span><br><span class="line">Cannot use FlashAttention<span class="number">-2</span> <span class="keyword">backend </span>for Volta <span class="keyword">and </span>Turing GPUs.</span><br></pre></td></tr></table></figure>
+
+<p>也就是说：</p>
+<ul>
+<li>你的显卡架构较老（Turing, Compute 7.5），无法使用高效的 <code>FlashAttention-2</code>。</li>
+<li>vLLM 只能用旧版内核，显存占用更高。</li>
+</ul>
+<hr>
+<h2 id="💡-二、解决方向汇总（从简单到彻底）"><a href="#💡-二、解决方向汇总（从简单到彻底）" class="headerlink" title="💡 二、解决方向汇总（从简单到彻底）"></a>💡 二、解决方向汇总（从简单到彻底）</h2><h3 id="✅-方法-1：启用-CPU-offload（部分权重放-CPU）"><a href="#✅-方法-1：启用-CPU-offload（部分权重放-CPU）" class="headerlink" title="✅ 方法 1：启用 CPU offload（部分权重放 CPU）"></a>✅ 方法 1：启用 CPU offload（部分权重放 CPU）</h3><p>在启动命令中添加：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --enable-cpu-offload</span><br></pre></td></tr></table></figure>
+
+<p>或旧版本参数：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --offload-folder /tmp/offload</span><br></pre></td></tr></table></figure>
+
+<p>⚠️ 会牺牲推理速度，但显存占用可降低约 30~50%。</p>
+<hr>
+<h3 id="✅-方法-2：使用更小的模型（推荐）"><a href="#✅-方法-2：使用更小的模型（推荐）" class="headerlink" title="✅ 方法 2：使用更小的模型（推荐）"></a>✅ 方法 2：使用更小的模型（推荐）</h3><p>如果你是自行训练或微调的模型，可尝试使用：</p>
+<ul>
+<li><code>DeepAnalyze-1.5B</code></li>
+<li><code>DeepAnalyze-3B</code></li>
+<li><code>Qwen2.5-3B-Instruct</code><br>这些模型在 10GB 显卡上更稳定。</li>
+</ul>
+<p>命令示例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-3B</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="✅-方法-3：启用量化加载（减少显存占用）"><a href="#✅-方法-3：启用量化加载（减少显存占用）" class="headerlink" title="✅ 方法 3：启用量化加载（减少显存占用）"></a>✅ 方法 3：启用量化加载（减少显存占用）</h3><p>vLLM 支持多种量化策略，比如 <code>AWQ</code>、<code>GPTQ</code>、<code>fp8</code>、<code>int8</code>。</p>
+<p>如果你有量化版本模型（如 <code>DeepAnalyze-8B-AWQ</code> 或 <code>DeepAnalyze-8B-GPTQ</code>），可这样加载：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B-AWQ --quantization awq</span><br></pre></td></tr></table></figure>
+
+<p>或：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --quantization int8</span><br></pre></td></tr></table></figure>
+
+<p>（注意：模型必须支持该量化格式）</p>
+<hr>
+<h3 id="✅-方法-4：减小最大上下文长度（节省-KV-Cache-显存）"><a href="#✅-方法-4：减小最大上下文长度（节省-KV-Cache-显存）" class="headerlink" title="✅ 方法 4：减小最大上下文长度（节省 KV Cache 显存）"></a>✅ 方法 4：减小最大上下文长度（节省 KV Cache 显存）</h3><p>当前日志显示：</p>
+<figure class="highlight gams"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">Using</span> <span class="built_in">max</span> <span class="keyword">model</span> len <span class="number">131072</span></span><br></pre></td></tr></table></figure>
+
+<p>也就是模型支持 128K 上下文，这会导致显存占用巨大。</p>
+<p>你可以强制降低：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --max-model-len 4096</span><br></pre></td></tr></table></figure>
+
+<p>此举可显著降低内存需求（通常节省 60% 以上显存）。</p>
+<hr>
+<h3 id="✅-方法-5：禁用-Chunked-prefill（有时会触发额外显存分配）"><a href="#✅-方法-5：禁用-Chunked-prefill（有时会触发额外显存分配）" class="headerlink" title="✅ 方法 5：禁用 Chunked prefill（有时会触发额外显存分配）"></a>✅ 方法 5：禁用 Chunked prefill（有时会触发额外显存分配）</h3><p>在启动时加上：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--enable-chunked-prefill=False</span><br></pre></td></tr></table></figure>
+
+<p>完整命令示例：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --max-model-len 4096 --enable-cpu-offload --enable-chunked-prefill=False</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="✅-方法-6：设置-PyTorch-内存配置（减少碎片）"><a href="#✅-方法-6：设置-PyTorch-内存配置（减少碎片）" class="headerlink" title="✅ 方法 6：设置 PyTorch 内存配置（减少碎片）"></a>✅ 方法 6：设置 PyTorch 内存配置（减少碎片）</h3><p>在运行前导出以下环境变量：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True</span><br></pre></td></tr></table></figure>
+
+<p>再启动 vllm：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="✅-方法-7：确保显存干净"><a href="#✅-方法-7：确保显存干净" class="headerlink" title="✅ 方法 7：确保显存干净"></a>✅ 方法 7：确保显存干净</h3><p>在启动前执行：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">sudo</span> fuser -v /dev/nvidia*   <span class="comment"># 查看占用 GPU 的进程</span></span><br><span class="line"><span class="built_in">sudo</span> <span class="built_in">kill</span> -9 &lt;pid&gt;           <span class="comment"># 逐个清理</span></span><br><span class="line">nvidia-smi                   <span class="comment"># 确认显存清空</span></span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="🧭-三、推荐启动命令（适合-RTX-2080-Ti）"><a href="#🧭-三、推荐启动命令（适合-RTX-2080-Ti）" class="headerlink" title="🧭 三、推荐启动命令（适合 RTX 2080 Ti）"></a>🧭 三、推荐启动命令（适合 RTX 2080 Ti）</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">export</span> PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True</span><br><span class="line"></span><br><span class="line">vllm serve models/DeepAnalyze-8B \</span><br><span class="line">  --max-model-len 4096 \</span><br><span class="line">  --enable-cpu-offload \</span><br><span class="line">  --enable-chunked-prefill=False</span><br></pre></td></tr></table></figure>
+
+<p>如果仍然爆显存，尝试再加：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">--quantization int8</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h2 id="⚠️-四、附加说明"><a href="#⚠️-四、附加说明" class="headerlink" title="⚠️ 四、附加说明"></a>⚠️ 四、附加说明</h2><ul>
+<li><code>DeepAnalyze-8B</code> 模型本身对显存要求 ≈ 16GB（FP16）以上。</li>
+<li>RTX 2080 Ti（11GB）显然不够，必须依赖 <strong>CPU offload &#x2F; 量化 &#x2F; 降 context</strong>。</li>
+<li>如果模型用的是 <code>Qwen2.5</code> 或 <code>Qwen3</code> 架构，vLLM 加载时内存膨胀也会更明显。</li>
+</ul>
+<hr>
+<p>是否希望我帮你<strong>根据显存大小自动生成最优启动命令</strong>（结合 offload、量化、context 动态平衡）？<br> 我可以检测你的显存容量（11GB）并输出一个稳定版本的 <code>vllm serve</code> 命令。</p>
+<h2 id="显存又爆了，上下文太长，重新设置参数"><a href="#显存又爆了，上下文太长，重新设置参数" class="headerlink" title="显存又爆了，上下文太长，重新设置参数"></a>显存又爆了，上下文太长，重新设置参数</h2><p>非常好 👍 你贴的这个 <code>config.json</code> 明确揭示了问题根源。<br> 我们来精确地分析一下为什么会显存爆炸，以及如何修改配置或启动参数让它跑起来。</p>
+<hr>
+<h2 id="🧩-一、模型关键信息"><a href="#🧩-一、模型关键信息" class="headerlink" title="🧩 一、模型关键信息"></a>🧩 一、模型关键信息</h2><p>从配置可见：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;hidden_size&quot;</span><span class="punctuation">:</span> <span class="number">4096</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;num_hidden_layers&quot;</span><span class="punctuation">:</span> <span class="number">36</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;num_attention_heads&quot;</span><span class="punctuation">:</span> <span class="number">32</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;num_key_value_heads&quot;</span><span class="punctuation">:</span> <span class="number">8</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;max_position_embeddings&quot;</span><span class="punctuation">:</span> <span class="number">131072</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;rope_scaling&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;factor&quot;</span><span class="punctuation">:</span> <span class="number">4.0</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;original_max_position_embeddings&quot;</span><span class="punctuation">:</span> <span class="number">32768</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;rope_type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;yarn&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>也就是说：</p>
+<ul>
+<li>原始 Qwen3 模型最大 context 是 <strong>32768 tokens</strong>。</li>
+<li>通过 <code>rope_scaling.factor = 4.0</code> 把最大长度扩展到了 <strong>131072 tokens</strong>。</li>
+<li>这是“长上下文增强版本（YARN RoPE）”。</li>
+</ul>
+<hr>
+<h2 id="⚠️-二、为什么显存爆炸"><a href="#⚠️-二、为什么显存爆炸" class="headerlink" title="⚠️ 二、为什么显存爆炸"></a>⚠️ 二、为什么显存爆炸</h2><p>vLLM 启动时自动读取 <code>max_position_embeddings</code> 值（131072），<br> 于是分配 KV cache 大小 &#x3D;</p>
+<blockquote>
+<p>hidden_size × num_layers × sequence_length × batch_size × dtype_size</p>
+</blockquote>
+<p>粗略估算：</p>
+<figure class="highlight basic"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="symbol">4096 </span>× <span class="number">36</span> × <span class="number">131072</span> × <span class="number">2</span> bytes ≈ <span class="number">38</span>GB（单精度一半即 bfloat16）</span><br></pre></td></tr></table></figure>
+
+<p>即使 vLLM 优化后，仍需 <strong>约 18 GiB KV cache</strong>（日志里已说明）。</p>
+<p>你的 GPU 只有约 4.5 GiB 可用显存 → 直接溢出。</p>
+<hr>
+<h2 id="🧠-三、解决方法"><a href="#🧠-三、解决方法" class="headerlink" title="🧠 三、解决方法"></a>🧠 三、解决方法</h2><p>你现在有两种修复方式：<strong>修改配置文件</strong> 或 <strong>修改启动参数</strong>。</p>
+<hr>
+<h3 id="✅-方案-1：修改启动参数（推荐）"><a href="#✅-方案-1：修改启动参数（推荐）" class="headerlink" title="✅ 方案 1：修改启动参数（推荐）"></a>✅ 方案 1：修改启动参数（推荐）</h3><p>启动时强制覆盖最大长度：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --max-model-len 32768 --gpu-memory-utilization 0.95</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>💡 原因：你 config 中 <code>rope_scaling.original_max_position_embeddings</code> &#x3D; 32768，<br>这其实是模型<strong>原生支持的最大上下文长度</strong>。<br>用 32768 能完全兼容，不影响 RoPE 机制。</p>
+</blockquote>
+<p>如显存仍不够，可继续降：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --max-model-len 8192 --gpu-memory-utilization 0.95</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="✅-方案-2：修改-config-json"><a href="#✅-方案-2：修改-config-json" class="headerlink" title="✅ 方案 2：修改 config.json"></a>✅ 方案 2：修改 <code>config.json</code></h3><p>如果你想让模型文件本身默认使用较短上下文（比如供别人调用时不改命令），可以直接改：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;max_position_embeddings&quot;</span><span class="punctuation">:</span> <span class="number">32768</span><span class="punctuation">,</span></span><br><span class="line"><span class="attr">&quot;rope_scaling&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;attn_factor&quot;</span><span class="punctuation">:</span> <span class="number">0.8782488562869419</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;factor&quot;</span><span class="punctuation">:</span> <span class="number">1.0</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;original_max_position_embeddings&quot;</span><span class="punctuation">:</span> <span class="number">32768</span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;rope_type&quot;</span><span class="punctuation">:</span> <span class="string">&quot;yarn&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>改完保存即可，无需重新训练。</p>
+</blockquote>
+<hr>
+<h3 id="✅-方案-3：使用分块加载或量化（可选）"><a href="#✅-方案-3：使用分块加载或量化（可选）" class="headerlink" title="✅ 方案 3：使用分块加载或量化（可选）"></a>✅ 方案 3：使用分块加载或量化（可选）</h3><p>如果你的机器显存实在有限（&lt;8GB），建议尝试：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --max-model-len 8192 --gpu-memory-utilization 0.95 --quantization awq</span><br></pre></td></tr></table></figure>
+
+<p>或使用现成的 INT4 量化模型。</p>
+<hr>
+<h2 id="🔧-四、实测经验总结（8B-模型显存占用参考）"><a href="#🔧-四、实测经验总结（8B-模型显存占用参考）" class="headerlink" title="🔧 四、实测经验总结（8B 模型显存占用参考）"></a>🔧 四、实测经验总结（8B 模型显存占用参考）</h2><table>
+<thead>
+<tr>
+<th>序列长度</th>
+<th>显存占用</th>
+<th>推荐 GPU</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>131072</td>
+<td>18+ GB</td>
+<td>≥ RTX 4090 &#x2F; A100</td>
+</tr>
+<tr>
+<td>32768</td>
+<td>~6 GB</td>
+<td>RTX 3060 &#x2F; 4060</td>
+</tr>
+<tr>
+<td>8192</td>
+<td>~3 GB</td>
+<td>RTX 3050 &#x2F; T4</td>
+</tr>
+<tr>
+<td>4096</td>
+<td>~2 GB</td>
+<td>MX550 &#x2F; 集显测试可运行</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="✅-推荐命令（适合你当前显存环境）"><a href="#✅-推荐命令（适合你当前显存环境）" class="headerlink" title="✅ 推荐命令（适合你当前显存环境）"></a>✅ 推荐命令（适合你当前显存环境）</h2><p>请运行这个版本：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vllm serve models/DeepAnalyze-8B --max-model-len 8192 --gpu-memory-utilization 0.9</span><br></pre></td></tr></table></figure>
+
+<hr>
+<p>如果你告诉我你的 <strong>GPU型号（例如 RTX 4060、A100、T4、3050等）</strong>，<br> 我可以帮你算出一个「<strong>最优 max-model-len</strong>」，既不OOM又能发挥最大性能。<br> 要不要我帮你算一下？</p>
+<h1 id="成功部署vllm：vllm-serve-models-DeepAnalyze-8B-–max-model-len-8192-–gpu-memory-utilization-0-95"><a href="#成功部署vllm：vllm-serve-models-DeepAnalyze-8B-–max-model-len-8192-–gpu-memory-utilization-0-95" class="headerlink" title="成功部署vllm：vllm serve models&#x2F;DeepAnalyze-8B –max-model-len 8192 –gpu-memory-utilization 0.95"></a>成功部署vllm：vllm serve models&#x2F;DeepAnalyze-8B –max-model-len 8192 –gpu-memory-utilization 0.95</h1><img src="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/image-20251111161559320.png" class="" title="image-20251111161559320">
+
+<p>运行run.py,命中</p>
+<img src="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/image-20251111161637102.png" class="" title="image-20251111161637102">
+
+<p>这两行日志同样不是错误，而是 <strong>vLLM 正常运行时的 API 调用记录与性能状态</strong>。我帮你解释一下每一部分的含义👇</p>
+<hr>
+<h3 id="✅-第一行（HTTP-请求日志）"><a href="#✅-第一行（HTTP-请求日志）" class="headerlink" title="✅ 第一行（HTTP 请求日志）"></a>✅ 第一行（HTTP 请求日志）</h3><figure class="highlight accesslog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(APIServer pid=<span class="number">8753</span>) INFO:     <span class="number">127</span>.<span class="number">0</span>.<span class="number">0</span>.<span class="number">1</span>:<span class="number">38644</span> - <span class="string">&quot;<span class="keyword">POST</span> /v1/chat/completions HTTP/1.1&quot;</span> <span class="number">200</span> OK</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>APIServer pid&#x3D;8753</strong></td>
+<td>当前 vLLM API 服务进程 ID</td>
+</tr>
+<tr>
+<td><strong>127.0.0.1:38644</strong></td>
+<td>发起请求的客户端（本地）地址</td>
+</tr>
+<tr>
+<td><strong>POST &#x2F;v1&#x2F;chat&#x2F;completions</strong></td>
+<td>调用了兼容 OpenAI 的接口 <code>/v1/chat/completions</code></td>
+</tr>
+<tr>
+<td><strong>HTTP&#x2F;1.1” 200 OK</strong></td>
+<td>HTTP 状态码 200 → 表示请求成功、响应正常返回</td>
+</tr>
+</tbody></table>
+<p>✅ 意思是：</p>
+<blockquote>
+<p>你的应用成功请求了本地 vLLM 接口，模型正常返回结果，没有出错。</p>
+</blockquote>
+<hr>
+<h3 id="⚙️-第二行（性能统计）"><a href="#⚙️-第二行（性能统计）" class="headerlink" title="⚙️ 第二行（性能统计）"></a>⚙️ 第二行（性能统计）</h3><figure class="highlight nix"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(APIServer pid<span class="operator">=</span><span class="number">8753</span>) INFO <span class="number">1</span>1-<span class="number">11</span> <span class="number">16</span>:<span class="number">16</span>:<span class="number">37</span> [loggers.py:<span class="number">123</span>]</span><br><span class="line">Engine <span class="number">000</span>: Avg prompt <span class="params">throughput:</span> <span class="number">94.3</span> tokens<span class="operator">/</span>s, Avg generation <span class="params">throughput:</span> <span class="number">44.2</span> tokens<span class="operator">/</span>s, <span class="params">Running:</span> <span class="number">1</span> reqs, <span class="params">Waiting:</span> <span class="number">0</span> reqs, GPU KV cache <span class="params">usage:</span> <span class="number">3.7</span>%, Prefix cache hit <span class="params">rate:</span> <span class="number">77.4</span>%</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>Avg prompt throughput: 94.3 tokens&#x2F;s</strong></td>
+<td>输入阶段（prompt embedding）处理速度</td>
+</tr>
+<tr>
+<td><strong>Avg generation throughput: 44.2 tokens&#x2F;s</strong></td>
+<td>输出阶段（生成）速度</td>
+</tr>
+<tr>
+<td><strong>Running: 1 reqs</strong></td>
+<td>当前正在执行 1 个请求</td>
+</tr>
+<tr>
+<td><strong>Waiting: 0 reqs</strong></td>
+<td>没有排队请求</td>
+</tr>
+<tr>
+<td><strong>GPU KV cache usage: 3.7%</strong></td>
+<td>KV 缓存占用的显存比例（显存压力很小）</td>
+</tr>
+<tr>
+<td><strong>Prefix cache hit rate: 77.4%</strong></td>
+<td>缓存命中率（提高生成效率）</td>
+</tr>
+</tbody></table>
+<p>✅ 意思是：</p>
+<blockquote>
+<p>模型响应速度正常、GPU 负载轻、缓存工作良好，一切健康运行。</p>
+</blockquote>
+<hr>
+<h3 id="🚫-如果你预期“出错”但没有生成结果"><a href="#🚫-如果你预期“出错”但没有生成结果" class="headerlink" title="🚫 如果你预期“出错”但没有生成结果"></a>🚫 如果你预期“出错”但没有生成结果</h3><p>那可能的情况有三种：</p>
+<ol>
+<li><strong>前端&#x2F;调用端未正确读取返回内容</strong>（例如 <code>requests.post</code> 没有调用 <code>.json()</code>）</li>
+<li><strong>响应时间过长导致客户端超时</strong></li>
+<li><strong>返回内容为空或被过滤</strong></li>
+</ol>
+<p>如果你愿意，把调用 vLLM 的 <strong>Python 请求代码</strong> 发我（比如 <code>requests.post()</code> 这部分），我可以帮你判断是不是请求或解析层的问题。</p>
+<p>是否要我帮你确认模型推理是否真的返回文本内容？</p>
+<p><strong>输入 token + 输出 token ≤ 最大 context 长度</strong></p>
+<h1 id="mcp找不到目录下的数据"><a href="#mcp找不到目录下的数据" class="headerlink" title="mcp找不到目录下的数据"></a>mcp找不到目录下的数据</h1><p>更改workspace</p>
+<img src="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/image-20251111164118136.png" class="" title="image-20251111164118136">
+
+<h1 id="读取不了数据"><a href="#读取不了数据" class="headerlink" title="读取不了数据"></a>读取不了数据</h1><p>缺openpyxl，pip他</p>
+<h1 id="1、测试实例："><a href="#1、测试实例：" class="headerlink" title="1、测试实例："></a>1、测试实例：</h1><h1 id="教学方法对比分析报告"><a href="#教学方法对比分析报告" class="headerlink" title="教学方法对比分析报告"></a>教学方法对比分析报告</h1><h2 id="执行摘要"><a href="#执行摘要" class="headerlink" title="执行摘要"></a>执行摘要</h2><p>在本次分析中，<strong>方法B</strong>的教学效果显著优于<strong>方法A</strong>（p &lt; 0.0001，Cohen’s d &#x3D; 0.79，属中等效应量）。</p>
+<h2 id="主要发现"><a href="#主要发现" class="headerlink" title="主要发现"></a>主要发现</h2><h3 id="各组对比结果"><a href="#各组对比结果" class="headerlink" title="各组对比结果"></a>各组对比结果</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>方法A</th>
+<th>方法B</th>
+<th>差值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>平均得分</td>
+<td>75.1</td>
+<td>80.3</td>
+<td>+5.2</td>
+</tr>
+<tr>
+<td>标准差</td>
+<td>4.9</td>
+<td>6.8</td>
+<td>—</td>
+</tr>
+<tr>
+<td>样本量</td>
+<td>95</td>
+<td>95</td>
+<td>—</td>
+</tr>
+</tbody></table>
+<h3 id="统计显著性检验"><a href="#统计显著性检验" class="headerlink" title="统计显著性检验"></a>统计显著性检验</h3><ul>
+<li>独立样本 t 检验：t(188) &#x3D; -6.47，p &lt; 0.0001  </li>
+<li>效应量（Cohen’s d）：0.79（中等）</li>
+</ul>
+<h2 id="可视化证据"><a href="#可视化证据" class="headerlink" title="可视化证据"></a>可视化证据</h2><img src="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/image-20251111165318573.png" class="" title="image-20251111165318573">
+
+<h2 id="结果解读"><a href="#结果解读" class="headerlink" title="结果解读"></a>结果解读</h2><ol>
+<li><strong>实际意义</strong>：5分的平均分差异在教育实践中具有实质性影响。  </li>
+<li><strong>实践建议</strong>：方法B值得在真实课堂环境中进一步验证和推广。  </li>
+<li><strong>局限性</strong>：当前结论基于合成数据，真实数据可能有所不同，建议后续使用实际观测数据复现分析。</li>
+</ol>
+<h2 id="建议"><a href="#建议" class="headerlink" title="建议"></a>建议</h2><ol>
+<li>进行功效分析（power analysis），为未来研究确定合适的样本量。  </li>
+<li>开展成本–效益评估，判断方法B的实施可行性。  </li>
+<li>探索方法B成功背后的质性因素（如教学互动、学生参与度等）。</li>
+</ol>
+<h2 id="后续步骤"><a href="#后续步骤" class="headerlink" title="后续步骤"></a>后续步骤</h2><ol>
+<li>使用真实教学数据验证当前结论。  </li>
+<li>深入研究方法B起效的具体机制。  </li>
+<li>考虑融合两种方法优势的混合式教学策略。</li>
+</ol>
+<h1 id="webUI"><a href="#webUI" class="headerlink" title="webUI"></a>webUI</h1><img src="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/image-20251111170547785.png" class="" title="image-20251111170547785">
+
+<p>PDF渲染失败，作者还没写这部分</p>
+<img src="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/image-20251112165613512-17707148440016.png" class="" title="image-20251112165613512">
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/">http://example.com/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%AE%9E%E4%B9%A0%E7%AC%94%E8%AE%B0/">实习笔记</a></div><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">GraphRAG的构建</div></div><div class="info-2"><div class="info-item-1">前言：经典RAG应用的范式与架构已经非常流行，我们可以在很短的时间内借助成熟框架开发一个简单能用的RAG应用。 但是传统RAG需要对文本进行分块，然后进行向量化存储，这种处理模式就会天然导致RAG在全局查询或总结上的表现不会太好。比如面对这样的问题，“《跨越鸿沟》这本书整体上讲了什么？请撰写一份2000字的总结”，传统RAG大概率会表现不及格。并且在对文本分块之后，可能会丢失一些信息之间的关系和因果性 这正是知识图谱和GraphRAG可以发挥作用的场景 一、neo4j的搭建Neo4j安装与配置以及JDK安装与配置教程（超详细）-CSDN博客 二、积累一些专用名词实体（Entity） 知识图谱中的“点”，代表现实世界中的事物，例如“华为”“张三”“北京大学”。 关系（Relation &#x2F; Edge） 实体之间的联系，图中的“边”，例如“张三–就读于–北京大学”。 属性（Attribute &#x2F; Property） 实体或关系的特征值，例如“张三–年龄–25岁”。 三元组（Triple） 知识图谱的基本单元，形式为 (头实体, 关系, 尾实体)，如 (张三, 就读于...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">39</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">1</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%98%BE%E5%AD%98%E7%88%86%E4%BA%86%EF%BC%8C2080ti%E6%9E%B6%E6%9E%84%E5%A4%AA%E8%80%81%EF%BC%8C%E4%B8%8D%E6%94%AF%E6%8C%81FlashAttention-2%EF%BC%8C%E6%8D%A23090%E7%9A%8424G"><span class="toc-number">1.</span> <span class="toc-text">显存爆了，2080ti架构太老，不支持FlashAttention-2，换3090的24G</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%8D-%E4%B8%80%E3%80%81%E9%94%99%E8%AF%AF%E6%A0%B8%E5%BF%83%E7%82%B9"><span class="toc-number">1.1.</span> <span class="toc-text">🔍 一、错误核心点</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%92%A1-%E4%BA%8C%E3%80%81%E8%A7%A3%E5%86%B3%E6%96%B9%E5%90%91%E6%B1%87%E6%80%BB%EF%BC%88%E4%BB%8E%E7%AE%80%E5%8D%95%E5%88%B0%E5%BD%BB%E5%BA%95%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">💡 二、解决方向汇总（从简单到彻底）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-1%EF%BC%9A%E5%90%AF%E7%94%A8-CPU-offload%EF%BC%88%E9%83%A8%E5%88%86%E6%9D%83%E9%87%8D%E6%94%BE-CPU%EF%BC%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">✅ 方法 1：启用 CPU offload（部分权重放 CPU）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-2%EF%BC%9A%E4%BD%BF%E7%94%A8%E6%9B%B4%E5%B0%8F%E7%9A%84%E6%A8%A1%E5%9E%8B%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">✅ 方法 2：使用更小的模型（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-3%EF%BC%9A%E5%90%AF%E7%94%A8%E9%87%8F%E5%8C%96%E5%8A%A0%E8%BD%BD%EF%BC%88%E5%87%8F%E5%B0%91%E6%98%BE%E5%AD%98%E5%8D%A0%E7%94%A8%EF%BC%89"><span class="toc-number">1.2.3.</span> <span class="toc-text">✅ 方法 3：启用量化加载（减少显存占用）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-4%EF%BC%9A%E5%87%8F%E5%B0%8F%E6%9C%80%E5%A4%A7%E4%B8%8A%E4%B8%8B%E6%96%87%E9%95%BF%E5%BA%A6%EF%BC%88%E8%8A%82%E7%9C%81-KV-Cache-%E6%98%BE%E5%AD%98%EF%BC%89"><span class="toc-number">1.2.4.</span> <span class="toc-text">✅ 方法 4：减小最大上下文长度（节省 KV Cache 显存）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-5%EF%BC%9A%E7%A6%81%E7%94%A8-Chunked-prefill%EF%BC%88%E6%9C%89%E6%97%B6%E4%BC%9A%E8%A7%A6%E5%8F%91%E9%A2%9D%E5%A4%96%E6%98%BE%E5%AD%98%E5%88%86%E9%85%8D%EF%BC%89"><span class="toc-number">1.2.5.</span> <span class="toc-text">✅ 方法 5：禁用 Chunked prefill（有时会触发额外显存分配）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-6%EF%BC%9A%E8%AE%BE%E7%BD%AE-PyTorch-%E5%86%85%E5%AD%98%E9%85%8D%E7%BD%AE%EF%BC%88%E5%87%8F%E5%B0%91%E7%A2%8E%E7%89%87%EF%BC%89"><span class="toc-number">1.2.6.</span> <span class="toc-text">✅ 方法 6：设置 PyTorch 内存配置（减少碎片）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%B3%95-7%EF%BC%9A%E7%A1%AE%E4%BF%9D%E6%98%BE%E5%AD%98%E5%B9%B2%E5%87%80"><span class="toc-number">1.2.7.</span> <span class="toc-text">✅ 方法 7：确保显存干净</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%AD-%E4%B8%89%E3%80%81%E6%8E%A8%E8%8D%90%E5%90%AF%E5%8A%A8%E5%91%BD%E4%BB%A4%EF%BC%88%E9%80%82%E5%90%88-RTX-2080-Ti%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">🧭 三、推荐启动命令（适合 RTX 2080 Ti）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A0%EF%B8%8F-%E5%9B%9B%E3%80%81%E9%99%84%E5%8A%A0%E8%AF%B4%E6%98%8E"><span class="toc-number">1.4.</span> <span class="toc-text">⚠️ 四、附加说明</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%98%BE%E5%AD%98%E5%8F%88%E7%88%86%E4%BA%86%EF%BC%8C%E4%B8%8A%E4%B8%8B%E6%96%87%E5%A4%AA%E9%95%BF%EF%BC%8C%E9%87%8D%E6%96%B0%E8%AE%BE%E7%BD%AE%E5%8F%82%E6%95%B0"><span class="toc-number">1.5.</span> <span class="toc-text">显存又爆了，上下文太长，重新设置参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A9-%E4%B8%80%E3%80%81%E6%A8%A1%E5%9E%8B%E5%85%B3%E9%94%AE%E4%BF%A1%E6%81%AF"><span class="toc-number">1.6.</span> <span class="toc-text">🧩 一、模型关键信息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9A%A0%EF%B8%8F-%E4%BA%8C%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88%E6%98%BE%E5%AD%98%E7%88%86%E7%82%B8"><span class="toc-number">1.7.</span> <span class="toc-text">⚠️ 二、为什么显存爆炸</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%A7%A0-%E4%B8%89%E3%80%81%E8%A7%A3%E5%86%B3%E6%96%B9%E6%B3%95"><span class="toc-number">1.8.</span> <span class="toc-text">🧠 三、解决方法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%A1%88-1%EF%BC%9A%E4%BF%AE%E6%94%B9%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0%EF%BC%88%E6%8E%A8%E8%8D%90%EF%BC%89"><span class="toc-number">1.8.1.</span> <span class="toc-text">✅ 方案 1：修改启动参数（推荐）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%A1%88-2%EF%BC%9A%E4%BF%AE%E6%94%B9-config-json"><span class="toc-number">1.8.2.</span> <span class="toc-text">✅ 方案 2：修改 config.json</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E6%96%B9%E6%A1%88-3%EF%BC%9A%E4%BD%BF%E7%94%A8%E5%88%86%E5%9D%97%E5%8A%A0%E8%BD%BD%E6%88%96%E9%87%8F%E5%8C%96%EF%BC%88%E5%8F%AF%E9%80%89%EF%BC%89"><span class="toc-number">1.8.3.</span> <span class="toc-text">✅ 方案 3：使用分块加载或量化（可选）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%F0%9F%94%A7-%E5%9B%9B%E3%80%81%E5%AE%9E%E6%B5%8B%E7%BB%8F%E9%AA%8C%E6%80%BB%E7%BB%93%EF%BC%888B-%E6%A8%A1%E5%9E%8B%E6%98%BE%E5%AD%98%E5%8D%A0%E7%94%A8%E5%8F%82%E8%80%83%EF%BC%89"><span class="toc-number">1.9.</span> <span class="toc-text">🔧 四、实测经验总结（8B 模型显存占用参考）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E2%9C%85-%E6%8E%A8%E8%8D%90%E5%91%BD%E4%BB%A4%EF%BC%88%E9%80%82%E5%90%88%E4%BD%A0%E5%BD%93%E5%89%8D%E6%98%BE%E5%AD%98%E7%8E%AF%E5%A2%83%EF%BC%89"><span class="toc-number">1.10.</span> <span class="toc-text">✅ 推荐命令（适合你当前显存环境）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%88%90%E5%8A%9F%E9%83%A8%E7%BD%B2vllm%EF%BC%9Avllm-serve-models-DeepAnalyze-8B-%E2%80%93max-model-len-8192-%E2%80%93gpu-memory-utilization-0-95"><span class="toc-number">2.</span> <span class="toc-text">成功部署vllm：vllm serve models&#x2F;DeepAnalyze-8B –max-model-len 8192 –gpu-memory-utilization 0.95</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9C%85-%E7%AC%AC%E4%B8%80%E8%A1%8C%EF%BC%88HTTP-%E8%AF%B7%E6%B1%82%E6%97%A5%E5%BF%97%EF%BC%89"><span class="toc-number">2.0.1.</span> <span class="toc-text">✅ 第一行（HTTP 请求日志）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E2%9A%99%EF%B8%8F-%E7%AC%AC%E4%BA%8C%E8%A1%8C%EF%BC%88%E6%80%A7%E8%83%BD%E7%BB%9F%E8%AE%A1%EF%BC%89"><span class="toc-number">2.0.2.</span> <span class="toc-text">⚙️ 第二行（性能统计）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%F0%9F%9A%AB-%E5%A6%82%E6%9E%9C%E4%BD%A0%E9%A2%84%E6%9C%9F%E2%80%9C%E5%87%BA%E9%94%99%E2%80%9D%E4%BD%86%E6%B2%A1%E6%9C%89%E7%94%9F%E6%88%90%E7%BB%93%E6%9E%9C"><span class="toc-number">2.0.3.</span> <span class="toc-text">🚫 如果你预期“出错”但没有生成结果</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#mcp%E6%89%BE%E4%B8%8D%E5%88%B0%E7%9B%AE%E5%BD%95%E4%B8%8B%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="toc-number">3.</span> <span class="toc-text">mcp找不到目录下的数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%AF%BB%E5%8F%96%E4%B8%8D%E4%BA%86%E6%95%B0%E6%8D%AE"><span class="toc-number">4.</span> <span class="toc-text">读取不了数据</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1%E3%80%81%E6%B5%8B%E8%AF%95%E5%AE%9E%E4%BE%8B%EF%BC%9A"><span class="toc-number">5.</span> <span class="toc-text">1、测试实例：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%99%E5%AD%A6%E6%96%B9%E6%B3%95%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90%E6%8A%A5%E5%91%8A"><span class="toc-number">6.</span> <span class="toc-text">教学方法对比分析报告</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A7%E8%A1%8C%E6%91%98%E8%A6%81"><span class="toc-number">6.1.</span> <span class="toc-text">执行摘要</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E5%8F%91%E7%8E%B0"><span class="toc-number">6.2.</span> <span class="toc-text">主要发现</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%90%84%E7%BB%84%E5%AF%B9%E6%AF%94%E7%BB%93%E6%9E%9C"><span class="toc-number">6.2.1.</span> <span class="toc-text">各组对比结果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BB%9F%E8%AE%A1%E6%98%BE%E8%91%97%E6%80%A7%E6%A3%80%E9%AA%8C"><span class="toc-number">6.2.2.</span> <span class="toc-text">统计显著性检验</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%AF%E8%A7%86%E5%8C%96%E8%AF%81%E6%8D%AE"><span class="toc-number">6.3.</span> <span class="toc-text">可视化证据</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E6%9E%9C%E8%A7%A3%E8%AF%BB"><span class="toc-number">6.4.</span> <span class="toc-text">结果解读</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BB%BA%E8%AE%AE"><span class="toc-number">6.5.</span> <span class="toc-text">建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8E%E7%BB%AD%E6%AD%A5%E9%AA%A4"><span class="toc-number">6.6.</span> <span class="toc-text">后续步骤</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#webUI"><span class="toc-number">7.</span> <span class="toc-text">webUI</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/" title="开源项目DeepAnalyze部署历程"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="开源项目DeepAnalyze部署历程"/></a><div class="content"><a class="title" href="/2025/10/09/%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AEDeepAnalyze%E9%83%A8%E7%BD%B2%E5%8E%86%E7%A8%8B/" title="开源项目DeepAnalyze部署历程">开源项目DeepAnalyze部署历程</a><time datetime="2025-10-09T09:09:51.000Z" title="发表于 2025-10-09 17:09:51">2025-10-09</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="GraphRAG的构建"/></a><div class="content"><a class="title" href="/2025/09/07/GraphRAG%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/" title="GraphRAG的构建">GraphRAG的构建</a><time datetime="2025-09-07T10:56:52.000Z" title="发表于 2025-09-07 18:56:52">2025-09-07</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG的评估（RAGAS）和检索优化"/></a><div class="content"><a class="title" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化">RAG的评估（RAGAS）和检索优化</a><time datetime="2025-09-06T06:22:02.000Z" title="发表于 2025-09-06 14:22:02">2025-09-06</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="vLLM的优势——KV cache与PageAttention"/></a><div class="content"><a class="title" href="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/" title="vLLM的优势——KV cache与PageAttention">vLLM的优势——KV cache与PageAttention</a><time datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="RAG——检索增强生成"/></a><div class="content"><a class="title" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成">RAG——检索增强生成</a><time datetime="2025-09-01T04:09:02.000Z" title="发表于 2025-09-01 12:09:02">2025-09-01</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>
