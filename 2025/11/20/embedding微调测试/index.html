@@ -1,0 +1,458 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>embedding微调测试 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="在网络安全领域微调 Embedding 的意义在于实现通用语义向专业安全语境的映射：它能让模型理解具有特定安全含义的术语（如将 Spring 识别为框架漏洞而非季节），通过对比学习显著提升对硬负样本（如区分极度相似的攻击 Payload 与正常修复代码）的分辨能力，从而直接优化安全 RAG 系统的检索精度。 Qwen3-embedding0.6B微调前言Embedding 模型的核心是将文本转化为">
+<meta property="og:type" content="article">
+<meta property="og:title" content="embedding微调测试">
+<meta property="og:url" content="http://example.com/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="在网络安全领域微调 Embedding 的意义在于实现通用语义向专业安全语境的映射：它能让模型理解具有特定安全含义的术语（如将 Spring 识别为框架漏洞而非季节），通过对比学习显著提升对硬负样本（如区分极度相似的攻击 Payload 与正常修复代码）的分辨能力，从而直接优化安全 RAG 系统的检索精度。 Qwen3-embedding0.6B微调前言Embedding 模型的核心是将文本转化为">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-11-20T03:09:12.000Z">
+<meta property="article:modified_time" content="2026-02-10T09:51:00.276Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "embedding微调测试",
+  "url": "http://example.com/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-11-20T03:09:12.000Z",
+  "dateModified": "2026-02-10T09:51:00.276Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'embedding微调测试',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">embedding微调测试</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">embedding微调测试</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-11-20T03:09:12.000Z" title="发表于 2025-11-20 11:09:12">2025-11-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T09:51:00.276Z" title="更新于 2026-02-10 17:51:00">2026-02-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%9E%E4%B9%A0%E7%AC%94%E8%AE%B0/">实习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">4.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>16分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><p>在网络安全领域微调 Embedding 的意义在于<strong>实现通用语义向专业安全语境的映射</strong>：它能让模型理解具有特定安全含义的术语（如将 Spring 识别为框架漏洞而非季节），通过对比学习显著提升对<strong>硬负样本</strong>（如区分极度相似的攻击 Payload 与正常修复代码）的分辨能力，从而直接优化安全 RAG 系统的检索精度。</p>
+<h1 id="Qwen3-embedding0-6B微调"><a href="#Qwen3-embedding0-6B微调" class="headerlink" title="Qwen3-embedding0.6B微调"></a>Qwen3-embedding0.6B微调</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>Embedding 模型的核心是将文本转化为一组低维稠密向量，在数学空间中实现“<strong>语义相似的样本距离更近，语义相异的更远</strong>”。</p>
+<p>在网络安全 RAG（检索增强生成）架构中，Embedding 微调起着**“语义校准”<strong>的关键作用。通用模型往往难以区分高度相似的安全术语，微调使模型能精准识别 CVE 漏洞名词、APT 组织特征及复杂的攻击逻辑。通过大幅提升检索环节的</strong>召回准确率<strong>与</strong>排序质量**，微调确保了输入给大模型的上下文是高度相关的威胁情报或处置预案，从而为生成提供可靠的事实依据。</p>
+<p>其核心训练逻辑如下：</p>
+<ul>
+<li><strong>轻量化训练：</strong> 冻结模型大部分主干参数，仅通过训练轻量化的适配器来注入网络安全领域知识。这既保留了模型原有的通用理解能力，又极大降低了算力成本。</li>
+<li><strong>对比学习优化：</strong> 利用 InfoNCE 损失函数，通过构建**“查询句 - 正样本 - 负样本”**的三元组数据进行训练。模型在学习过程中会不断拉近查询句与正样本的向量距离，并重点推开那些字面相似但含义错误的“难负样本”（如编号相近的不同漏洞），从而构建出更精准的安全语义空间。</li>
+</ul>
+<h2 id="一、数据集构建"><a href="#一、数据集构建" class="headerlink" title="一、数据集构建"></a>一、数据集构建</h2><h3 id="1-1-训练集"><a href="#1-1-训练集" class="headerlink" title="1.1 训练集"></a>1.1 训练集</h3><p>训练集构建基于对比学习微调思路：<strong>拉近语义相似样本（Positive）的距离，推远语义不相似样本（Negative）的距离。<strong>核心逻辑不仅仅是“学会什么是对的”，更重要的是“学会区分什么是</strong>看起来对但实际是错</strong>的”。</p>
+<h4 id="三元组的构建逻辑"><a href="#三元组的构建逻辑" class="headerlink" title="三元组的构建逻辑"></a>三元组的构建逻辑</h4><p>在向量空间中，训练的目标是优化三者之间的距离关系：<br>$$<br>D(Anchor, Positive) + margin &lt; D(Anchor, Negative)<br>$$<br><strong>Anchor (锚点):</strong> 用户输入的查询（Query）。</p>
+<p><strong>Positive (正例):</strong> 正确的文档或答案。模型应将其拉近 Anchor。</p>
+<p><strong>Negative (负例):</strong> 错误的文档。模型应将其推远。不应该是完全随机的样本，而是<strong>字面上包含很多相同关键词，但语义不符</strong>。</p>
+<p>示例：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;messages&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;user&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span> <span class="string">&quot;这是一本 Linux 应急响应参考书籍，自 2020 年 5 月 3 日开始编写，并于 2021 年 5 月 13 日在 NOP Team 公众号上发布第一版，内容主要包括 Linux 中常见应急响应事件的解决方案、应对几十种常见权限维持手段的常规安全检查方法、应急响应过程中的知识点以及小技巧等。基于以上内容，请问《Linux 应急响应手册》第一版发布于何时？&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;positive_messages&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;user&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span> <span class="string">&quot;《Linux 应急响应手册》第一版发布于 2021 年 5 月 13 日。&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;negative_messages&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;assistant&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span> <span class="string">&quot;该手册的第一版发布于 2022 年 10 月 1 日。&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">[</span></span><br><span class="line">      <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;role&quot;</span><span class="punctuation">:</span> <span class="string">&quot;assistant&quot;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;content&quot;</span><span class="punctuation">:</span> <span class="string">&quot;根据文档内容，第一版发布于 2020 年 12 月 25 日。&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">]</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-2-验证集"><a href="#1-2-验证集" class="headerlink" title="1.2 验证集"></a>1.2 验证集</h3><p>用于验证训练过程中模型在新样本下的损失情况，设置swift参数划分，数据格式和训练集一样</p>
+<h3 id="1-3-测试集"><a href="#1-3-测试集" class="headerlink" title="1.3 测试集"></a>1.3 测试集</h3><h4 id="微调评估逻辑"><a href="#微调评估逻辑" class="headerlink" title="微调评估逻辑"></a><strong>微调评估逻辑</strong></h4><p>首先依据真实标签的relationship字段将样本划分为**“不相关、弱相关、强相关”<strong>三类，并设定 相似度0.5 和 0.75作为分界线；随后通过计算模型输出向量的余弦相似度，判断基座模型与微调模型的预测结果落入哪个区间，以此统计两者在各类别上的</strong>正确归类数量（命中率）**，从而直观量化微调前后的性能差异。</p>
+<p>示例：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;query1&quot;</span><span class="punctuation">:</span> <span class="string">&quot;《Linux 应急响应手册》是什么时候发布的？&quot;</span><span class="punctuation">,</span> </span><br><span class="line"><span class="attr">&quot;query2&quot;</span><span class="punctuation">:</span> <span class="string">&quot;《Linux 应急响应手册》第一版发布于什么时间？&quot;</span><span class="punctuation">,</span> </span><br><span class="line"><span class="attr">&quot;relationship&quot;</span><span class="punctuation">:</span> <span class="number">4</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="二、基于swift框架微调Qwen3-embedding-0-6B"><a href="#二、基于swift框架微调Qwen3-embedding-0-6B" class="headerlink" title="二、基于swift框架微调Qwen3-embedding-0.6B"></a>二、基于swift框架微调Qwen3-embedding-0.6B</h2><p><strong>微调指令：</strong></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">nproc_per_node=1</span><br><span class="line">CUDA_VISIBLE_DEVICES=0 \</span><br><span class="line">INFONCE_TEMPERATURE=0.1 \</span><br><span class="line">NPROC_PER_NODE=<span class="variable">$nproc_per_node</span> \</span><br><span class="line">swift sft \</span><br><span class="line">    --model model \</span><br><span class="line">    --task_type embedding \</span><br><span class="line">    --model_type qwen3_emb \</span><br><span class="line">    --train_type full \</span><br><span class="line">    --dataset /root/autodl-tmp/dataset/train_new.json \</span><br><span class="line">    --load_from_cache_file <span class="literal">true</span> \</span><br><span class="line">    --split_dataset_ratio 0.05 \</span><br><span class="line">    --eval_strategy steps \</span><br><span class="line">    --output_dir output \</span><br><span class="line">    --save_steps 500 \</span><br><span class="line">    --eval_steps 200 \</span><br><span class="line">    --num_train_epochs 5 \</span><br><span class="line">    --per_device_train_batch_size 8 \</span><br><span class="line">    --per_device_eval_batch_size 4 \</span><br><span class="line">    --gradient_accumulation_steps 4 \</span><br><span class="line">    --learning_rate 6e-6 \</span><br><span class="line">    --loss_type infonce \</span><br><span class="line">    --dataloader_drop_last <span class="literal">true</span> \</span><br></pre></td></tr></table></figure>
+
+<h4 id="评估指标："><a href="#评估指标：" class="headerlink" title="评估指标："></a>评估指标：</h4><p><strong>采用InfoNCE Loss</strong>：通过将<strong>正样本对的嵌入向量拉近</strong>、同时将同一batch内其他<strong>负样本对推远</strong>，来<strong>最大化正样本与负样本间的互信息</strong>，从而学习更好的语义表示</p>
+<p><strong>训练集损失：</strong></p>
+<img src="/2025/11/20/embedding微调测试/image-20251219140203509-177071700238963.png"  alt="image-20251219140203509" style="zoom:50%;" />
+
+<p>​		评估结果：模型损失随训练过程下降最终在上述数据集上达到收敛，说明根据微调，模型从通用预训练知识基础上，进一步学习到了该领域特有的术语、表达习惯、上下文逻辑和语义关系，<strong>微调有效</strong></p>
+<p><strong>验证集损失：</strong></p>
+<img src="/2025/11/20/embedding微调测试/image-20251219140512334-177071700238964.png"  alt="image-20251219140512334" style="zoom:50%;" />
+
+<p>​		评估结果：验证集是模型训练时未见过的数据。验证集损失同步下降，说明模型不是单纯死记硬背训练样本，而是真实捕捉到了垂直领域数据中可泛化的语义模式、术语关联和上下文逻辑。</p>
+<table>
+<thead>
+<tr>
+<th>positive_messages</th>
+<th>negative_messages</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="/2026-02-10-embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/image-20260210175048723.png" alt="image-20260210175048723"></td>
+<td><img src="/2026-02-10-embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/image-20260210175059000.png" alt="image-20260210175059000"></td>
+</tr>
+<tr>
+<td>正样本损失上升：正样本相似度在增加（分子变大），在softmax-like的交叉熵结构中，这会暂时增加正样本的“分类难度”贡献，模型在强化正样本对的紧致性。</td>
+<td>负样本损失下降：模型成功地将负样本推远，负样本对的相似度降低，分母中的负样本贡献减小，整体损失更容易下降。</td>
+</tr>
+</tbody></table>
+<p><strong>测试集：</strong></p>
+<p>使用垂直领域语料（domain-specific corpus）微调embedding模型后，计算两个句子相似度时，<strong>相似度分数普遍降低</strong></p>
+<img src="/2025/11/20/embedding微调测试/image-20251219144116281-177071700238967.png"  alt="image-20251219144116281" style="zoom:33%;" />
+
+<h1 id="Qwen3-reranker0-6B微调"><a href="#Qwen3-reranker0-6B微调" class="headerlink" title="Qwen3-reranker0.6B微调"></a>Qwen3-reranker0.6B微调</h1><h2 id="一、前言"><a href="#一、前言" class="headerlink" title="一、前言"></a>一、前言</h2><p>为了进一步提升检索精度，在Embedding粗召回的基础上引入了Reranker模型作为二级精排组件。Reranker采用跨编码器（cross-encoder）架构，能够将查询和候选文档拼接后进行深度双向注意力交互，从而捕捉到更细粒度的语义关联、逻辑一致性和领域专属模式。这使得它特别适合处理网络安全场景中那些“看起来很像、实际大不同”的难例。</p>
+<p>本次测试的重点，是在网络安全专有数据集上对Reranker模型进行参数高效微调（主要采用LoRA技术），并系统评估微调前后在真实威胁情报检索任务上的表现提升。我们构造了包含CVE漏洞、APT组织特征、攻击链条、应急预案等多样化场景的测试集，特别关注了“难负样本”的区分能力——这些样本往往是导致通用模型翻车的关键痛点。</p>
+<p>微调指令</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">CUDA_VISIBLE_DEVICES=0 \</span><br><span class="line">swift sft \</span><br><span class="line">    --model /root/autodl-tmp/model \</span><br><span class="line">    --model_type qwen3_reranker \</span><br><span class="line">    --task_type reranker \</span><br><span class="line">    --loss_type reranker \</span><br><span class="line">    --train_type full \</span><br><span class="line">    --dataset /root/autodl-tmp/dataset/train_chat_fixed.jsonl \</span><br><span class="line">    --load_from_cache_file <span class="literal">true</span> \</span><br><span class="line">    --split_dataset_ratio 0.05 \</span><br><span class="line">    --eval_strategy steps \</span><br><span class="line">    --output_dir output \</span><br><span class="line">    --eval_steps 100 \</span><br><span class="line">    --num_train_epochs 3 \</span><br><span class="line">    --save_steps 500 \</span><br><span class="line">    --per_device_train_batch_size 8 \</span><br><span class="line">    --per_device_eval_batch_size 4 \</span><br><span class="line">    --gradient_accumulation_steps 1 \</span><br><span class="line">    --dataset_num_proc 8 \</span><br><span class="line">    --learning_rate 6e-6 \</span><br><span class="line">    --label_names labels \</span><br><span class="line">    --dataloader_drop_last <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="二、数据集构建"><a href="#二、数据集构建" class="headerlink" title="二、数据集构建"></a>二、数据集构建</h2><p>数据集和embedding微调数据集格式是一样的，都是使用对比学习的方法来进行微调</p>
+<p>Qwen3-Reranker的高级功能允许通过<strong>自定义Instruction</strong>（优先级就近覆盖）灵活调整判断标准，在不微调模型的情况下显著提升特定领域（如网络安全）的重排序精度，默认使用通用搜索指令并支持正负样本独立覆盖。</p>
+<p>默认：</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">给定一个网页搜索查询，检索出能够回答该查询的相关段落。</span><br></pre></td></tr></table></figure>
+
+<h2 id="三、基于swift框架微调Qwen3-reranker-0-6B"><a href="#三、基于swift框架微调Qwen3-reranker-0-6B" class="headerlink" title="三、基于swift框架微调Qwen3-reranker-0.6B"></a>三、基于swift框架微调Qwen3-reranker-0.6B</h2><h3 id="3-1-训练集损失"><a href="#3-1-训练集损失" class="headerlink" title="3.1 训练集损失"></a>3.1 训练集损失</h3><p>loss 计算模型对“正样本（相关文档）得分高于负样本（无关文档）”这一排序关系的预测正确程度——<strong>正样本得分越高、负样本得分越低，loss 就越小</strong></p>
+<p>它本质上是让模型学会区分相关和无关，从而提升重排序质量。</p>
+<img src="/2025/11/20/embedding微调测试/image-20251219160535222-177071700238968.png"  alt="image-20251219160535222" style="zoom: 50%;" />
+
+<h3 id="3-2-验证集损失"><a href="#3-2-验证集损失" class="headerlink" title="3.2 验证集损失"></a>3.2 验证集损失</h3><p><strong>评估指标：</strong></p>
+<p>**MRR：是计算所有查询中第一个相关结果排名倒数（1&#x2F;rank）的平均值，强调第一个正确结果的位置，<strong>越高越好</strong></p>
+<img src="/2025/11/20/embedding微调测试/image-20251219160401413-177071700238969.png"  alt="image-20251219160401413" style="zoom:50%;" />
+
+<p>NDCG：则综合评估整个排序列表的质量，对高相关结果给予更高权重并对靠后位置打折，<strong>越接近1越好。</strong></p>
+<img src="/2025/11/20/embedding微调测试/image-20251219160426896-177071700238970.png"  alt="image-20251219160426896" style="zoom:50%;" />
+
+<p>Accuracy： reranker 模型在验证集上将正样本排序高于负样本的比例（即二分类正确的比率），反映模型区分相关与无关文档的基本能力，<strong>越高越好</strong>。</p>
+<img src="/2025/11/20/embedding微调测试/image-20251219160713413-177071700238971.png"  alt="image-20251219160713413" style="zoom:50%;" />
+
+<h3 id="测试结果总结"><a href="#测试结果总结" class="headerlink" title="测试结果总结"></a>测试结果总结</h3><p>通过对Qwen3-embedding-0.6B模型的微调测试，结果显示模型在网络安全领域数据集上实现了有效优化：</p>
+<ol>
+<li>训练集和验证集的InfoNCE损失均呈现下降趋势并趋于收敛，正样本相似度逐步增强（损失上升反映了强化紧致性），负样本相似度显著降低（损失下降），表明模型不仅保留了通用语义理解能力，还成功注入领域专有知识，提升了语义区分精度，尤其在处理CVE漏洞、APT组织等“难负样本”时表现更精确；</li>
+<li>测试集相似度分数普遍降低，进一步证实微调后向量空间更具领域针对性，避免了泛化偏差。</li>
+</ol>
+<p>Qwen3-reranker-0.6B模型的微调结果显式：训练集损失下降体现了模型对正负样本排序关系的更好把握，验证集损失同步优化避免过拟合；评估指标如MRR（强调首结果位置）、NDCG（综合排序质量）和Accuracy（区分相关性比例）均显示出提升趋势，证明reranker在二级精排中显著提高了检索精度。</p>
+<h1 id="补充"><a href="#补充" class="headerlink" title="补充"></a>补充</h1><h1 id="conda环境：swift-lora"><a href="#conda环境：swift-lora" class="headerlink" title="conda环境：swift_lora"></a>conda环境：swift_lora</h1><h1 id="一、测试流程"><a href="#一、测试流程" class="headerlink" title="一、测试流程"></a>一、测试流程</h1><h2 id="1-1-构建数据"><a href="#1-1-构建数据" class="headerlink" title="1.1 构建数据"></a>1.1 构建数据</h2><h3 id="1-1-1-损失函数"><a href="#1-1-1-损失函数" class="headerlink" title="1.1.1 损失函数"></a>1.1.1 损失函数</h3><p>微调使用对比学习，采用<strong>InfoNCE</strong> 损失函数，核心思想是将任务建模为一个判别问题：区分出一个“正样本”与若干个“负样本”。</p>
+<img src="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/image-20260202120659809.png" class="" title="image-20260202120659809">
+
+<h3 id="1-1-2-数据结构"><a href="#1-1-2-数据结构" class="headerlink" title="1.1.2 数据结构"></a>1.1.2 数据结构</h3><p><strong>查询</strong> (Query)：</p>
+<p>这是信息需求的表示，可以是一个用户提出的问题、一个检索关键词，或任何需要模型为其寻找相关信息的文本。</p>
+<p><strong>正例 (Positive Sample, <code>pos</code>)</strong>:</p>
+<p>这是与给定查询（Query）高度相关或语义一致的文本。在训练过程中，模型会学习拉近查询向量与正例向量之间的距离。</p>
+<p><strong>负例 (Negative Sample, <code>neg</code>)</strong>:</p>
+<p>这是与给定查询（Query）不相关、相关性低或语义不一致的文本。在训练过程中，模型会学习推远查询向量与负例向量之间的距离。负样本的质量和选择策略对模型学习区分细微语义差异至关重要。</p>
+<img src="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/image-20260202120711579.png" class="" title="image-20260202120711579">
+
+<h3 id="1-1-3-示例数据"><a href="#1-1-3-示例数据" class="headerlink" title="1.1.3 示例数据"></a>1.1.3 示例数据</h3><p><strong>训练集（标准swift微调框架）</strong></p>
+<figure class="highlight prolog"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;    <span class="string">&quot;messages&quot;</span>: [      &#123;        <span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>,        <span class="string">&quot;content&quot;</span>: <span class="string">&quot;在分析Telegram Mac客户端RCE漏洞时，发现该漏洞利用路径绕过了客户端对特定文件后缀的限制，且下载的文件未被标记为Quarantine属性，直接点击即可触发远程代码执行。该漏洞在最新版本的Telegram Mac客户端中依然可复现，且利用过程无需用户交互确认。结合该特性，如何通过静态分析和动态调试手段，定位并验证该文件后缀绕过机制的具体实现位置？&quot;</span>      &#125;    ],    <span class="string">&quot;positive_messages&quot;</span>: [      [        &#123;          <span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>,          <span class="string">&quot;content&quot;</span>: <span class="string">&quot;通过静态分析，可定位到Telegram Mac客户端中处理文件后缀验证的函数逻辑，重点检查文件类型判断与后缀过滤的代码路径，确认是否存在对特定后缀的白名单或黑名单逻辑被绕过。结合动态调试，可在运行时监控文件下载与打开流程，观察文件在未被标记为Quarantine的情况下被直接执行的调用栈，追踪文件处理函数的调用链，确认文件后缀绕过机制的具体实现位置。&quot;</span>        &#125;      ]    ],    <span class="string">&quot;negative_messages&quot;</span>: [      [        &#123;          <span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>,          <span class="string">&quot;content&quot;</span>: <span class="string">&quot;在分析PHP应用中的XXE漏洞时，可通过利用PHP内置的expect模块实现远程代码执行，具体方法是使用expect://包装器执行系统命令，例如通过&amp;exec;触发whoami命令。此外，PHP filter wrapper可用于读取本地文件内容，如将文件以base64编码形式输出，实现信息泄露。其他可用的包装器包括php://filter、phar://、zip://、data://、gopher://、ftp://和dict://，它们分别支持数据过滤、PHAR文件读取、压缩包解析及网络协议交互。这些技术可被组合用于提升初始XXE漏洞的利用能力，但与Telegram Mac客户端文件后缀绕过机制或Quarantine属性绕过无关，也不涉及静态分析或动态调试定位RCE漏洞的具体实现位置。&quot;</span>        &#125;      ]    ]  &#125;,</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="1-2-基座选型"><a href="#1-2-基座选型" class="headerlink" title="1.2 基座选型"></a>1.2 基座选型</h2><p>微调框架：swift：<a target="_blank" rel="noopener" href="https://swift.readthedocs.io/zh-cn/latest/BestPractices/Embedding.html">https://swift.readthedocs.io/zh-cn/latest/BestPractices/Embedding.html</a></p>
+<p>嵌入：Qwen&#x2F;Qwen3-Embedding-0.6B：<a target="_blank" rel="noopener" href="https://huggingface.co/Qwen/Qwen3-Embedding-0.6B">Qwen&#x2F;Qwen3-Embedding-0.6B · Hugging Face</a></p>
+<p>重排：Qwen&#x2F;Qwen3-Reranker-0.6B：<a target="_blank" rel="noopener" href="https://huggingface.co/Qwen/Qwen3-Reranker-0.6B">Qwen&#x2F;Qwen3-Reranker-0.6B · Hugging Face</a></p>
+<h2 id="1-3-LoRa微调"><a href="#1-3-LoRa微调" class="headerlink" title="1.3 LoRa微调"></a>1.3 LoRa微调</h2><h3 id="1-3-1-微调指令"><a href="#1-3-1-微调指令" class="headerlink" title="1.3.1 微调指令"></a>1.3.1 微调指令</h3><p>run.sh</p>
+<figure class="highlight brainfuck"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">nproc_per_node=1 # 关键环境变量设置 export CUDA_VISIBLE_DEVICES=0 export INFONCE_TEMPERATURE=0</span><span class="string">.</span><span class="comment">05 export INFONCE_USE_BATCH=true NPROC_PER_NODE=$nproc_per_node \ swift sft \</span>    <span class="literal">--</span><span class="comment">model model \</span>    <span class="literal">--</span><span class="comment">task_type embedding \</span>    <span class="literal">--</span><span class="comment">model_type qwen3_emb \</span>    <span class="literal">--</span><span class="comment">train_type lora \</span>    <span class="literal">--</span><span class="comment">dataset data/train</span><span class="string">.</span><span class="comment">json \</span>    <span class="literal">--</span><span class="comment">split_dataset_ratio 0</span><span class="string">.</span><span class="comment">1 \</span>    <span class="literal">--</span><span class="comment">eval_strategy steps \</span>    <span class="literal">--</span><span class="comment">output_dir result \</span>    <span class="literal">--</span><span class="comment">save_steps 1000 \</span>    <span class="literal">--</span><span class="comment">eval_steps 100 \</span>    <span class="literal">--</span><span class="comment">num_train_epochs 3 \</span>    <span class="literal">--</span><span class="comment">per_device_train_batch_size 16 \</span>    <span class="literal">--</span><span class="comment">gradient_accumulation_steps 4 \</span>    <span class="literal">--</span><span class="comment">gradient_accumulation_steps 1 \</span>    <span class="literal">--</span><span class="comment">learning_rate 1e</span><span class="literal">-</span><span class="comment">4 \</span>    <span class="literal">--</span><span class="comment">lr_scheduler_type cosine \</span>    <span class="literal">--</span><span class="comment">warmup_ratio 0</span><span class="string">.</span><span class="comment">1 \</span>    <span class="literal">--</span><span class="comment">loss_type infonce \</span>    <span class="literal">--</span><span class="comment">max_length 1024 \</span>    <span class="literal">--</span><span class="comment">dataloader_drop_last true \</span>    <span class="literal">--</span><span class="comment">lora_rank 32 \</span>    <span class="literal">--</span><span class="comment">gradient_checkpointing true \</span>    <span class="literal">--</span><span class="comment">weight_decay 0</span><span class="string">.</span><span class="comment">1</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-2-微调后合并参数"><a href="#1-3-2-微调后合并参数" class="headerlink" title="1.3.2 微调后合并参数"></a>1.3.2 微调后合并参数</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> peft <span class="keyword">import</span> PeftModel <span class="keyword">from</span> transformers <span class="keyword">import</span> AutoModel, AutoTokenizer base_model_path = <span class="string">&quot;&quot;</span>微调前 adapter_path = <span class="string">&quot;&quot;</span>微调后 model = AutoModel.from_pretrained(base_model_path) model = PeftModel.from_pretrained(model, adapter_path) tokenizer = AutoTokenizer.from_pretrained(base_model_path) # 合并并保存 merged_path = <span class="string">&quot;&quot;</span>合并后 model = model.merge_and_unload()  # 关键：合并 LoRA model.save_pretrained(merged_path) tokenizer.save_pretrained(merged_path)</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-3-train-loss数据拟合情况"><a href="#1-3-3-train-loss数据拟合情况" class="headerlink" title="1.3.3 train_loss数据拟合情况"></a>1.3.3 train_loss数据拟合情况</h3><img src="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/image-20260202120741382.png" class="" title="image-20260202120741382">
+
+<h2 id="二、评估结果"><a href="#二、评估结果" class="headerlink" title="二、评估结果"></a>二、评估结果</h2><h3 id="核心评估流程"><a href="#核心评估流程" class="headerlink" title="核心评估流程"></a>核心评估流程</h3><ol>
+<li><strong>向量化</strong>：将 Query、Positive、Negatives 全部转为 L2 归一化的特征向量。</li>
+<li><strong>算分</strong>：计算 Query 与所有候选答案的余弦相似度。</li>
+<li><strong>排序</strong>：按得分降序排列，记录 Positive 的真实排名（Rank）。</li>
+<li><strong>汇总</strong>：统计前 K 名的覆盖率（Recall）和平均排名倒数（MRR）。</li>
+</ol>
+<hr>
+<h3 id="具体实例展示"><a href="#具体实例展示" class="headerlink" title="具体实例展示"></a>具体实例展示</h3><p>假设你的测试数据如下：</p>
+<ul>
+<li><strong>Query</strong>: “如何缓解失眠？”</li>
+<li><strong>Positive</strong>: “建立规律的作息时间，减少咖啡因摄入。”</li>
+<li><strong>Negatives</strong>:<ol>
+<li>“今天天气不错。” (无关干扰)</li>
+<li>“如何修理电脑主板？” (领域无关)</li>
+<li>“喝咖啡可以提神。” (语义冲突&#x2F;硬负样本)</li>
+</ol>
+</li>
+</ul>
+<h4 id="1-评估基座模型-Base"><a href="#1-评估基座模型-Base" class="headerlink" title="1. 评估基座模型 (Base)"></a>1. 评估基座模型 (Base)</h4><p>模型计算出的相似度排名：</p>
+<ol>
+<li><code>Neg 3</code> (得分 0.85) —— <strong>模型误判了！</strong></li>
+<li><code>Pos</code> (得分 0.80)</li>
+<li><code>Neg 1</code> (得分 0.30)</li>
+</ol>
+<ul>
+<li><strong>Rank</strong>: 2</li>
+<li><strong>Recall@1</strong>: 0</li>
+<li><strong>MRR</strong>: 1&#x2F;2 &#x3D; 0.5</li>
+</ul>
+<h4 id="2-评估微调模型-Finetuned"><a href="#2-评估微调模型-Finetuned" class="headerlink" title="2. 评估微调模型 (Finetuned)"></a>2. 评估微调模型 (Finetuned)</h4><p>微调后，模型更好地理解了医学建议与提神的区别：</p>
+<ol>
+<li><code>Pos</code> (得分 0.92) —— <strong>正确排在首位</strong></li>
+<li><code>Neg 3</code> (得分 0.60)</li>
+<li><code>Neg 2</code> (得分 0.10)</li>
+</ol>
+<ul>
+<li><strong>Rank</strong>: 1</li>
+<li><strong>Recall@1</strong>: 1</li>
+<li><strong>MRR</strong>: 1&#x2F;1 &#x3D; 1.0</li>
+</ul>
+<p>数据量</p>
+<table>
+<thead>
+<tr>
+<th align="center">训练数据</th>
+<th align="center">测试数据</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">75842</td>
+<td align="center">5000</td>
+</tr>
+</tbody></table>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>含义</th>
+<th>原生模型</th>
+<th>微调后</th>
+<th>变化（原生 → 微调后）</th>
+<th>幅度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Main score (Recall@10)</td>
+<td>主指标：查询在搜索结果前10条中至少命中一个相关文档的比例，是检索任务最常用的整体性能指标</td>
+<td>0.68797</td>
+<td>0.77400</td>
+<td>+0.08603</td>
+<td>⬆️ 12.51%</td>
+</tr>
+<tr>
+<td>Recall@1</td>
+<td>前1条结果命中相关文档的比例，反映模型“第一猜就对”的能力，对用户体验影响最大</td>
+<td>0.42726</td>
+<td>0.48920</td>
+<td>+0.06194</td>
+<td>⬆️ 14.50%</td>
+</tr>
+<tr>
+<td>Recall@3</td>
+<td>前3条结果中至少命中一个相关文档的比例，衡量头部结果的准确性</td>
+<td>0.61149</td>
+<td>0.69210</td>
+<td>+0.08061</td>
+<td>⬆️ 13.18%</td>
+</tr>
+<tr>
+<td>Recall@5</td>
+<td>前5条结果中至少命中一个相关文档的比例</td>
+<td>0.68797</td>
+<td>0.76910</td>
+<td>+0.08113</td>
+<td>⬆️ 11.79%</td>
+</tr>
+<tr>
+<td>Recall@10</td>
+<td>前10条结果中至少命中一个相关文档的比例（本任务主指标）</td>
+<td>0.68797</td>
+<td>0.77400</td>
+<td>+0.08603</td>
+<td>⬆️ 12.51%</td>
+</tr>
+<tr>
+<td>MAP@10</td>
+<td>平均精度均值，综合考虑相关文档的排名位置，越靠前分数越高，衡量排序质量</td>
+<td>0.52611</td>
+<td>0.59870</td>
+<td>+0.07259</td>
+<td>⬆️ 13.80%</td>
+</tr>
+<tr>
+<td>MRR@10</td>
+<td>平均倒数排名，第一个相关文档排名的倒数取平均，对头部排序非常敏感</td>
+<td>0.52651</td>
+<td>0.60130</td>
+<td>+0.07479</td>
+<td>⬆️ 14.21%</td>
+</tr>
+<tr>
+<td>NDCG@10</td>
+<td>归一化折损累积增益，综合考虑相关性和排名位置的排序指标，常用于多相关度等级场景</td>
+<td>0.56653</td>
+<td>0.63450</td>
+<td>+0.06797</td>
+<td>⬆️ 12.00%</td>
+</tr>
+</tbody></table>
+<h1 id="环境部署流程"><a href="#环境部署流程" class="headerlink" title="环境部署流程"></a>环境部署流程</h1><p><a target="_blank" rel="noopener" href="https://github.com/modelscope/ms-swift">ms-swift</a>框架的eval能力使用了魔搭社区<a target="_blank" rel="noopener" href="https://github.com/modelscope/eval-scope">评测框架EvalScope</a>，并进行了高级封装以支持各类模型的评测需求。目前支持了<strong>标准评测集</strong>的评测流程，以及<strong>用户自定义</strong>评测集的评测流程。</p>
+<p>标准评测集详情：<a target="_blank" rel="noopener" href="https://evalscope.readthedocs.io/zh-cn/latest/get_started/supported_dataset/index.html%EF%BC%8C%E6%94%AF%E6%8C%81LLM%EF%BC%8CVLM%EF%BC%8CAgent%EF%BC%8CAIGC%E8%AF%84%E6%B5%8B">https://evalscope.readthedocs.io/zh-cn/latest/get_started/supported_dataset/index.html，支持LLM，VLM，Agent，AIGC评测</a></p>
+<h2 id="swift微调框架部署："><a href="#swift微调框架部署：" class="headerlink" title="swift微调框架部署："></a>swift微调框架部署：</h2><p><a target="_blank" rel="noopener" href="https://swift.readthedocs.io/zh-cn/latest/Megatron-SWIFT/Quick-start.html">https://swift.readthedocs.io/zh-cn/latest/Megatron-SWIFT/Quick-start.html</a></p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip <span class="keyword">install </span>ms-<span class="keyword">swift </span>-U</span><br></pre></td></tr></table></figure>
+
+<p>python依赖版本</p>
+<table>
+<thead>
+<tr>
+<th>条目</th>
+<th>版本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>python</td>
+<td>&gt;&#x3D;3.9</td>
+</tr>
+<tr>
+<td>cuda</td>
+<td></td>
+</tr>
+<tr>
+<td>torch</td>
+<td>&gt;&#x3D;2.0</td>
+</tr>
+<tr>
+<td>transformer_engine</td>
+<td>&gt;&#x3D;2.3</td>
+</tr>
+<tr>
+<td>apex</td>
+<td></td>
+</tr>
+<tr>
+<td>megatron_core</td>
+<td>&gt;&#x3D;0.12,&lt;0.16</td>
+</tr>
+<tr>
+<td>flash_attn</td>
+<td></td>
+</tr>
+<tr>
+<td>transformers</td>
+<td>&gt;&#x3D;4.33</td>
+</tr>
+<tr>
+<td>modelscope</td>
+<td>&gt;&#x3D;1.23</td>
+</tr>
+<tr>
+<td>peft</td>
+<td>&gt;&#x3D;0.11,&lt;0.19</td>
+</tr>
+</tbody></table>
+<p>准备好数据后使用上述指令微调，lora微调后必须合并原模型参数否则会导致评估失败</p>
+<h1 id="数据集扩充："><a href="#数据集扩充：" class="headerlink" title="数据集扩充："></a>数据集扩充：</h1><p>数据地址（开源+生成）：&#x2F;data&#x2F;test_project&#x2F;embedding_lora&#x2F;embedding_plus&#x2F;data</p>
+<p>qa_dataset.jsonl：34709，带有思考过程的问答，query，reasoning_chain，answer<br>security_data_final_merged.jsonl：生成中，16000条，纯问题不带上下文，正例和负例，instruction_en，instruction_zh，positive_answer，negative_answer，负例质量一般<br>query_positive_negative.jsonl：4520，带上下文的提问，正例和负例，category，query，positive_answer，negative_answer<br>security_data_with_cot.jsonl：3000，带思维链，instruction，input，CoT，output<br>qa_master_2023_2024.jsonl：11000，纯问题不带上下文，英文QA，question，answer<br>Security-QnA.jsonl：4500，针对漏洞类型的纯问题不带上下文，英文QA，Question，Vulnerability Type（漏洞类型），Answer</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/">http://example.com/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">HunyuanOCR调研报告</div></div><div class="info-2"><div class="info-item-1">前言在网络安全实践中，大量关键线索以图像形式存在，如钓鱼页面截图、日志截图、恶意广告、凭证凭证等。传统OCR工具虽能提取文字，但面对低质量截图、变形字体、多语言混排或对抗干扰时识别率低，且缺乏语义理解能力——无法结构化提取“伪造发件人”“C2地址”等安全要素。 本文围绕腾讯开源的轻量级视觉语言模型 HunyuanOCR，评估其在安全场景下的实用性。该模型通过提示词驱动，支持端到端的文字检测、信息抽取、表格&#x2F;公式解析与视觉问答，在卡证票据、带噪截图、多语种文档等复杂图像中表现出优于主流OCR的识别准确率。 调研表明，HunyuanOCR 能有效支持安全运营中的自动化情报提取，但仍存在局限：当前版本仅能识别文字区域，无法直接定位图形、颜色或非文本元素，未来需结合行为上下文或辅助模型，进一步提升在对抗性网络环境中的可用性。   一、部署模型地址：tencent&#x2F;HunyuanOCR  参数量：1B 模型大小：2.5G 环境：Python 3.12 + CUDA 12.8 +  + PyTorch 2.7.1 + vLLM nightly 部署设备：RTX 3090(...</div></div></div></a><a class="pagination-related" href="/2025/11/15/Claude-Skills%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="Claude_Skills调研报告"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">Claude_Skills调研报告</div></div><div class="info-2"><div class="info-item-1">前言（网络安全 × Skill 能力）适配场景：在网络安全垂直领域中，安全团队需要处理海量而杂乱的内容：从威胁情报、漏洞公告，到攻击链分析、日志告警、取证记录，各类文档格式结构不一，导致信息提炼缓慢、分析效率难以提升。传统依赖大模型的做法虽能辅助阅读和理解，但在应对多文档、多格式、持续高频的安全输入时，仍面临成本高、结果不稳定等问题。 核心功能：Claude 推出的 Skill 机制让这些场景首次可以实现**“规则化、模板化、标准化”的自动处理：如自动解析威胁情报、自动对公告进行结构化提取、自动拆解攻击链、自动识别关键实体与风险点，并能长期保持一致的分析口径。** 一、什么是skill一种模块化工具调用框架，核心思想是“给大模型喂预制菜” 提前将可复用的能力封装为 skill 模块；   通过 JSON 文件注册每个 skill 的名称和描述，并注入到 system prompt 中，让大模型知晓可用工具；   大模型根据用户问题自动选择合适 skill；   系统据此查找对应 skill.md 说明文件；   最终按 skill.md 的指示执行脚本或调用程序，完成任务。  m...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Qwen3-embedding0-6B%E5%BE%AE%E8%B0%83"><span class="toc-number">1.</span> <span class="toc-text">Qwen3-embedding0.6B微调</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9E%84%E5%BB%BA"><span class="toc-number">1.2.</span> <span class="toc-text">一、数据集构建</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E8%AE%AD%E7%BB%83%E9%9B%86"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1 训练集</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E5%85%83%E7%BB%84%E7%9A%84%E6%9E%84%E5%BB%BA%E9%80%BB%E8%BE%91"><span class="toc-number">1.2.1.1.</span> <span class="toc-text">三元组的构建逻辑</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E9%AA%8C%E8%AF%81%E9%9B%86"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2 验证集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E6%B5%8B%E8%AF%95%E9%9B%86"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.3 测试集</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BE%AE%E8%B0%83%E8%AF%84%E4%BC%B0%E9%80%BB%E8%BE%91"><span class="toc-number">1.2.3.1.</span> <span class="toc-text">微调评估逻辑</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E5%9F%BA%E4%BA%8Eswift%E6%A1%86%E6%9E%B6%E5%BE%AE%E8%B0%83Qwen3-embedding-0-6B"><span class="toc-number">1.3.</span> <span class="toc-text">二、基于swift框架微调Qwen3-embedding-0.6B</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87%EF%BC%9A"><span class="toc-number">1.3.0.1.</span> <span class="toc-text">评估指标：</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Qwen3-reranker0-6B%E5%BE%AE%E8%B0%83"><span class="toc-number">2.</span> <span class="toc-text">Qwen3-reranker0.6B微调</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%89%8D%E8%A8%80"><span class="toc-number">2.1.</span> <span class="toc-text">一、前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9E%84%E5%BB%BA"><span class="toc-number">2.2.</span> <span class="toc-text">二、数据集构建</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E5%9F%BA%E4%BA%8Eswift%E6%A1%86%E6%9E%B6%E5%BE%AE%E8%B0%83Qwen3-reranker-0-6B"><span class="toc-number">2.3.</span> <span class="toc-text">三、基于swift框架微调Qwen3-reranker-0.6B</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%AE%AD%E7%BB%83%E9%9B%86%E6%8D%9F%E5%A4%B1"><span class="toc-number">2.3.1.</span> <span class="toc-text">3.1 训练集损失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%AA%8C%E8%AF%81%E9%9B%86%E6%8D%9F%E5%A4%B1"><span class="toc-number">2.3.2.</span> <span class="toc-text">3.2 验证集损失</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8B%E8%AF%95%E7%BB%93%E6%9E%9C%E6%80%BB%E7%BB%93"><span class="toc-number">2.3.3.</span> <span class="toc-text">测试结果总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%A1%A5%E5%85%85"><span class="toc-number">3.</span> <span class="toc-text">补充</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#conda%E7%8E%AF%E5%A2%83%EF%BC%9Aswift-lora"><span class="toc-number">4.</span> <span class="toc-text">conda环境：swift_lora</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E6%B5%8B%E8%AF%95%E6%B5%81%E7%A8%8B"><span class="toc-number">5.</span> <span class="toc-text">一、测试流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E6%9E%84%E5%BB%BA%E6%95%B0%E6%8D%AE"><span class="toc-number">5.1.</span> <span class="toc-text">1.1 构建数据</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="toc-number">5.1.1.</span> <span class="toc-text">1.1.1 损失函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84"><span class="toc-number">5.1.2.</span> <span class="toc-text">1.1.2 数据结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-3-%E7%A4%BA%E4%BE%8B%E6%95%B0%E6%8D%AE"><span class="toc-number">5.1.3.</span> <span class="toc-text">1.1.3 示例数据</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E5%9F%BA%E5%BA%A7%E9%80%89%E5%9E%8B"><span class="toc-number">5.2.</span> <span class="toc-text">1.2 基座选型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-3-LoRa%E5%BE%AE%E8%B0%83"><span class="toc-number">5.3.</span> <span class="toc-text">1.3 LoRa微调</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-1-%E5%BE%AE%E8%B0%83%E6%8C%87%E4%BB%A4"><span class="toc-number">5.3.1.</span> <span class="toc-text">1.3.1 微调指令</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-2-%E5%BE%AE%E8%B0%83%E5%90%8E%E5%90%88%E5%B9%B6%E5%8F%82%E6%95%B0"><span class="toc-number">5.3.2.</span> <span class="toc-text">1.3.2 微调后合并参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-3-train-loss%E6%95%B0%E6%8D%AE%E6%8B%9F%E5%90%88%E6%83%85%E5%86%B5"><span class="toc-number">5.3.3.</span> <span class="toc-text">1.3.3 train_loss数据拟合情况</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E8%AF%84%E4%BC%B0%E7%BB%93%E6%9E%9C"><span class="toc-number">5.4.</span> <span class="toc-text">二、评估结果</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E8%AF%84%E4%BC%B0%E6%B5%81%E7%A8%8B"><span class="toc-number">5.4.1.</span> <span class="toc-text">核心评估流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B7%E4%BD%93%E5%AE%9E%E4%BE%8B%E5%B1%95%E7%A4%BA"><span class="toc-number">5.4.2.</span> <span class="toc-text">具体实例展示</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%AF%84%E4%BC%B0%E5%9F%BA%E5%BA%A7%E6%A8%A1%E5%9E%8B-Base"><span class="toc-number">5.4.2.1.</span> <span class="toc-text">1. 评估基座模型 (Base)</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E8%AF%84%E4%BC%B0%E5%BE%AE%E8%B0%83%E6%A8%A1%E5%9E%8B-Finetuned"><span class="toc-number">5.4.2.2.</span> <span class="toc-text">2. 评估微调模型 (Finetuned)</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%8E%AF%E5%A2%83%E9%83%A8%E7%BD%B2%E6%B5%81%E7%A8%8B"><span class="toc-number">6.</span> <span class="toc-text">环境部署流程</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#swift%E5%BE%AE%E8%B0%83%E6%A1%86%E6%9E%B6%E9%83%A8%E7%BD%B2%EF%BC%9A"><span class="toc-number">6.1.</span> <span class="toc-text">swift微调框架部署：</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E9%9B%86%E6%89%A9%E5%85%85%EF%BC%9A"><span class="toc-number">7.</span> <span class="toc-text">数据集扩充：</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/12/25/Qwen3-vl-embedding%E6%B5%8B%E8%AF%84%E6%8A%A5%E5%91%8A/" title="Qwen3-vl-embedding测评报告"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Qwen3-vl-embedding测评报告"/></a><div class="content"><a class="title" href="/2025/12/25/Qwen3-vl-embedding%E6%B5%8B%E8%AF%84%E6%8A%A5%E5%91%8A/" title="Qwen3-vl-embedding测评报告">Qwen3-vl-embedding测评报告</a><time datetime="2025-12-25T09:22:52.000Z" title="发表于 2025-12-25 17:22:52">2025-12-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MOE，量化，蒸馏，剪枝"/></a><div class="content"><a class="title" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝">MOE，量化，蒸馏，剪枝</a><time datetime="2025-12-18T01:12:12.000Z" title="发表于 2025-12-18 09:12:12">2025-12-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/" title="memory开源项目调研"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="memory开源项目调研"/></a><div class="content"><a class="title" href="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/" title="memory开源项目调研">memory开源项目调研</a><time datetime="2025-12-14T11:12:02.000Z" title="发表于 2025-12-14 19:12:02">2025-12-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HunyuanOCR调研报告"/></a><div class="content"><a class="title" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告">HunyuanOCR调研报告</a><time datetime="2025-12-05T04:02:44.000Z" title="发表于 2025-12-05 12:02:44">2025-12-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/" title="embedding微调测试"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="embedding微调测试"/></a><div class="content"><a class="title" href="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/" title="embedding微调测试">embedding微调测试</a><time datetime="2025-11-20T03:09:12.000Z" title="发表于 2025-11-20 11:09:12">2025-11-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

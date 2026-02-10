@@ -1,0 +1,276 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>CLaRa调研报告 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="CLaRa 调研报告前言在网络安全领域，RAG 系统（Retrieval-Augmented Generation，检索增强生成）作为一种智能工具，将外部的安全知识库（如漏洞数据库、威胁情报和合规文档）与大型语言模型结合在一起，从而为安全相关的问题提供准确、可追踪的回答。 这种系统主要帮助安全分析人员面对海量、分散且高度专业的安全信息，手动查找效率低下、响应缓慢、知识更新不及时，以及容易忽略关键细">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CLaRa调研报告">
+<meta property="og:url" content="http://example.com/2025/11/11/CLaRa%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="CLaRa 调研报告前言在网络安全领域，RAG 系统（Retrieval-Augmented Generation，检索增强生成）作为一种智能工具，将外部的安全知识库（如漏洞数据库、威胁情报和合规文档）与大型语言模型结合在一起，从而为安全相关的问题提供准确、可追踪的回答。 这种系统主要帮助安全分析人员面对海量、分散且高度专业的安全信息，手动查找效率低下、响应缓慢、知识更新不及时，以及容易忽略关键细">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-11-11T11:09:11.000Z">
+<meta property="article:modified_time" content="2026-02-10T09:45:46.603Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "CLaRa调研报告",
+  "url": "http://example.com/2025/11/11/CLaRa%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-11-11T11:09:11.000Z",
+  "dateModified": "2026-02-10T09:45:46.603Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/11/11/CLaRa%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'CLaRa调研报告',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">CLaRa调研报告</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">CLaRa调研报告</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-11-11T11:09:11.000Z" title="发表于 2025-11-11 19:09:11">2025-11-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T09:45:46.603Z" title="更新于 2026-02-10 17:45:46">2026-02-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%9E%E4%B9%A0%E7%AC%94%E8%AE%B0/">实习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="CLaRa-调研报告"><a href="#CLaRa-调研报告" class="headerlink" title="CLaRa 调研报告"></a>CLaRa 调研报告</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>在网络安全领域，RAG 系统（Retrieval-Augmented Generation，检索增强生成）作为一种智能工具，将外部的安全知识库（如漏洞数据库、威胁情报和合规文档）与大型语言模型结合在一起，从而为安全相关的问题提供准确、可追踪的回答。</p>
+<p>这种系统主要帮助安全分析人员面对海量、分散且高度专业的安全信息，手动查找效率低下、响应缓慢、知识更新不及时，以及容易忽略关键细节。通过 RAG，系统可以提升威胁评估、事件响应、合规咨询和漏洞管理的自动化水平和准确性。它还能有效减少大型模型在回答专业问题时出现的“幻觉”问题（即模型生成不准确或虚构的信息）。</p>
+<p>在RAG系统中，<strong>检索器</strong>负责从外部知识库中查找与输入问题相关的文档或片段，而<strong>压缩器</strong>则对检索到的内容进行筛选、精简或重排，以保留最相关的信息并减少噪声，从而提升生成质量与效率。</p>
+<h2 id="传统-RAG-系统的局限性"><a href="#传统-RAG-系统的局限性" class="headerlink" title="传统 RAG 系统的局限性"></a>传统 RAG 系统的局限性</h2><p>尽管传统 RAG 系统通过外部知识增强 LLM，但仍存在两大主要问题：</p>
+<ol>
+<li><p><strong>效率问题</strong>：RAG 系统在检索信息时，会将文本转换为低维稠密向量（通常为 256、512 或 1024 维的数字表示，用于语义匹配）。然而，当模型生成内容时，它不能直接使用这些向量作为输入，而是需要重新读取检索到的原始文本，并将其编码成新的向量。这导致三个具体问题：</p>
+<ul>
+<li>检索和生成的语义表示不在同一维度，导致不一致。</li>
+<li>模型在处理检索到的文档时，可能因上下文过长而“爆炸”（即超出模型处理能力的长度限制）。</li>
+<li>重复编码文本，浪费计算资源。</li>
+</ul>
+</li>
+<li><p><strong>优化分离问题</strong>：检索器仅根据向量相似度选择相关文档，但生成器有时会发现这些文档无法回答问题，却无法将此反馈传递给检索器。这是因为检索过程是一个离散的选择操作（top-k 或 top-p，选择或不选择，没有中间状态），数学上梯度几乎为零，无法通过梯度回传优化。结果是检索器和生成器无法协同工作，检索质量难以满足生成器的实际需求。</p>
+</li>
+</ol>
+<h2 id="苹果公司的-CLaRa-框架介绍"><a href="#苹果公司的-CLaRa-框架介绍" class="headerlink" title="苹果公司的 CLaRa 框架介绍"></a>苹果公司的 CLaRa 框架介绍</h2><p>苹果公司最近推出了一种名为 CLaRa 的框架（Compressible Latent Retrieval-Augmented Generation，可压缩潜在检索增强生成）。它构建了一个高效、可微分的 RAG 框架，将检索和生成步骤融合在一起，只使用一个简单的 next-token prediction 损失函数（即预测下一个词的语言建模损失），实现压缩、检索和生成的端到端优化。</p>
+<p>CLaRa 的关键创新包括：</p>
+<ul>
+<li><strong>SCP 预训练</strong>：将文档压缩为连续的 memory tokens（记忆令牌，一种浓缩的表示形式），解决表示空间不一致和冗余编码的问题。</li>
+<li><strong>Straight-Through 软 top-k 机制</strong>：打破梯度回传障碍，让生成器直接优化检索器。</li>
+</ul>
+<img src="/2025/11/11/CLaRa%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/drawio.png" class="" title="drawio">
+
+<h3 id="一、压缩器预训练——教模型识别关键事实和推理链"><a href="#一、压缩器预训练——教模型识别关键事实和推理链" class="headerlink" title="一、压缩器预训练——教模型识别关键事实和推理链"></a>一、压缩器预训练——教模型识别关键事实和推理链</h3><p>这一步的目的是让模型学会提取文档中的核心信息，包括事实和多步推理。</p>
+<h4 id="1-1-数据"><a href="#1-1-数据" class="headerlink" title="1.1 数据"></a>1.1 数据</h4><p>数据使用 Qwen-32B 模型在 200 万篇 Wikipedia 文章上自动生成，包括两种类型：</p>
+<ul>
+<li><strong>简单 QA</strong>：每个问题-答案对只涉及一个事件，例如：“Trichocladus crinitus 属于哪个科？”答案：“Hamamelidaceae”。这训练模型记住细粒度事实。</li>
+<li><strong>复杂 QA</strong>：问题-答案对跨越多个事件，需要多步推理，例如：“2014 年 10 月 2 日加入 Newport County、10 月 4 日替补上场输给 Oxford United 的球员是谁？”答案：“James Loveridge”。这训练模型学会连接多跳关系。</li>
+</ul>
+<h4 id="1-2-模型"><a href="#1-2-模型" class="headerlink" title="1.2 模型"></a>1.2 模型</h4><p>CLaRa 系统基于一个 LLM，加上三个 LoRA（Low-Rank Adaptation，低秩适配，一种高效的模型微调方法）模块：</p>
+<ul>
+<li><strong>压缩</strong>：将所有文档（如维基百科、威胁情报、日志等）输入模型，每篇文档前拼接一段固定长度的压缩向量。压缩后，所有向量存入数据库。</li>
+<li><strong>查询</strong>：将用户问题也压缩成相同维度的查询向量，然后根据此向量，从数据库中检索 top-k 个文档压缩向量，并将它们拼接成一个长序列。</li>
+<li><strong>回答</strong>：使用这个长序列进行自回归生成（即逐步预测下一个词），输出答案。</li>
+</ul>
+<h3 id="二、端到端训练——融合检索和生成"><a href="#二、端到端训练——融合检索和生成" class="headerlink" title="二、端到端训练——融合检索和生成"></a>二、端到端训练——融合检索和生成</h3><p>在这一阶段，冻结压缩部分的参数，只训练查询和回答部分。</p>
+<ul>
+<li><strong>损失函数</strong>：使用标准的 next-token prediction 交叉熵损失（衡量预测准确度的指标）。</li>
+<li><strong>反向传播</strong>：将传统的 top-k 选择改为 Straight-Through Estimator，允许梯度传播。</li>
+<li><strong>多跳推理</strong>：通过端到端梯度回传，查询步骤学会主动补充缺失的中间环节。</li>
+</ul>
+<p>最终效果：生成器像“老师”一样，通过计算损失和梯度下降，指导检索器改进检索质量。</p>
+<h3 id="三、效果"><a href="#三、效果" class="headerlink" title="三、效果"></a>三、效果</h3><p>压缩率定义为：原始文档 token 数 ÷ 压缩后 memory tokens 数。CLaRa 的优势在于，传统 RAG 需要阅读大量文本才能准确回答问题，而 CLaRa 只需少量 memory tokens 即可达到类似效果。</p>
+<p>以下是 CLaRa（128 倍压缩率）与传统全文档 RAG 在数据集上的性能比较：</p>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>传统全文档 RAG</th>
+<th>CLaRa 128 压缩</th>
+<th>提升幅度</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Natural Questions</td>
+<td>54.58</td>
+<td>53.36</td>
+<td>几乎持平</td>
+</tr>
+<tr>
+<td>HotpotQA</td>
+<td>42.94</td>
+<td>41.37</td>
+<td>几乎持平</td>
+</tr>
+<tr>
+<td>MuSiQue</td>
+<td>44.24</td>
+<td>46.40</td>
+<td>+2.16</td>
+</tr>
+<tr>
+<td>2Wiki</td>
+<td>37.67</td>
+<td>37.85</td>
+<td>基本持平</td>
+</tr>
+<tr>
+<td>平均</td>
+<td>44.86</td>
+<td>44.75</td>
+<td>基本持平</td>
+</tr>
+</tbody></table>
+<h3 id="四、应用场景"><a href="#四、应用场景" class="headerlink" title="四、应用场景"></a>四、应用场景</h3><p>在网络安全场景中，CLaRa 相比传统 RAG 表现出显著优势：</p>
+<table>
+<thead>
+<tr>
+<th>安全场景</th>
+<th>传统 RAG</th>
+<th>CLaRa</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>威胁情报结构化解析</td>
+<td>依赖规则和人工标注，容易出现漏报或误报。</td>
+<td>离线将全网数十亿条 IOC、STIX、MISP、OTX 等情报压缩成浓缩包，查询时自动补充缺失字段，提升结构化准确率。</td>
+</tr>
+<tr>
+<td>攻击链多跳重建</td>
+<td>手动翻阅 EDR、防火墙和威胁情报的数十万条日志。</td>
+<td>128 倍压缩后上下文仅几百 token，7B 模型可在秒级重建完整 攻击链，并主动补充缺失的 C2 或横移节点。</td>
+</tr>
+<tr>
+<td>告警关联与去噪</td>
+<td>每天几万条告警，90% 是噪音，分析成本极高。</td>
+<td>端到端训练让模型只关注真正影响答案的线索，噪音自动被排除。</td>
+</tr>
+<tr>
+<td>APT 未知威胁研判</td>
+<td>完全依赖人工经验，响应时间从几小时到几天。</td>
+<td>查询学会隐式推理，能像资深分析师一样自动关联线索，例如“这个行为像 2021 年 SolarWinds 攻击”。</td>
+</tr>
+</tbody></table>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/11/11/CLaRa%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/">http://example.com/2025/11/11/CLaRa%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/11/15/Claude-Skills%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="Claude_Skills调研报告"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Claude_Skills调研报告</div></div><div class="info-2"><div class="info-item-1">前言（网络安全 × Skill 能力）适配场景：在网络安全垂直领域中，安全团队需要处理海量而杂乱的内容：从威胁情报、漏洞公告，到攻击链分析、日志告警、取证记录，各类文档格式结构不一，导致信息提炼缓慢、分析效率难以提升。传统依赖大模型的做法虽能辅助阅读和理解，但在应对多文档、多格式、持续高频的安全输入时，仍面临成本高、结果不稳定等问题。 核心功能：Claude 推出的 Skill 机制让这些场景首次可以实现**“规则化、模板化、标准化”的自动处理：如自动解析威胁情报、自动对公告进行结构化提取、自动拆解攻击链、自动识别关键实体与风险点，并能长期保持一致的分析口径。** 一、什么是skill一种模块化工具调用框架，核心思想是“给大模型喂预制菜” 提前将可复用的能力封装为 skill 模块；   通过 JSON 文件注册每个 skill 的名称和描述，并注入到 system prompt 中，让大模型知晓可用工具；   大模型根据用户问题自动选择合适 skill；   系统据此查找对应 skill.md 说明文件；   最终按 skill.md 的指示执行脚本或调用程序，完成任务。  m...</div></div></div></a><a class="pagination-related" href="/2025/11/05/AutoAgent-%E4%B8%8E%E4%BC%A0%E7%BB%9F%E5%B7%A5%E5%85%B7%E5%87%BD%E6%95%B0-Agent-%E7%9A%84%E5%AF%B9%E6%AF%94%E7%AC%94%E8%AE%B0/" title="AutoAgent 与传统工具函数 Agent 的对比笔记"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">AutoAgent 与传统工具函数 Agent 的对比笔记</div></div><div class="info-2"><div class="info-item-1">AutoAgent 与传统工具函数 Agent 的对比笔记 最后更新：2025年10月31日本笔记系统梳理了 AutoAgent（以 Microsoft AutoGen 为代表）与传统“大模型 + 工具函数”实现的 Agent 之间的核心区别、协作机制、底层原理，并对比了 Dify 等低代码平台的定位。  一、核心思想对比1. 传统工具函数 Agent（单智能体 ReAct 模式） 本质：一个大模型 + 一组预定义工具函数。 工作方式： 用户输入任务 → 大模型判断是否需要调用工具 → 调用 → 获取结果 → 继续推理。 循环执行 Reason → Act → Observe（即 ReAct 范式）。   特点： 单一“大脑”，线性或简单分支逻辑。 工具调用由模型自主决定，但无协作能力。 开发简单，适合中低复杂度任务（如查天气、数据查询）。    2. AutoAgent（多智能体协作框架） 本质：多个独立 Agent 组成的协作系统，每个 Agent 可绑定专属工具。 工作方式： 开发者预先定义多个 Agent（如 Coder、Tester、Reviewer）。 Agent 之...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#CLaRa-%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A"><span class="toc-number">1.</span> <span class="toc-text">CLaRa 调研报告</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9F-RAG-%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%B1%80%E9%99%90%E6%80%A7"><span class="toc-number">1.2.</span> <span class="toc-text">传统 RAG 系统的局限性</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E8%8B%B9%E6%9E%9C%E5%85%AC%E5%8F%B8%E7%9A%84-CLaRa-%E6%A1%86%E6%9E%B6%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.3.</span> <span class="toc-text">苹果公司的 CLaRa 框架介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%80%E3%80%81%E5%8E%8B%E7%BC%A9%E5%99%A8%E9%A2%84%E8%AE%AD%E7%BB%83%E2%80%94%E2%80%94%E6%95%99%E6%A8%A1%E5%9E%8B%E8%AF%86%E5%88%AB%E5%85%B3%E9%94%AE%E4%BA%8B%E5%AE%9E%E5%92%8C%E6%8E%A8%E7%90%86%E9%93%BE"><span class="toc-number">1.3.1.</span> <span class="toc-text">一、压缩器预训练——教模型识别关键事实和推理链</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-1-%E6%95%B0%E6%8D%AE"><span class="toc-number">1.3.1.1.</span> <span class="toc-text">1.1 数据</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.3.1.2.</span> <span class="toc-text">1.2 模型</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BA%8C%E3%80%81%E7%AB%AF%E5%88%B0%E7%AB%AF%E8%AE%AD%E7%BB%83%E2%80%94%E2%80%94%E8%9E%8D%E5%90%88%E6%A3%80%E7%B4%A2%E5%92%8C%E7%94%9F%E6%88%90"><span class="toc-number">1.3.2.</span> <span class="toc-text">二、端到端训练——融合检索和生成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%95%88%E6%9E%9C"><span class="toc-number">1.3.3.</span> <span class="toc-text">三、效果</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%9B%9B%E3%80%81%E5%BA%94%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.3.4.</span> <span class="toc-text">四、应用场景</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/12/25/Qwen3-vl-embedding%E6%B5%8B%E8%AF%84%E6%8A%A5%E5%91%8A/" title="Qwen3-vl-embedding测评报告"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Qwen3-vl-embedding测评报告"/></a><div class="content"><a class="title" href="/2025/12/25/Qwen3-vl-embedding%E6%B5%8B%E8%AF%84%E6%8A%A5%E5%91%8A/" title="Qwen3-vl-embedding测评报告">Qwen3-vl-embedding测评报告</a><time datetime="2025-12-25T09:22:52.000Z" title="发表于 2025-12-25 17:22:52">2025-12-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MOE，量化，蒸馏，剪枝"/></a><div class="content"><a class="title" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝">MOE，量化，蒸馏，剪枝</a><time datetime="2025-12-18T01:12:12.000Z" title="发表于 2025-12-18 09:12:12">2025-12-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/" title="memory开源项目调研"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="memory开源项目调研"/></a><div class="content"><a class="title" href="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/" title="memory开源项目调研">memory开源项目调研</a><time datetime="2025-12-14T11:12:02.000Z" title="发表于 2025-12-14 19:12:02">2025-12-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HunyuanOCR调研报告"/></a><div class="content"><a class="title" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告">HunyuanOCR调研报告</a><time datetime="2025-12-05T04:02:44.000Z" title="发表于 2025-12-05 12:02:44">2025-12-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/" title="embedding微调测试"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="embedding微调测试"/></a><div class="content"><a class="title" href="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/" title="embedding微调测试">embedding微调测试</a><time datetime="2025-11-20T03:09:12.000Z" title="发表于 2025-11-20 11:09:12">2025-11-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

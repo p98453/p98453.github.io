@@ -1,0 +1,271 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>memory开源项目调研 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言​		在网络安全领域，大模型需要处理很多和安全有关的文字、图片、视频、音频等信息，比如日志片段、流量特征、威胁情报、攻击链图谱等。为了更准确地找到相关内容和匹配威胁，这些数据通常会被转成向量存入向量数据库。 不过，向量数据库虽然在语义检索方面表现出色，但并不适合管理那些需要频繁更新、覆盖或按照时间顺序维护的安全内容，比如策略变更、最新的 IOC（入侵指标）、用户行为画像等。于是，引入了 Mem">
+<meta property="og:type" content="article">
+<meta property="og:title" content="memory开源项目调研">
+<meta property="og:url" content="http://example.com/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="前言​		在网络安全领域，大模型需要处理很多和安全有关的文字、图片、视频、音频等信息，比如日志片段、流量特征、威胁情报、攻击链图谱等。为了更准确地找到相关内容和匹配威胁，这些数据通常会被转成向量存入向量数据库。 不过，向量数据库虽然在语义检索方面表现出色，但并不适合管理那些需要频繁更新、覆盖或按照时间顺序维护的安全内容，比如策略变更、最新的 IOC（入侵指标）、用户行为画像等。于是，引入了 Mem">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-12-14T11:12:02.000Z">
+<meta property="article:modified_time" content="2026-02-10T09:53:39.710Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "memory开源项目调研",
+  "url": "http://example.com/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-12-14T11:12:02.000Z",
+  "dateModified": "2026-02-10T09:53:39.710Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'memory开源项目调研',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">memory开源项目调研</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">memory开源项目调研</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-12-14T11:12:02.000Z" title="发表于 2025-12-14 19:12:02">2025-12-14</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T09:53:39.710Z" title="更新于 2026-02-10 17:53:39">2026-02-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%9E%E4%B9%A0%E7%AC%94%E8%AE%B0/">实习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>​		在网络安全领域，大模型需要处理很多和安全有关的文字、图片、视频、音频等信息，比如日志片段、流量特征、威胁情报、攻击链图谱等。为了更准确地找到相关内容和匹配威胁，这些数据通常会被转成向量存入向量数据库。</p>
+<p>不过，向量数据库虽然在语义检索方面表现出色，但并不适合管理那些需要频繁更新、覆盖或按照时间顺序维护的安全内容，比如策略变更、最新的 IOC（入侵指标）、用户行为画像等。于是，引入了 Memory，为安全领域的大模型代理提供了一个<strong>智能记忆层</strong>。它可以<strong>持续记住特定用户或团队的操作习惯、威胁偏好、常用的分析路径，并且会随着时间自动更新</strong>。这样一来，安全助手就能更好地理解分析者的工作方式，快速关联历史情报，从而提供更有针对性、更高效的安全分析和响应支持。</p>
+<p>最关键的是，Memory 还解决了传统 RAG 的一些痛点。**传统 RAG 只能检索静态的内容，它没办法理解用户上下文，也处理不了那些频繁变动的数据，甚至是跨会话记忆用户的推理方式和历史判断。**而加入了可持续演化的 Memory 层后，大模型在检索事实的同时，还能保留长期经验，让安全助手真正具备了“持续学习、持续适应”的能力。本文会介绍两种 Memory 部署方案：<strong>mem0</strong>、<strong>MemMachine</strong> 。</p>
+<img src="/2025/12/14/memory开源项目调研/image-20251207225312724.png"  alt="image-20251207225312724" style="zoom:50%;" />
+
+<p><strong>下面是一个应用记忆层的简单案例：</strong></p>
+<p>分析员 Alice 经常处理 <strong>Cobalt Strike</strong> 入侵事件，也经常关注 <strong>关键服务器 10.120.8.21</strong> 的可疑行为。Memory会持续记录这些偏好。</p>
+<p>当她输入一句：</p>
+<blockquote>
+<p>“帮我看看最近的可疑活动。”</p>
+</blockquote>
+<p>系统会基于记忆自动给出更贴合的结果：</p>
+<blockquote>
+<p>“检测到 10.120.8.21 出现异常横向移动行为，特征与 Cobalt Strike 相似。已按你常用的 ATT&amp;CK 技术视角整理关键信息。需要继续查看持久化迹象吗？”</p>
+</blockquote>
+<p><strong>借助 Memory，安全助手无需用户重复说明偏好，即可自动提供更精准、个性化的威胁分析体验。</strong></p>
+<h1 id="一、mem0"><a href="#一、mem0" class="headerlink" title="一、mem0"></a>一、mem0</h1><h2 id="1-1-部署"><a href="#1-1-部署" class="headerlink" title="1.1 部署"></a>1.1 部署</h2><p>Mem0支持两种部署模式：<strong>基于平台</strong>（完全只需要调用平台API进行memory的检索和存储，更方便）和<strong>基于本地</strong>（将数据存储到本地数据库中，更安全），下面是两种模式的简单部署示例，主要进行memory的检索和存储的演示</p>
+<h3 id="1-1-1-基于平台的Dify部署"><a href="#1-1-1-基于平台的Dify部署" class="headerlink" title="1.1.1 基于平台的Dify部署"></a>1.1.1 基于平台的Dify部署</h3><p><strong>工作流示例：</strong></p>
+<p>使用前需要先去<a target="_blank" rel="noopener" href="https://app.mem0.ai/dashboard/api-keys">官网| Mem0</a>申请一个api_key</p>
+<img src="/2025/12/14/memory开源项目调研/image-20251207222947735.png"  alt="image-20251207222947735" style="zoom:50%;" />
+
+<p><strong>模拟用户历史提问，存储memory</strong></p>
+<img src="/2025/12/14/memory开源项目调研/image-20251207223458972.png"  alt="image-20251207223458972" style="zoom:50%;" />
+
+<p><strong>可以看到平台已经存储了对话</strong></p>
+<img src="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/image-20251207223610982.png" class="" title="image-20251207223610982">
+
+<p><strong>新建对话后进行新一轮对话</strong></p>
+<p>检索输出，会将用户的历史对话翻译成英文并进行总结，当用户进行新一轮的检索时计算得分</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;files&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;json&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="string">&quot;我是谁&quot;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;results&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;categories&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;personal_details&quot;</span></span><br><span class="line">          <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;created_at&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2025-12-07T06:33:16.888759-08:00&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;399794fc-5f39-4f14-aa7e-0d5189ccbb0f&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;memory&quot;</span><span class="punctuation">:</span> <span class="string">&quot;User name is Li Hua&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;score&quot;</span><span class="punctuation">:</span> <span class="number">0.47124816331384345</span></span><br><span class="line">        <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;categories&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">            <span class="string">&quot;personal_details&quot;</span></span><br><span class="line">          <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;created_at&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2025-12-07T06:33:17.152339-08:00&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;id&quot;</span><span class="punctuation">:</span> <span class="string">&quot;7bbefbf7-4691-4f7e-a1f4-c4d1cf6b1045&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;memory&quot;</span><span class="punctuation">:</span> <span class="string">&quot;User ID in mem0 is uesr_1&quot;</span><span class="punctuation">,</span></span><br><span class="line">          <span class="attr">&quot;score&quot;</span><span class="punctuation">:</span> <span class="number">0.417694462684997</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;text&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Query: 我是谁\n\nResults:\n\n1. Memory: User name is Li Hua\n   Score: 0.47\n   Categories: personal_details\n2. Memory: User ID in mem0 is uesr_1\n   Score: 0.42\n   Categories: personal_details&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<img src="/2025/12/14/memory开源项目调研/image-20251207223714094.png"  alt="image-20251207223714094" style="zoom:50%;" />
+
+<h3 id="1-1-2-基于mem0ai的Python-SDK部署"><a href="#1-1-2-基于mem0ai的Python-SDK部署" class="headerlink" title="1.1.2 基于mem0ai的Python SDK部署"></a>1.1.2 基于mem0ai的Python SDK部署</h3><p>依赖包安装指令</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pip install mem0ai</span><br></pre></td></tr></table></figure>
+
+<p>Mem0默认使用openAI的LLM和embedding服务，但是也可以自己进行配置，主要的配置项为LLM，embedding，向量数据库，Reranker(可选)，下面是使用使用 vLLM 作为 LLM，Milvus 作为向量数据库，huggingface 作为嵌入模型的一个示例</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> os</span><br><span class="line"><span class="keyword">from</span> mem0 <span class="keyword">import</span> Memory</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># 自定义配置，这里使用 vLLM 作为 LLM，Milvus 作为向量数据库，huggingface 作为嵌入模型</span></span><br><span class="line">config = &#123;</span><br><span class="line">    <span class="string">&quot;llm&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;provider&quot;</span>: <span class="string">&quot;vllm&quot;</span>,</span><br><span class="line">        <span class="string">&quot;config&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;model&quot;</span>: <span class="string">&quot;Qwen/Qwen2.5-32B-Instruct&quot;</span>,</span><br><span class="line">            <span class="string">&quot;vllm_base_url&quot;</span>: <span class="string">&quot;http://localhost:8000/v1&quot;</span>,</span><br><span class="line">            <span class="string">&quot;temperature&quot;</span>: <span class="number">0.1</span>,</span><br><span class="line">            <span class="string">&quot;max_tokens&quot;</span>: <span class="number">2000</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">        <span class="string">&quot;vector_store&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;provider&quot;</span>: <span class="string">&quot;milvus&quot;</span>,</span><br><span class="line">        <span class="string">&quot;config&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;collection_name&quot;</span>: <span class="string">&quot;test&quot;</span>,</span><br><span class="line">            <span class="string">&quot;embedding_model_dims&quot;</span>: <span class="number">1024</span>,</span><br><span class="line">            <span class="string">&quot;url&quot;</span>: <span class="string">&quot;127.0.0.1&quot;</span>,</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;,</span><br><span class="line">    <span class="string">&quot;embedder&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;provider&quot;</span>: <span class="string">&quot;huggingface&quot;</span>,</span><br><span class="line">        <span class="string">&quot;config&quot;</span>: &#123;</span><br><span class="line">            <span class="string">&quot;model&quot;</span>: <span class="string">&quot;multi-qa-MiniLM-L6-cos-v1&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">m = Memory.from_config(config)</span><br><span class="line">messages = [</span><br><span class="line">    &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;我打算今晚看电影，有什么推荐吗？&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;要不要试试惊悚片？通常都很有代入感。&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;user&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;我不太喜欢惊悚片，不过我很喜欢科幻片。&quot;</span>&#125;,</span><br><span class="line">    &#123;<span class="string">&quot;role&quot;</span>: <span class="string">&quot;assistant&quot;</span>, <span class="string">&quot;content&quot;</span>: <span class="string">&quot;明白啦！那我就不推荐惊悚片了，改推荐科幻片。&quot;</span>&#125;</span><br><span class="line">]</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加对话记录到记忆库，并附加用户 ID 和元数据</span></span><br><span class="line">m.add(messages, user_id=<span class="string">&quot;alice&quot;</span>, metadata=&#123;<span class="string">&quot;category&quot;</span>: <span class="string">&quot;movies&quot;</span>&#125;)</span><br><span class="line"><span class="comment"># 检索与新问题相关的对话记录</span></span><br><span class="line">retrieved = m.search(query=<span class="string">&quot;今晚看什么电影&quot;</span>)</span><br><span class="line"><span class="built_in">print</span>(retrieved)</span><br></pre></td></tr></table></figure>
+
+<h2 id="1-2-Mem0-如何实现长期记忆"><a href="#1-2-Mem0-如何实现长期记忆" class="headerlink" title="1.2 Mem0 如何实现长期记忆"></a>1.2 Mem0 如何实现长期记忆</h2><p>Mem0 的长期记忆系统基于以下核心机制：</p>
+<ul>
+<li>采用向量嵌入技术，将语义信息高效存储与检索，确保记忆内容的可扩展性与相关性。</li>
+<li>支持跨会话、跨应用维护用户特定的上下文，实现真正的”记忆不丢失”。</li>
+<li>内置高效的检索机制，能够快速定位并返回与当前查询最相关的历史互动内容。</li>
+</ul>
+<h4 id="核心操作接口"><a href="#核心操作接口" class="headerlink" title="核心操作接口"></a>核心操作接口</h4><p>Mem0 对外提供了两大核心 接口：</p>
+<ul>
+<li><strong>add</strong>：用于提取对话内容并将其存储为结构化记忆单元。</li>
+<li><strong>search</strong>：根据用户查询，检索并返回最相关的历史记忆内容。</li>
+</ul>
+<h1 id="1-3-mem0作为记忆层的优势（这是相较于MemMachine比较好的一点，MemMachine只涉及查询和添加）"><a href="#1-3-mem0作为记忆层的优势（这是相较于MemMachine比较好的一点，MemMachine只涉及查询和添加）" class="headerlink" title="1.3 mem0作为记忆层的优势（这是相较于MemMachine比较好的一点，MemMachine只涉及查询和添加）"></a>1.3 mem0作为记忆层的优势（这是相较于MemMachine比较好的一点，MemMachine只涉及查询和添加）</h1><h3 id="1-3-1-支持图数据库的检索"><a href="#1-3-1-支持图数据库的检索" class="headerlink" title="1.3.1 支持图数据库的检索"></a>1.3.1 支持图数据库的检索</h3><p>除开上述简单的将用户对话按照user_id存入向量数据库外，mem0还支持图数据库的检索</p>
+<h4 id="示例用法"><a href="#示例用法" class="headerlink" title="示例用法"></a>示例用法</h4><p>以下示例展示了如何使用 Mem0 的图形操作：</p>
+<ol>
+<li>首先，为名为 Alice 的用户添加一些记忆。</li>
+<li>随着记忆的不断添加，图结构会自动演化，<strong>实体和关系被自动提取和连接。</strong></li>
+<li><strong>用户可以直观地看到记忆网络的变化。</strong></li>
+</ol>
+<h5 id="添加记忆"><a href="#添加记忆" class="headerlink" title="添加记忆"></a>添加记忆</h5><p><strong>（1）添加记忆”我喜欢去远足”</strong></p>
+<p>Python 代码： <code>m.add(&quot;I like going to hikes&quot;, user_id=&quot;alice123&quot;)</code></p>
+<img src="/2025/12/14/memory开源项目调研/image-20251207231403656.png"  alt="image-20251207231403656" style="zoom:50%;" />
+
+<p>按照这个示例再添加一下记忆….</p>
+<p><strong>（2）添加记忆”我的朋友彼得是蜘蛛侠”</strong></p>
+<p>Python 代码： <code>m.add(&quot;My friend peter is the spiderman&quot;, user_id=&quot;alice123&quot;)</code></p>
+<img src="/2025/12/14/memory开源项目调研/image-20251207232135941.png"  alt="image-20251207232135941" style="zoom:50%;" />
+
+<p><strong>查询记忆</strong></p>
+<p><strong>（1）搜索：蜘蛛侠</strong></p>
+<p>Python 代码： <code>m.search(&quot;Who is spiderman?&quot;, user_id=&quot;alice123&quot;)</code></p>
+<img src="/2025/12/14/memory开源项目调研/image-20251207232113369.png"  alt="image-20251207232113369" style="zoom:50%;" />
+
+<h3 id="1-3-2-支持复杂的分类检索与批量记忆的导入与导出"><a href="#1-3-2-支持复杂的分类检索与批量记忆的导入与导出" class="headerlink" title="1.3.2 支持复杂的分类检索与批量记忆的导入与导出"></a>1.3.2 支持复杂的分类检索与批量记忆的导入与导出</h3><figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 按标签和类别检索</span></span><br><span class="line">memories = m.search(</span><br><span class="line">    query=<span class="string">&quot;深度学习&quot;</span>,</span><br><span class="line">    user_id=<span class="string">&quot;alice&quot;</span>,</span><br><span class="line">    <span class="built_in">filter</span>=&#123;</span><br><span class="line">        <span class="string">&quot;category&quot;</span>: <span class="string">&quot;ml&quot;</span>,</span><br><span class="line">        <span class="string">&quot;tags&quot;</span>: [<span class="string">&quot;neural-network&quot;</span>, <span class="string">&quot;research&quot;</span>]</span><br><span class="line">    &#125;,</span><br><span class="line">    limit=<span class="number">10</span></span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 按重要性检索</span></span><br><span class="line">memories = m.search(</span><br><span class="line">    query=<span class="string">&quot;紧急事项&quot;</span>,</span><br><span class="line">    user_id=<span class="string">&quot;alice&quot;</span>,</span><br><span class="line">    <span class="built_in">filter</span>=&#123;<span class="string">&quot;importance&quot;</span>: <span class="string">&quot;high&quot;</span>&#125;</span><br><span class="line">)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 批量导出所有记忆（适合备份/迁移）</span></span><br><span class="line">all_memories = m.get_all(user_id=<span class="string">&quot;alice&quot;</span>)</span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;alice_memories.json&quot;</span>, <span class="string">&quot;w&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    <span class="keyword">import</span> json</span><br><span class="line">    json.dump(all_memories, f, ensure_ascii=<span class="literal">False</span>, indent=<span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 批量导入记忆</span></span><br><span class="line"><span class="keyword">with</span> <span class="built_in">open</span>(<span class="string">&quot;alice_memories.json&quot;</span>, <span class="string">&quot;r&quot;</span>) <span class="keyword">as</span> f:</span><br><span class="line">    memories_data = json.load(f)</span><br><span class="line"><span class="keyword">for</span> memory <span class="keyword">in</span> memories_data:</span><br><span class="line">    m.add([memory[<span class="string">&quot;source_messages&quot;</span>]], user_id=<span class="string">&quot;alice&quot;</span>, metadata=memory.get(<span class="string">&quot;metadata&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="1-3-3-可以作为mcp工具"><a href="#1-3-3-可以作为mcp工具" class="headerlink" title="1.3.3 可以作为mcp工具"></a>1.3.3 可以作为mcp工具</h3><p>OpenMemory MCP是 Mem0 的核心协议层，旨在为 AI 交互提供本地化的”记忆背包”。所有数据均在本地存储，确保用户对数据的绝对隐私和控制权。</p>
+<p><strong>MCP 提供了四个核心 API：</strong></p>
+<ol>
+<li><code>add_memories</code>：存储新的记忆对象</li>
+<li><code>search_memory</code>：基于相关性和上下文检索记忆</li>
+<li><code>list_memories</code>：查看所有存储的记忆</li>
+<li><code>delete_all_memories</code>：清除所有记忆</li>
+</ol>
+<h1 id="二、MemMachine"><a href="#二、MemMachine" class="headerlink" title="二、MemMachine"></a>二、MemMachine</h1><h2 id="2-1-基于Docker部署"><a href="#2-1-基于Docker部署" class="headerlink" title="2.1 基于Docker部署"></a>2.1 基于Docker部署</h2><p>可通过Python SDK、RESTful接口及MCP服务器实现便捷集成，下面将MemMachine部署在mcp服务器上进行调用</p>
+<p><code>add_memory</code>：将关于用户或对话的重要新信息存储到记忆中。</p>
+<p><code>search_memory</code>：检索用户相关的上下文、记忆或个人资料信息。</p>
+<p>首先创建一个新的文件夹MemMachine，在这里打开powershell，输入以下指令</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$latestRelease</span> = <span class="built_in">Invoke-RestMethod</span> <span class="literal">-Uri</span> <span class="string">&quot;https://api.github.com/repos/MemMachine/MemMachine/releases/latest&quot;</span>; `</span><br><span class="line"><span class="variable">$tarballUrl</span> = <span class="variable">$latestRelease</span>.tarball_url; `</span><br><span class="line"><span class="variable">$destination</span> = <span class="string">&quot;MemMachine&quot;</span>; `</span><br><span class="line"><span class="keyword">if</span> (<span class="built_in">Test-Path</span> <span class="variable">$destination</span>) &#123; <span class="built_in">Remove-Item</span> <span class="variable">$destination</span> <span class="literal">-Recurse</span> <span class="literal">-Force</span> &#125;; `</span><br><span class="line"><span class="built_in">New-Item</span> <span class="literal">-ItemType</span> Directory <span class="literal">-Force</span> <span class="literal">-Path</span> <span class="variable">$destination</span>; `</span><br><span class="line"><span class="built_in">Invoke-WebRequest</span> <span class="literal">-Uri</span> <span class="variable">$tarballUrl</span> <span class="literal">-OutFile</span> <span class="string">&quot;MemMachine-latest.tar.gz&quot;</span>; `</span><br><span class="line">tar <span class="literal">-xzf</span> <span class="string">&quot;MemMachine-latest.tar.gz&quot;</span> <span class="literal">-C</span> <span class="variable">$destination</span> <span class="literal">--strip-components</span>=<span class="number">1</span>; `</span><br><span class="line"><span class="built_in">Set-Location</span> <span class="variable">$destination</span>; `</span><br></pre></td></tr></table></figure>
+
+<p>跟随系统指引完成配置，这里需要申请一个<a target="_blank" rel="noopener" href="https://platform.openai.com/api-keys">OpenAI</a>的才能通过配置，否则会失败</p>
+<img src="/2025/12/14/memory开源项目调研/image-20251208000647895.png"  alt="image-20251208000647895" style="zoom:50%;" />
+
+<p>接入mcp参数</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="string">&quot;mcpServers&quot;</span>: &#123;</span><br><span class="line">      <span class="string">&quot;memmachine&quot;</span>: &#123;</span><br><span class="line">        <span class="string">&quot;command&quot;</span>: <span class="string">&quot;docker&quot;</span>,</span><br><span class="line">        <span class="string">&quot;args&quot;</span>: [</span><br><span class="line">          <span class="string">&quot;exec&quot;</span>,</span><br><span class="line">          <span class="string">&quot;-i&quot;</span>,</span><br><span class="line">          <span class="string">&quot;memmachine-app&quot;</span>,</span><br><span class="line">          <span class="string">&quot;/app/.venv/bin/memmachine-mcp-stdio&quot;</span></span><br><span class="line">        ],</span><br><span class="line">        <span class="string">&quot;env&quot;</span>: &#123;</span><br><span class="line">          <span class="string">&quot;MEMORY_CONFIG&quot;</span>: <span class="string">&quot;/app/configuration.yml&quot;</span>,</span><br><span class="line">          <span class="string">&quot;MM_USER_ID&quot;</span>: <span class="string">&quot;your-username&quot;</span>,</span><br><span class="line">          <span class="string">&quot;PYTHONUNBUFFERED&quot;</span>: <span class="string">&quot;1&quot;</span></span><br><span class="line">        &#125;</span><br><span class="line">      &#125;</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>显示连接成功</p>
+<img src="/2025/12/14/memory开源项目调研/image-20251208000824159.png"  alt="image-20251208000824159" style="zoom:50%;" />
+
+<p><strong>存入记忆</strong></p>
+<img src="/2025/12/14/memory开源项目调研/image-20251208001451424.png"  alt="image-20251208001451424" style="zoom: 33%;" />
+
+<p><strong>搜索记忆</strong></p>
+<img src="/2025/12/14/memory开源项目调研/image-20251208002011126.png"  alt="image-20251208002011126" style="zoom:33%;" />
+
+<h2 id="2-2-MemMachine的特点"><a href="#2-2-MemMachine的特点" class="headerlink" title="2.2 MemMachine的特点"></a>2.2 MemMachine的特点</h2><p>MemMachine支持三类核心记忆，可满足AI智能体在不同场景下的记忆需求，实现从短期会话到长期档案的全场景覆盖：</p>
+<ul>
+<li><strong>工作记忆（短期）</strong>：用于存储单次会话内的即时交互数据，如用户当前的咨询问题、AI的临时应答草稿等，会话结束后可按需清理，适配实时性强的短时交互场景。</li>
+<li><strong>持久记忆（长期）</strong>：用于留存跨会话的核心信息，如用户过往的重要咨询记录、AI执行任务的历史结果等，数据会持久化存储，支持智能体跨时间维度调取信息。</li>
+<li><strong>个性化记忆（档案）</strong>：用于构建专属用户档案，整合用户的偏好、身份信息、历史行为特征等，例如记录用户的医疗史、财务风险偏好、内容写作风格等，让AI助手的服务具备强个性化属性。</li>
+</ul>
+<h1 id="三、总结"><a href="#三、总结" class="headerlink" title="三、总结"></a>三、总结</h1><p>​		本文深入探讨了网络安全领域中大模型的Memory机制，重点介绍了两种部署方案：Memo和MemMachine。Memo通过向量嵌入技术实现长期记忆的高效存储与检索，支持跨会话、跨应用的上下文维护，并提供图数据库检索、复杂分类检索以及批量记忆导入导出等功能，其核心操作接口包括<code>add</code>和<code>search</code>，可作为OpenMemoryMCP工具，为AI交互提供本地化的“记忆背包”。MemMachine则基于Docker部署，通过Python SDK、RESTful接口及MCP服务器实现集成，支持工作记忆（短期）、持久记忆（长期）和个性化记忆（档案）三类核心记忆，满足AI智能体在不同场景下的记忆需求，实现从短期会话到长期档案的全场景覆盖。这两种Memory机制的引入，有效解决了传统RAG在处理动态数据和跨会话记忆方面的痛点，使安全助手能够更好地理解分析者的工作方式，快速关联历史情报，提供更有针对性、更高效的安全分析和响应支持，推动网络安全领域的智能化发展。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/">http://example.com/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">MOE，量化，蒸馏，剪枝</div></div><div class="info-2"><div class="info-item-1">MOE（混合专家架构）    传统模型架构的问题在传统的 Dense（稠密）模型 中，参数量增加一倍，训练和推理所需的算力几乎也要增加一倍，即每次推理都需要动用模型全部参数，正面临着计算成本和能耗的巨大瓶颈。 MoE架构的核心思想MoE 架构通过稀疏激活机制，让模型在拥有巨量参数（高容量）的同时，每次计算只调用极少数专家模块，从而以极低的算力成本将一个复杂的任务分解为多个子任务，每个子任务由一个专门的专家来处理。 MoE结构一个典型的MoE层通常嵌入在Transformer架构中，用于替代其中的前馈网络（Feed-Forward Network, FFN）层。    阶段 核心组件 输入来源 主要操作与逻辑 输出结果    1. 输入接收 Token 表征 前一层 (如 Self-Attention) 接收序列中每个 Token 的高维向量表示。 待处理的 Token 向量   2. 路由分发 **门控网络 ** Token 表征 轻量级计算：通过线性层和 Softmax 计算权重，决定 Token 该去哪个“专家”那里。 专家分配权重 (Routing Weights)   3...</div></div></div></a><a class="pagination-related" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">HunyuanOCR调研报告</div></div><div class="info-2"><div class="info-item-1">前言在网络安全实践中，大量关键线索以图像形式存在，如钓鱼页面截图、日志截图、恶意广告、凭证凭证等。传统OCR工具虽能提取文字，但面对低质量截图、变形字体、多语言混排或对抗干扰时识别率低，且缺乏语义理解能力——无法结构化提取“伪造发件人”“C2地址”等安全要素。 本文围绕腾讯开源的轻量级视觉语言模型 HunyuanOCR，评估其在安全场景下的实用性。该模型通过提示词驱动，支持端到端的文字检测、信息抽取、表格&#x2F;公式解析与视觉问答，在卡证票据、带噪截图、多语种文档等复杂图像中表现出优于主流OCR的识别准确率。 调研表明，HunyuanOCR 能有效支持安全运营中的自动化情报提取，但仍存在局限：当前版本仅能识别文字区域，无法直接定位图形、颜色或非文本元素，未来需结合行为上下文或辅助模型，进一步提升在对抗性网络环境中的可用性。   一、部署模型地址：tencent&#x2F;HunyuanOCR  参数量：1B 模型大小：2.5G 环境：Python 3.12 + CUDA 12.8 +  + PyTorch 2.7.1 + vLLM nightly 部署设备：RTX 3090(...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">53</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81mem0"><span class="toc-number">2.</span> <span class="toc-text">一、mem0</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1-%E9%83%A8%E7%BD%B2"><span class="toc-number">2.1.</span> <span class="toc-text">1.1 部署</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-%E5%9F%BA%E4%BA%8E%E5%B9%B3%E5%8F%B0%E7%9A%84Dify%E9%83%A8%E7%BD%B2"><span class="toc-number">2.1.1.</span> <span class="toc-text">1.1.1 基于平台的Dify部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-%E5%9F%BA%E4%BA%8Emem0ai%E7%9A%84Python-SDK%E9%83%A8%E7%BD%B2"><span class="toc-number">2.1.2.</span> <span class="toc-text">1.1.2 基于mem0ai的Python SDK部署</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-Mem0-%E5%A6%82%E4%BD%95%E5%AE%9E%E7%8E%B0%E9%95%BF%E6%9C%9F%E8%AE%B0%E5%BF%86"><span class="toc-number">2.2.</span> <span class="toc-text">1.2 Mem0 如何实现长期记忆</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E6%93%8D%E4%BD%9C%E6%8E%A5%E5%8F%A3"><span class="toc-number">2.2.0.1.</span> <span class="toc-text">核心操作接口</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#1-3-mem0%E4%BD%9C%E4%B8%BA%E8%AE%B0%E5%BF%86%E5%B1%82%E7%9A%84%E4%BC%98%E5%8A%BF%EF%BC%88%E8%BF%99%E6%98%AF%E7%9B%B8%E8%BE%83%E4%BA%8EMemMachine%E6%AF%94%E8%BE%83%E5%A5%BD%E7%9A%84%E4%B8%80%E7%82%B9%EF%BC%8CMemMachine%E5%8F%AA%E6%B6%89%E5%8F%8A%E6%9F%A5%E8%AF%A2%E5%92%8C%E6%B7%BB%E5%8A%A0%EF%BC%89"><span class="toc-number">3.</span> <span class="toc-text">1.3 mem0作为记忆层的优势（这是相较于MemMachine比较好的一点，MemMachine只涉及查询和添加）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-1-%E6%94%AF%E6%8C%81%E5%9B%BE%E6%95%B0%E6%8D%AE%E5%BA%93%E7%9A%84%E6%A3%80%E7%B4%A2"><span class="toc-number">3.0.1.</span> <span class="toc-text">1.3.1 支持图数据库的检索</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E7%94%A8%E6%B3%95"><span class="toc-number">3.0.1.1.</span> <span class="toc-text">示例用法</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0%E8%AE%B0%E5%BF%86"><span class="toc-number">3.0.1.1.1.</span> <span class="toc-text">添加记忆</span></a></li></ol></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-2-%E6%94%AF%E6%8C%81%E5%A4%8D%E6%9D%82%E7%9A%84%E5%88%86%E7%B1%BB%E6%A3%80%E7%B4%A2%E4%B8%8E%E6%89%B9%E9%87%8F%E8%AE%B0%E5%BF%86%E7%9A%84%E5%AF%BC%E5%85%A5%E4%B8%8E%E5%AF%BC%E5%87%BA"><span class="toc-number">3.0.2.</span> <span class="toc-text">1.3.2 支持复杂的分类检索与批量记忆的导入与导出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-3-%E5%8F%AF%E4%BB%A5%E4%BD%9C%E4%B8%BAmcp%E5%B7%A5%E5%85%B7"><span class="toc-number">3.0.3.</span> <span class="toc-text">1.3.3 可以作为mcp工具</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81MemMachine"><span class="toc-number">4.</span> <span class="toc-text">二、MemMachine</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E5%9F%BA%E4%BA%8EDocker%E9%83%A8%E7%BD%B2"><span class="toc-number">4.1.</span> <span class="toc-text">2.1 基于Docker部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-MemMachine%E7%9A%84%E7%89%B9%E7%82%B9"><span class="toc-number">4.2.</span> <span class="toc-text">2.2 MemMachine的特点</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">三、总结</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/12/25/Qwen3-vl-embedding%E6%B5%8B%E8%AF%84%E6%8A%A5%E5%91%8A/" title="Qwen3-vl-embedding测评报告"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Qwen3-vl-embedding测评报告"/></a><div class="content"><a class="title" href="/2025/12/25/Qwen3-vl-embedding%E6%B5%8B%E8%AF%84%E6%8A%A5%E5%91%8A/" title="Qwen3-vl-embedding测评报告">Qwen3-vl-embedding测评报告</a><time datetime="2025-12-25T09:22:52.000Z" title="发表于 2025-12-25 17:22:52">2025-12-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MOE，量化，蒸馏，剪枝"/></a><div class="content"><a class="title" href="/2025/12/18/MOE%EF%BC%8C%E9%87%8F%E5%8C%96%EF%BC%8C%E8%92%B8%E9%A6%8F%EF%BC%8C%E5%89%AA%E6%9E%9D/" title="MOE，量化，蒸馏，剪枝">MOE，量化，蒸馏，剪枝</a><time datetime="2025-12-18T01:12:12.000Z" title="发表于 2025-12-18 09:12:12">2025-12-18</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/" title="memory开源项目调研"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="memory开源项目调研"/></a><div class="content"><a class="title" href="/2025/12/14/memory%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AE%E8%B0%83%E7%A0%94/" title="memory开源项目调研">memory开源项目调研</a><time datetime="2025-12-14T11:12:02.000Z" title="发表于 2025-12-14 19:12:02">2025-12-14</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="HunyuanOCR调研报告"/></a><div class="content"><a class="title" href="/2025/12/05/HunyuanOCR%E8%B0%83%E7%A0%94%E6%8A%A5%E5%91%8A/" title="HunyuanOCR调研报告">HunyuanOCR调研报告</a><time datetime="2025-12-05T04:02:44.000Z" title="发表于 2025-12-05 12:02:44">2025-12-05</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/" title="embedding微调测试"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="embedding微调测试"/></a><div class="content"><a class="title" href="/2025/11/20/embedding%E5%BE%AE%E8%B0%83%E6%B5%8B%E8%AF%95/" title="embedding微调测试">embedding微调测试</a><time datetime="2025-11-20T03:09:12.000Z" title="发表于 2025-11-20 11:09:12">2025-11-20</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>
