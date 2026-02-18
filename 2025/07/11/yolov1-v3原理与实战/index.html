@@ -1,0 +1,294 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>yolov1-v3原理解析 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="一、yolov1导航YOLOv1YOLOV1 论文地址：【https:&#x2F;&#x2F;www.cv-foundation.org&#x2F;openaccess&#x2F;content_cvpr_2016&#x2F;papers&#x2F;Redmon_You_Only_Look_CVPR_2016_paper.pdf?spm&#x3D;5176.28103460.0.0.359a5d27d0cimU&amp;file&#x3D;Redmon_You_Only_Lo">
+<meta property="og:type" content="article">
+<meta property="og:title" content="yolov1-v3原理解析">
+<meta property="og:url" content="http://example.com/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="一、yolov1导航YOLOv1YOLOV1 论文地址：【https:&#x2F;&#x2F;www.cv-foundation.org&#x2F;openaccess&#x2F;content_cvpr_2016&#x2F;papers&#x2F;Redmon_You_Only_Look_CVPR_2016_paper.pdf?spm&#x3D;5176.28103460.0.0.359a5d27d0cimU&amp;file&#x3D;Redmon_You_Only_Lo">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-07-11T11:28:25.000Z">
+<meta property="article:modified_time" content="2025-08-12T10:50:25.000Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "yolov1-v3原理解析",
+  "url": "http://example.com/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-07-11T11:28:25.000Z",
+  "dateModified": "2025-08-12T10:50:25.000Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'yolov1-v3原理解析',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">yolov1-v3原理解析</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">yolov1-v3原理解析</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-07-11T11:28:25.000Z" title="发表于 2025-07-11 19:28:25">2025-07-11</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-08-12T10:50:25.000Z" title="更新于 2025-08-12 18:50:25">2025-08-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/yolo%E7%B3%BB%E5%88%97/">yolo系列</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="一、yolov1"><a href="#一、yolov1" class="headerlink" title="一、yolov1"></a>一、yolov1</h1><h2 id="导航"><a href="#导航" class="headerlink" title="导航"></a>导航</h2><p>YOLOv1YOLOV1 论文地址：【<a target="_blank" rel="noopener" href="https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf?spm=5176.28103460.0.0.359a5d27d0cimU&amp;file=Redmon_You_Only_Look_CVPR_2016_paper.pdf】">https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf?spm=5176.28103460.0.0.359a5d27d0cimU&amp;file=Redmon_You_Only_Look_CVPR_2016_paper.pdf】</a></p>
+<p>YOLOV1 论文中文翻译地址：【<a target="_blank" rel="noopener" href="https://blog.csdn.net/muye_IT/article/details/124612829】">https://blog.csdn.net/muye_IT/article/details/124612829】</a></p>
+<h2 id="1-1、网络结构"><a href="#1-1、网络结构" class="headerlink" title="1.1、网络结构"></a>1.1、网络结构</h2><p>yolov1是在GoogLeNet 的基础上进行改编的一种<strong>单阶段目标检测网络</strong>，<strong>把目标检测转变成一个回归问题</strong>，实现端到端的检测</p>
+<p><strong>包含24个卷积层，4个池化层，2个全连接层</strong></p>
+<p>缺陷：<strong>yolov1使用的仍然是全连接层，这就导致主干结构的输入要求必须是448x448的固定尺寸</strong></p>
+<p>问：那为什么在预训练阶段可以输入224x224的图像呢？</p>
+<ul>
+<li>在预训练阶段，YOLOv1 使用 224×224 的图像，是因为 ImageNet 数据集的标准输入尺寸是 224×224，而不是因为加入了平均池化层。</li>
+<li>平均池化层的作用是减少特征图的尺寸，以便连接到全连接层，但它不能解决输入图像尺寸不固定的问题。</li>
+</ul>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801161407235.png" class="" title="yolov1网络结构">
+<h3 id="1-1-1-核心思想"><a href="#1-1-1-核心思想" class="headerlink" title="1.1.1 核心思想"></a>1.1.1 核心思想</h3><p>将图片划分为<strong>7×7</strong>形状，共49 个大小相同的格子（cell）的网络结构，<strong>每个格子负责预测中心点落在该网络类的目标</strong>（这里说的是模型训练阶段，中心点来源于人工标注的边界框（Bounding Box））</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801162150632.png" class="" title="思想步骤">
+<p>然后每个cell都将会预测出2个预测框，即7 x 7 x 2，每个边框又要预测（x,y,w,h）+ confidence（<strong>即使某个网格不包含目标的中心点，它仍然会预测边界框，这样可以确保模型对整个图片的布局有一个全局的感知能力，同时减少漏检的风险</strong>）</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801183852957.png" class="" title="边界框输出">
+<h3 id="1-1-2-网络的输出"><a href="#1-1-2-网络的输出" class="headerlink" title="1.1.2 网络的输出"></a>1.1.2 网络的输出</h3><p>上面说到49×2=98个边界框承担着预测（x,y,w,h）+ confidence的任务，还需要预测出类别的概率，具体数目由检测任务决定，以VOC数据集为例（20个类别），网络最后输出就是 7 x 7 x (5 x 2 + 20)，既7 x 7 x 30</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801184152186.png" class="" title="模型输出">
+<p>但是也由此产生了一个问题：因为每一个 grid cell只能有一个分类，也就是他只能预测一个物体，<strong>如果所给图片极其密集，导致 grid cell里可能有多个物体，但是YOLO模型只能预测出来一个，那这样就会忽略在本grid cell内的其他物体。</strong></p>
+<h3 id="1-1-3-损失函数"><a href="#1-1-3-损失函数" class="headerlink" title="1.1.3 损失函数"></a>1.1.3 损失函数</h3><p>yolov1的损失函数=边框定位损失（中心点和宽高误差）+ 置信度损失（有无物体的置信度） + 分类损失</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801185356698.png" class="" title="损失函数分解">
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801185543711.png" class="" title="公式解释">
+<p>问：为什么宽高损失要加根号？</p>
+<ul>
+<li>大框（大目标）差的这一点也许没啥事儿，而小框（小目标）差的这一点可能就会导致bounding box的方框和目标差了很远。而如果还是使用第一项那样直接算平方和误差，就相当于<strong>把大框和小框一视同仁</strong>了，这样显然不合理。而如果使用开根号处理，就会一定程度上改善这一问题</li>
+</ul>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801185729182.png" class="" title="原始框误差">
+<p>这样一来，同样是差一点，小框产生的误差会更大，<strong>即对小框惩罚的更严重。</strong></p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801185832954.png" class="" title="添加根号">
+<h2 id="1-2-优缺点"><a href="#1-2-优缺点" class="headerlink" title="1.2 优缺点"></a>1.2 优缺点</h2><ul>
+<li><strong>优点</strong>：YOLOv1 <strong>实时性强</strong>，可达到 45 fps，适合视频目标检测；对整张图输入，利用上下文信息充分，背景误判少。</li>
+<li><strong>缺点</strong>：定位精度低，<strong>小物体和密集物体检测效果差</strong>，召回率低。</li>
+</ul>
+<h1 id="二、yolov2（yolov9000）"><a href="#二、yolov2（yolov9000）" class="headerlink" title="二、yolov2（yolov9000）"></a>二、yolov2（yolov9000）</h1><h2 id="导航-1"><a href="#导航-1" class="headerlink" title="导航"></a>导航</h2><p>YOLOv2 论文地址：【<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1612.08242#page=4.24】">https://arxiv.org/pdf/1612.08242#page=4.24】</a></p>
+<p>YOLOv2 论文中文对照地址：【<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_42755230/article/details/125820723】">https://blog.csdn.net/qq_42755230/article/details/125820723】</a></p>
+<h2 id="2-1-主干网络"><a href="#2-1-主干网络" class="headerlink" title="2.1 主干网络"></a>2.1 主干网络</h2><p>YOLOv2 用 <strong>DarkNet-19</strong> 作为骨干网络架构：<strong>包含 19 个 conv 层、5 个 max pooling 层</strong>，每个conv 层后<strong>接入 BN 层，没有 FC 层</strong>，用了一个<strong>全局平均池化层来替换全连接层</strong></p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801200152166.png" class="" title="yolov2网络结构">
+<p><strong>优势</strong>：无论输入图像的尺寸如何变化，全局平均池化层的输出维度始终是固定的。这使得模型在处理不同尺寸的输入时不需要固定输入尺寸</p>
+<h2 id="2-2-优化策略"><a href="#2-2-优化策略" class="headerlink" title="2.2 优化策略"></a>2.2 优化策略</h2><img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801191957383.png" class="" title="优化策略汇总">
+<h3 id="2-2-1-批量归一化"><a href="#2-2-1-批量归一化" class="headerlink" title="2.2.1 批量归一化"></a>2.2.1 批量归一化</h3><p>加速模型收敛，可以在舍弃dropout优化后依然不会过拟合</p>
+<h3 id="2-2-2-多尺度训练"><a href="#2-2-2-多尺度训练" class="headerlink" title="2.2.2 多尺度训练"></a>2.2.2 多尺度训练</h3><p>由于网络不再对输入尺寸有要求，因此模型每10个批次都会选择一个新的尺寸（必须是32的倍数）</p>
+<h3 id="2-2-3-高分辨率分类器"><a href="#2-2-3-高分辨率分类器" class="headerlink" title="2.2.3 高分辨率分类器"></a>2.2.3 高分辨率分类器</h3><p>使用更大尺寸图片输入网络</p>
+<h3 id="2-2-4-使用锚框（★）"><a href="#2-2-4-使用锚框（★）" class="headerlink" title="2.2.4 使用锚框（★）"></a>2.2.4 使用锚框（★）</h3><h4 id="问题一：使用锚框的意义？"><a href="#问题一：使用锚框的意义？" class="headerlink" title="问题一：使用锚框的意义？"></a>问题一：使用锚框的意义？</h4><p>由于yolov1对小目标，密集目标识别精度较差，我们预定义一些（yolov2中设置的数目是5个，既每个中心点对应5个锚框）可能的边界框用于覆盖图像可能存在的区域，然后再去调整边界框的长宽，从而使模型可以更高效地定位目标，不需要从零开始预测边界框的坐标</p>
+<p>引入锚框虽然降低了一部分mAP，但是召回率大大提升</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801200104197.png" class="" title="锚框">
+<h4 id="问题二：yolov2中的锚框是如何绘制的？"><a href="#问题二：yolov2中的锚框是如何绘制的？" class="headerlink" title="问题二：yolov2中的锚框是如何绘制的？"></a>问题二：yolov2中的锚框是如何绘制的？</h4><p><strong>策略：Dimension Clusters（维度聚类），既k-means算法</strong></p>
+<p>如果是作为超参数通过人为的来设置这5个框的尺寸，可能无法较好适应不同目标的大小差异，因此我们基于<strong>整个数据集中所有标注的边界框</strong>，将这些边界框分为5类（以VOC和CoCo数据集为例）。这样做的目的是为了生成一组能够覆盖整个数据集中所有目标形状和大小的通用锚框，<strong>模型预测出来的边界框是相对与锚框进行调整来接近真实的边界框</strong></p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801195804501.png" class="" title="锚框指标">
+<p><strong>特别需要注意的是</strong>：对于边界框的聚类，YOLOv2采用了一种不同的距离度量方法——IoU距离，IoU度量了两个边界框之间的重叠程度</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250801195948029.png" class="" title="Dimension Clusters的距离度量">
+<h3 id="2-2-5-Direct-Location-Prediction（直接位置预测）"><a href="#2-2-5-Direct-Location-Prediction（直接位置预测）" class="headerlink" title="2.2.5 Direct Location Prediction（直接位置预测）"></a>2.2.5 <strong>Direct Location Prediction</strong>（直接位置预测）</h3><p>YOLOv2不是直接预测目标的边界框坐标，而是预测相对于Anchor Boxes的位置偏移量。这意味着<strong>每个Anchor Box会预测一个小的偏移量，用以调整其位置和大小，使之更接近真实的目标框</strong></p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250804153938179.png" class="" title="位置偏移量">
+<p>偏移量参数：</p>
+<ul>
+<li><p><strong>中心坐标偏移量</strong>： </p>
+<p>t_x和 <em>t_y</em> 分别表示预测边界框中心相对于Anchor Box中心在x轴和y轴上的偏移量。</p>
+</li>
+<li><strong>尺寸调整</strong>：<em>t_w</em> 和 <em>t_h</em> 分别表示预测边界框宽度和高度相对于Anchor Box宽度和高度的对数偏移量。</li>
+</ul>
+<p>具体中心点坐标的计算以及宽度高度计算公式如下：</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250805190901668.png" class="" title="计算公式">
+<p><strong>上面四个公式计算出的值是在归一化过后的值，还需要乘以32（因为416×416的图片被划分为13×13的网格，每个网格大小为32×32）才能得到对应的真实坐标</strong></p>
+<h4 id="问：计算边界框的中心坐标和宽度、高度时，为什么要使用激活函数和指数变换"><a href="#问：计算边界框的中心坐标和宽度、高度时，为什么要使用激活函数和指数变换" class="headerlink" title="问：计算边界框的中心坐标和宽度、高度时，为什么要使用激活函数和指数变换"></a><strong>问：计算边界框的中心坐标和宽度、高度时，为什么要使用激活函数和指数变换</strong></h4><p>答：边界框的中心坐标通过Sigmoid激活函数计算，以<strong>确保预测值被限制在[0,1]范围内</strong>，从而使得中心点坐标落在对应的网格单元内，这有助于模型训练的数值稳定性。对于边界框的宽度和高度，采用指数变换来<strong>确保输出为正值</strong>，并允许模型在对数空间中更稳定地学习尺度变化，这有助于模型适应不同大小的目标并提高预测精度。</p>
+<h3 id="2-2-6-使用passthrough策略（★）"><a href="#2-2-6-使用passthrough策略（★）" class="headerlink" title="2.2.6 使用passthrough策略（★）"></a>2.2.6 使用passthrough策略（★）</h3><p>首先需要搞清楚两个问题，在网络不断卷积的过程中，感受野会如何变化？特征图的空间信息和语义信息会如何变化？</p>
+<p>首先要知道<strong>感受野是指神经网络中一个神经元所覆盖的输入图像区域的大小。</strong></p>
+<p>以CNN为例，假设卷积核大小为 k×k，步长为1。第一层卷积后，每个输出神经元的感受野为 k×k。<strong>第二层卷积核覆盖第一层的多个神经元，其感受野会进一步扩大</strong>。例如，两层卷积网络，每层卷积核为3×3，无池化操作，第二层的感受野为5×5。随着卷积层数增加，感受野持续扩大，网络能捕捉更大范围的图像信息。</p>
+<p>因此，<strong>随着卷积层数增加，神经元覆盖的输入图像区域范围扩大，能够捕捉到更大范围的图像信息</strong></p>
+<p>把卷积看做人眼从近到远看一张图片的过程</p>
+<p><strong>空间信息是指图像中像素之间的关系，包括物体形状，大小，边缘等</strong></p>
+<p><strong>语义信息是指图像中物体的类别，属性等更高层次的信息</strong></p>
+<p><strong>随着卷积层深入，浅层卷积提取的空间信息被深层卷积组合成整体结构，空间特征逐渐抽象，语义信息逐渐丰富</strong></p>
+<p>因此也就面临一个问题，随着卷积的执行，感受野越来越大，特征图的像素数量减少，可能会造成小目标的丢失，因此yolov2引入passthrough层，将高分辨率特征和低分辨率特征串联起来</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250805194251712.png" class="" title="passthrough layer">
+<p>铺垫这么多，其实Passthrough 的操作非常简单，通过<strong>隔点采样（隔行隔列采样）</strong>将一个较大的特征图（<strong>1个</strong> <strong>26×26×512</strong>）分解为多个较小的特征图（<strong>4个13×13×512</strong>），然后将这些特征图按通道串联起来，形成一个通道数更多的特征图（<strong>1个13×13×3072</strong>）。这种操作可以<strong>有效融合不同尺度的特征信息</strong>，增强特征的表达能力。</p>
+<h3 id="2-2-7-输出特征维度"><a href="#2-2-7-输出特征维度" class="headerlink" title="2.2.7 输出特征维度"></a>2.2.7 输出特征维度</h3><img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250805195133991.png" class="">
+<h1 id="三、yolov3"><a href="#三、yolov3" class="headerlink" title="三、yolov3"></a>三、yolov3</h1><h2 id="导航-2"><a href="#导航-2" class="headerlink" title="导航"></a>导航</h2><p>YOLOV3 论文地址：：【<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/1804.02767】YOLOV3">https://arxiv.org/pdf/1804.02767】YOLOV3</a> 论文中文翻译地址：：【<a target="_blank" rel="noopener" href="https://blog.csdn.net/yegeli/article/details/109751358】">https://blog.csdn.net/yegeli/article/details/109751358】</a></p>
+<h2 id="3-1-网络组件（知道基本组成就行）"><a href="#3-1-网络组件（知道基本组成就行）" class="headerlink" title="3.1 网络组件（知道基本组成就行）"></a>3.1 网络组件（知道基本组成就行）</h2><h3 id="CBL（Convolutional-Batch-Normalization-Leaky-ReLU）"><a href="#CBL（Convolutional-Batch-Normalization-Leaky-ReLU）" class="headerlink" title="CBL（Convolutional + Batch Normalization + Leaky ReLU）"></a><strong>CBL（Convolutional + Batch Normalization + Leaky ReLU）</strong></h3><ul>
+<li><strong>组成</strong>：<ol>
+<li><strong>卷积层（Convolutional Layer）</strong>：用于提取特征。</li>
+<li><strong>批量归一化层（Batch Normalization Layer）</strong>：用于稳定训练过程，减少内部协变量偏移。</li>
+<li><strong>激活函数（Leaky ReLU）</strong>：引入非线性，同时避免ReLU在负值区域的梯度消失问题。</li>
+</ol>
+</li>
+</ul>
+<h3 id="ResUnit（残差单元）"><a href="#ResUnit（残差单元）" class="headerlink" title="ResUnit（残差单元）"></a><strong>ResUnit（残差单元）</strong></h3><ul>
+<li><strong>组成</strong>：<ul>
+<li>输入特征通过<strong>两个 CBL 模块处理后，与原输入进行逐元素相加（add）操作</strong>。</li>
+<li>这种结构允许网络学习到更深层的特征，同时避免梯度消失或梯度爆炸问题。</li>
+</ul>
+</li>
+</ul>
+<h3 id="ResN（残差块）"><a href="#ResN（残差块）" class="headerlink" title="ResN（残差块）"></a><strong>ResN（残差块）</strong></h3><ul>
+<li><strong>组成</strong>：<ul>
+<li>一个 <strong>padding</strong> 层（可选，用于保持特征图大小）。</li>
+<li>一个 <strong>CBL</strong> 模块。</li>
+<li><strong>N 个残差单元（ResUnit）</strong>。</li>
+</ul>
+</li>
+<li><strong>结构</strong>：<ul>
+<li>输入特征首先通过一个 CBL 模块进行处理。</li>
+<li>然后，特征通过 N 个残差单元，每个残差单元包含两个 CBL 模块和一个残差连接。</li>
+</ul>
+</li>
+</ul>
+<h2 id="3-2-重要操作（区分上下采样）"><a href="#3-2-重要操作（区分上下采样）" class="headerlink" title="3.2 重要操作（区分上下采样）"></a>3.2 重要操作（区分上下采样）</h2><h3 id="Concat（拼接）"><a href="#Concat（拼接）" class="headerlink" title="Concat（拼接）"></a><strong>Concat（拼接）</strong></h3><ul>
+<li>将不同分辨率的特征图<strong>沿着通道维度拼接</strong>，扩充张量维度。</li>
+</ul>
+<h3 id="Add（相加）"><a href="#Add（相加）" class="headerlink" title="Add（相加）"></a><strong>Add（相加）</strong></h3><ul>
+<li>将两个张量<strong>逐元素相加</strong>，不改变张量维度。</li>
+</ul>
+<h3 id="上采样（插值）"><a href="#上采样（插值）" class="headerlink" title="上采样（插值）"></a><strong>上采样（插值）</strong></h3><ul>
+<li>是将低分辨率的特征图放大到高分辨率，用于多尺度特征融合，<strong>捕捉更多细节信息，尤其有助于检测小目标</strong>；</li>
+</ul>
+<h3 id="下采样（卷积）"><a href="#下采样（卷积）" class="headerlink" title="下采样（卷积）"></a><strong>下采样（卷积）</strong></h3><ul>
+<li>则是将高分辨率的特征图缩小到低分辨率，<strong>减少计算量，同时通常增加通道数以保留重要信息，主要用于提取更抽象的高层特征。</strong></li>
+</ul>
+<p>注意：这里的“上”和“下”指的是空间分辨率的上升或下降</p>
+<h2 id="3-3-主干网络"><a href="#3-3-主干网络" class="headerlink" title="3.3 主干网络"></a>3.3 主干网络</h2><img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250805201337545.png" class="" title="yolov3主干网络">
+<p>后面的蓝色立方体表示<strong>三种尺度的输出</strong>，用于检测三种不同尺寸的目标，是yolov3最显著的特征，后面会详细解释</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250805201454423.png" class="" title="参数信息">
+<h2 id="3-4-特征金字塔网络（FPN）（★）"><a href="#3-4-特征金字塔网络（FPN）（★）" class="headerlink" title="3.4 特征金字塔网络（FPN）（★）"></a>3.4 特征金字塔网络（FPN）（★）</h2><p><strong>检测大目标需高层语义信息，而小目标需低层细节信息，特征提取需兼顾两者以实现多尺度目标检测。</strong>特征金字塔网络（Feature Pyramid Network，FPN）是一种用于目标检测的网络架构，旨在解决多尺度目标检测中的关键问题：<strong>如何有效地利用不同尺度的特征来检测不同大小的目标</strong></p>
+<p>FPN的原理可以概括为以下三个内容：</p>
+<ul>
+<li>自底而上的路径（下采样）：基于卷积神经网络（CNN）的前向传播过程。在 CNN 中，输入图像经过一系列的卷积层和池化层，逐渐生成不同层次的特征图，<strong>特征图的语义信息逐渐增强，但空间细节逐渐丢失。</strong></li>
+<li>自顶而下的路径（上采样）：将高层的强语义特征传播到低层，<strong>低层特征图不仅保留了精确的空间位置信息，还融入了高层的强语义信息</strong></li>
+<li>横向连接：调整特征图的通道数，确保自底向上和自顶向下路径的特征图在通道维度上能够匹配，例如<strong>1×1卷积核或上采样</strong></li>
+</ul>
+<h2 id="3-5-多尺度预测"><a href="#3-5-多尺度预测" class="headerlink" title="3.5 多尺度预测"></a>3.5 多尺度预测</h2><p><strong>有了类似FPN的思想，YOLOv3会产生3个尺度的特征图</strong>，简单地说，YOLOv3产生13×13、26×26、52×52三个尺度的特征图，对应总共3616个网格，每个网格产生3个锚框，也就是一共有10647个预测框。这些预测框经过置信度过滤和非极大值抑制（NMS）处理后，<strong>每个网格最多只保留一个最好的框</strong>（事实上更多的网格甚至因为置信度太低而没有框）。<strong>最终保留下来的框就是模型呈现的预测结果</strong>。</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250806160155907.png" class="" title="模型呈现的预测结果">
+<p>我们再回头来看这张yolov3的结构图，输出的三个检测头对应的检测尺寸如图中标注所示</p>
+<img src="/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/image-20250806160921078.png" class="" title="image-20250806160921078">
+<h4 id="问：为什么尺寸小的检测头反而检测的是大目标呢？（★）"><a href="#问：为什么尺寸小的检测头反而检测的是大目标呢？（★）" class="headerlink" title="问：为什么尺寸小的检测头反而检测的是大目标呢？（★）"></a>问：为什么尺寸小的检测头反而检测的是大目标呢？（★）</h4><p>答：决不能根据检测头大小来想象检测的目标大小，上面已经介绍了随着卷积的进行，特征图通过下采样尺寸逐渐变小，进而空间信息丢失，语义信息丰富，从而更能捕捉全局的信息，适合用来检测大目标</p>
+<h1 id="篇末"><a href="#篇末" class="headerlink" title="篇末"></a>篇末</h1><p>YOLO系列从v1到v3不断演进，v1首次提出单阶段目标检测架构，将检测任务转化为单次回归问题，实现了快速检测但对小目标效果欠佳；v2引入锚框和优化网络结构，提升了检测精度；v3采用更深的DarkNet-53骨干网络，引入三尺度预测和多标签分类，显著增强了小目标检测能力和多类别检测效果，进一步平衡了速度与精度，为后续发展奠定了基础。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/">http://example.com/2025/07/11/yolov1-v3%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/07/14/yolov5%E7%90%86%E8%AE%BA%E5%8F%8A%E5%AE%9E%E6%93%8D/" title="yolov5源项目部署教程"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">yolov5源项目部署教程</div></div><div class="info-2"><div class="info-item-1">前言：这一篇目主要用于介绍yolov5的实战部分，包括如何部署项目以及模型的训练和推理，最后还会结合orc技术来进行车牌识别项目实战 一、项目来源项目可以在 github 搜到：【https://github.com/ultralytics/yolov5】（选择合适的预训练模型，可以直接下载，也可以直接git到本地） 将下载好的文件解压，最后在vscode中打开的文件目录如下，一定要确保项目名即为最开始的yolov5中没有另外一层yolov5文件结构：  二、环境配置首先需要创建虚拟环境（这里我是直接在云GPU上部署的项目，可以直接选择别人已经创建好并且很稳定的虚拟环境）  对于 yolo 系列目前来说，需要安装的 python 版本 &gt;= 3.8 的，pytorch 版本&gt;= 1.8 如果是在本地部署的话，那么在创建激活并切换环境后需要运行如下命令安装依赖包 1pip install -r requirements.txt 注意：这里运行后只能默认是CPU的版本，如果想安装GPU版本还需要安装合适版本cuda后去官网下载对应pytorch，然后注释requireme...</div></div></div></a><a class="pagination-related" href="/2025/07/03/yolo%E7%9B%AE%E6%A0%87%E6%A3%80%E6%B5%8B%E5%9F%BA%E7%A1%80/" title="yolo目标检测基础"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">yolo目标检测基础</div></div><div class="info-2"><div class="info-item-1">一、概念目标检测需要识别图片或视频帧中的物体是什么类别，并确定他们的位置（where and what），通常用于多个物体的识别，并为每个示例提供一个边界框和类别标签。  目标检测的本质：使用边界框将物体在图中圈出，边界框上会存在两个指标：类别信息，置信度  yolo(you only look once)：是一个单阶段的目标检测算法，能够用于实时监测 人工智能领域的上游任务和下游任务  上游任务通常是指为后续任务提供基础支持的任务，主要关注数据的收集、处理、模型的预训练等基础性工作。这些任务的输出通常是一个通用的模型或者数据集，可以被多个下游任务复用  下游任务是指在上游任务的基础上，针对具体的业务场景或应用需求进行的模型微调和应用开发。这些任务通常具有明确的目标和应用场景，需要在预训练模型的基础上进行进一步的优化和调整，以满足特定任务的需求   二、数据标注数据标注是在图片中框选标注出我们需要模型训练用来检测的实例，用作监督模型训练的标签 步骤：  创建一个专门用于数据标注的虚拟环境 1conda create -n yololabel python=3.12  激活虚拟环境...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81yolov1"><span class="toc-number">1.</span> <span class="toc-text">一、yolov1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%88%AA"><span class="toc-number">1.1.</span> <span class="toc-text">导航</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-1%E3%80%81%E7%BD%91%E7%BB%9C%E7%BB%93%E6%9E%84"><span class="toc-number">1.2.</span> <span class="toc-text">1.1、网络结构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-1-%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.1.1 核心思想</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-2-%E7%BD%91%E7%BB%9C%E7%9A%84%E8%BE%93%E5%87%BA"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.1.2 网络的输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-3-%E6%8D%9F%E5%A4%B1%E5%87%BD%E6%95%B0"><span class="toc-number">1.2.3.</span> <span class="toc-text">1.1.3 损失函数</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-2-%E4%BC%98%E7%BC%BA%E7%82%B9"><span class="toc-number">1.3.</span> <span class="toc-text">1.2 优缺点</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81yolov2%EF%BC%88yolov9000%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">二、yolov2（yolov9000）</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%88%AA-1"><span class="toc-number">2.1.</span> <span class="toc-text">导航</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-1-%E4%B8%BB%E5%B9%B2%E7%BD%91%E7%BB%9C"><span class="toc-number">2.2.</span> <span class="toc-text">2.1 主干网络</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-2-%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.2 优化策略</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-1-%E6%89%B9%E9%87%8F%E5%BD%92%E4%B8%80%E5%8C%96"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.2.1 批量归一化</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-2-%E5%A4%9A%E5%B0%BA%E5%BA%A6%E8%AE%AD%E7%BB%83"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.2.2 多尺度训练</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-3-%E9%AB%98%E5%88%86%E8%BE%A8%E7%8E%87%E5%88%86%E7%B1%BB%E5%99%A8"><span class="toc-number">2.3.3.</span> <span class="toc-text">2.2.3 高分辨率分类器</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-4-%E4%BD%BF%E7%94%A8%E9%94%9A%E6%A1%86%EF%BC%88%E2%98%85%EF%BC%89"><span class="toc-number">2.3.4.</span> <span class="toc-text">2.2.4 使用锚框（★）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%B8%80%EF%BC%9A%E4%BD%BF%E7%94%A8%E9%94%9A%E6%A1%86%E7%9A%84%E6%84%8F%E4%B9%89%EF%BC%9F"><span class="toc-number">2.3.4.1.</span> <span class="toc-text">问题一：使用锚框的意义？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E4%BA%8C%EF%BC%9Ayolov2%E4%B8%AD%E7%9A%84%E9%94%9A%E6%A1%86%E6%98%AF%E5%A6%82%E4%BD%95%E7%BB%98%E5%88%B6%E7%9A%84%EF%BC%9F"><span class="toc-number">2.3.4.2.</span> <span class="toc-text">问题二：yolov2中的锚框是如何绘制的？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-5-Direct-Location-Prediction%EF%BC%88%E7%9B%B4%E6%8E%A5%E4%BD%8D%E7%BD%AE%E9%A2%84%E6%B5%8B%EF%BC%89"><span class="toc-number">2.3.5.</span> <span class="toc-text">2.2.5 Direct Location Prediction（直接位置预测）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%EF%BC%9A%E8%AE%A1%E7%AE%97%E8%BE%B9%E7%95%8C%E6%A1%86%E7%9A%84%E4%B8%AD%E5%BF%83%E5%9D%90%E6%A0%87%E5%92%8C%E5%AE%BD%E5%BA%A6%E3%80%81%E9%AB%98%E5%BA%A6%E6%97%B6%EF%BC%8C%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E4%BD%BF%E7%94%A8%E6%BF%80%E6%B4%BB%E5%87%BD%E6%95%B0%E5%92%8C%E6%8C%87%E6%95%B0%E5%8F%98%E6%8D%A2"><span class="toc-number">2.3.5.1.</span> <span class="toc-text">问：计算边界框的中心坐标和宽度、高度时，为什么要使用激活函数和指数变换</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-6-%E4%BD%BF%E7%94%A8passthrough%E7%AD%96%E7%95%A5%EF%BC%88%E2%98%85%EF%BC%89"><span class="toc-number">2.3.6.</span> <span class="toc-text">2.2.6 使用passthrough策略（★）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-7-%E8%BE%93%E5%87%BA%E7%89%B9%E5%BE%81%E7%BB%B4%E5%BA%A6"><span class="toc-number">2.3.7.</span> <span class="toc-text">2.2.7 输出特征维度</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81yolov3"><span class="toc-number">3.</span> <span class="toc-text">三、yolov3</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%BC%E8%88%AA-2"><span class="toc-number">3.1.</span> <span class="toc-text">导航</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-%E7%BD%91%E7%BB%9C%E7%BB%84%E4%BB%B6%EF%BC%88%E7%9F%A5%E9%81%93%E5%9F%BA%E6%9C%AC%E7%BB%84%E6%88%90%E5%B0%B1%E8%A1%8C%EF%BC%89"><span class="toc-number">3.2.</span> <span class="toc-text">3.1 网络组件（知道基本组成就行）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CBL%EF%BC%88Convolutional-Batch-Normalization-Leaky-ReLU%EF%BC%89"><span class="toc-number">3.2.1.</span> <span class="toc-text">CBL（Convolutional + Batch Normalization + Leaky ReLU）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ResUnit%EF%BC%88%E6%AE%8B%E5%B7%AE%E5%8D%95%E5%85%83%EF%BC%89"><span class="toc-number">3.2.2.</span> <span class="toc-text">ResUnit（残差单元）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ResN%EF%BC%88%E6%AE%8B%E5%B7%AE%E5%9D%97%EF%BC%89"><span class="toc-number">3.2.3.</span> <span class="toc-text">ResN（残差块）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-%E9%87%8D%E8%A6%81%E6%93%8D%E4%BD%9C%EF%BC%88%E5%8C%BA%E5%88%86%E4%B8%8A%E4%B8%8B%E9%87%87%E6%A0%B7%EF%BC%89"><span class="toc-number">3.3.</span> <span class="toc-text">3.2 重要操作（区分上下采样）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Concat%EF%BC%88%E6%8B%BC%E6%8E%A5%EF%BC%89"><span class="toc-number">3.3.1.</span> <span class="toc-text">Concat（拼接）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Add%EF%BC%88%E7%9B%B8%E5%8A%A0%EF%BC%89"><span class="toc-number">3.3.2.</span> <span class="toc-text">Add（相加）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8A%E9%87%87%E6%A0%B7%EF%BC%88%E6%8F%92%E5%80%BC%EF%BC%89"><span class="toc-number">3.3.3.</span> <span class="toc-text">上采样（插值）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%8B%E9%87%87%E6%A0%B7%EF%BC%88%E5%8D%B7%E7%A7%AF%EF%BC%89"><span class="toc-number">3.3.4.</span> <span class="toc-text">下采样（卷积）</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-3-%E4%B8%BB%E5%B9%B2%E7%BD%91%E7%BB%9C"><span class="toc-number">3.4.</span> <span class="toc-text">3.3 主干网络</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-4-%E7%89%B9%E5%BE%81%E9%87%91%E5%AD%97%E5%A1%94%E7%BD%91%E7%BB%9C%EF%BC%88FPN%EF%BC%89%EF%BC%88%E2%98%85%EF%BC%89"><span class="toc-number">3.5.</span> <span class="toc-text">3.4 特征金字塔网络（FPN）（★）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-5-%E5%A4%9A%E5%B0%BA%E5%BA%A6%E9%A2%84%E6%B5%8B"><span class="toc-number">3.6.</span> <span class="toc-text">3.5 多尺度预测</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E5%B0%BA%E5%AF%B8%E5%B0%8F%E7%9A%84%E6%A3%80%E6%B5%8B%E5%A4%B4%E5%8F%8D%E8%80%8C%E6%A3%80%E6%B5%8B%E7%9A%84%E6%98%AF%E5%A4%A7%E7%9B%AE%E6%A0%87%E5%91%A2%EF%BC%9F%EF%BC%88%E2%98%85%EF%BC%89"><span class="toc-number">3.6.0.1.</span> <span class="toc-text">问：为什么尺寸小的检测头反而检测的是大目标呢？（★）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AF%87%E6%9C%AB"><span class="toc-number">4.</span> <span class="toc-text">篇末</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="claude code+国产模型部署和使用"/></a><div class="content"><a class="title" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用">claude code+国产模型部署和使用</a><time datetime="2026-02-17T11:10:14.000Z" title="发表于 2026-02-17 19:10:14">2026-02-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MCP学习笔记"/></a><div class="content"><a class="title" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记">MCP学习笔记</a><time datetime="2026-02-12T12:23:35.000Z" title="发表于 2026-02-12 20:23:35">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="UV环境管理"/></a><div class="content"><a class="title" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理">UV环境管理</a><time datetime="2026-01-29T02:08:18.000Z" title="发表于 2026-01-29 10:08:18">2026-01-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="docker笔记"/></a><div class="content"><a class="title" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记">docker笔记</a><time datetime="2026-01-27T04:18:18.000Z" title="发表于 2026-01-27 12:18:18">2026-01-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Git与GitLab的实战"/></a><div class="content"><a class="title" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战">Git与GitLab的实战</a><time datetime="2026-01-25T12:08:18.000Z" title="发表于 2026-01-25 20:08:18">2026-01-25</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

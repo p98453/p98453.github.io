@@ -1,0 +1,223 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>claude code+国产模型部署和使用 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言本篇文章主要是claude code的功能学习笔记，接入的大模型是GLM4.7，将claude的模型映射到GLM 部署claude和接入模型参考Claude Code - 智谱AI开放文档 部署成功示例 如何开始vibe coding 功能演示基础功能和一些常用指令 如何选择和切换三种模式（默认：每次执行指令都询问&#x2F;自动：不询问用户是否执行指令&#x2F;规划：先进行规划，不修改文件，将规划后的文档返回">
+<meta property="og:type" content="article">
+<meta property="og:title" content="claude code+国产模型部署和使用">
+<meta property="og:url" content="http://example.com/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="前言本篇文章主要是claude code的功能学习笔记，接入的大模型是GLM4.7，将claude的模型映射到GLM 部署claude和接入模型参考Claude Code - 智谱AI开放文档 部署成功示例 如何开始vibe coding 功能演示基础功能和一些常用指令 如何选择和切换三种模式（默认：每次执行指令都询问&#x2F;自动：不询问用户是否执行指令&#x2F;规划：先进行规划，不修改文件，将规划后的文档返回">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2026-02-17T11:10:14.000Z">
+<meta property="article:modified_time" content="2026-02-17T15:07:23.330Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "claude code+国产模型部署和使用",
+  "url": "http://example.com/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2026-02-17T11:10:14.000Z",
+  "dateModified": "2026-02-17T15:07:23.330Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'claude code+国产模型部署和使用',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">claude code+国产模型部署和使用</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">claude code+国产模型部署和使用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-02-17T11:10:14.000Z" title="发表于 2026-02-17 19:10:14">2026-02-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-17T15:07:23.330Z" title="更新于 2026-02-17 23:07:23">2026-02-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%B7%A5%E5%85%B7-%E9%83%A8%E7%BD%B2/">工具/部署</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">898</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>3分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p>本篇文章主要是claude code的功能学习笔记，接入的大模型是GLM4.7，将claude的模型映射到GLM</p>
+<p>部署claude和接入模型参考<a target="_blank" rel="noopener" href="https://docs.bigmodel.cn/cn/guide/develop/claude#方式一：自动化助手">Claude Code - 智谱AI开放文档</a></p>
+<h2 id="部署成功示例"><a href="#部署成功示例" class="headerlink" title="部署成功示例"></a>部署成功示例</h2><p><img src="/2026/02/17/claude-code-国产模型/efe36e455136c4637a2b1ee9721c2ba8.png"  alt="efe36e455136c4637a2b1ee9721c2ba8" style="zoom:50%;" /></p>
+<h2 id="如何开始vibe-coding"><a href="#如何开始vibe-coding" class="headerlink" title="如何开始vibe coding"></a>如何开始vibe coding</h2><p><img src="/2026/02/17/claude-code-国产模型/image-20260217191552225.png"  alt="image-20260217191552225" style="zoom:50%;" /></p>
+<h1 id="功能演示"><a href="#功能演示" class="headerlink" title="功能演示"></a>功能演示</h1><h2 id="基础功能和一些常用指令"><a href="#基础功能和一些常用指令" class="headerlink" title="基础功能和一些常用指令"></a>基础功能和一些常用指令</h2><img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217191845335.png" class="" title="image-20260217191845335">
+<p>如何选择和切换三种模式（默认：每次执行指令都询问/自动：不询问用户是否执行指令/规划：先进行规划，不修改文件，将规划后的文档返回给用户确认）</p>
+<p>快捷指令：shift+table，当然也可以直接进行命令切换：切换plan model</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217191919341.png" class="" title="image-20260217191919341">
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217192610111.png"  alt="image-20260217192610111" style="zoom:50%;" /></p>
+<p>如果想让claude在每次执行任何命令都不需要询问用户，那么在最初启动时加上指令，但是一定要谨慎</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217192851521.png" class="" title="image-20260217192851521">
+<h2 id="回滚：-rewind"><a href="#回滚：-rewind" class="headerlink" title="回滚：/rewind"></a>回滚：/rewind</h2><p>下面我先删除了一个实现了计算器功能的html文件，然后进行回滚操作</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217194408256.png"  alt="image-20260217194408256" style="zoom:50%;" /></p>
+<p>输入/rewind进行回滚，或者直接按两次Esc进入到每次对话的回滚点</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217194605735.png" class="" title="image-20260217194605735">
+<h2 id="查看后台任务：-tasks"><a href="#查看后台任务：-tasks" class="headerlink" title="查看后台任务：/tasks"></a>查看后台任务：/tasks</h2><p>这里是运行的一个网页端口实现计算器功能，按K结束当前任务</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217194745079.png" class="" title="image-20260217194745079">
+<h2 id="传入文件"><a href="#传入文件" class="headerlink" title="传入文件"></a>传入文件</h2><p>直接复制文件到命令行界面或者拖拽，claude会进行自动读取</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217195517630.png" class="" title="image-20260217195517630">
+<h2 id="回到历史对话：-resume"><a href="#回到历史对话：-resume" class="headerlink" title="回到历史对话：/resume"></a>回到历史对话：/resume</h2><p>也可以在启动claude时候加上claude -c，自动回到上一次对话</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217195614464.png"  alt="image-20260217195614464" style="zoom:50%;" /></p>
+<h2 id="添加mcp工具-mcp"><a href="#添加mcp工具-mcp" class="headerlink" title="添加mcp工具 /mcp"></a>添加mcp工具 /mcp</h2><p>先退出claude，然后才能进行工具添加</p>
+<p>例如：claude mcp add —transport http figma <a target="_blank" rel="noopener" href="https://mcp.figma.com/mcp">https://mcp.figma.com/mcp</a></p>
+<p>然后再进入claude</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217202351662.png" class="" title="image-20260217202351662">
+<h2 id="HOOKs"><a href="#HOOKs" class="headerlink" title="HOOKs"></a>HOOKs</h2><p>Hooks 允许你在 Claude Code 的整个工作生命周期（从启动到结束的各个关键节点）自动运行你自己定义的 shell 命令（或基于 LLM 的提示），实现确定性、强制性的自动化控制，而不是依赖 Claude “自觉”去执行某些操作。</p>
+<p>比如：Claude 要跑 rm -rf 或改 .env 时，hook 直接阻断并报错。</p>
+<h2 id="Skills"><a href="#Skills" class="headerlink" title="Skills"></a>Skills</h2><p>先在skill文件夹中创建一个技能包，这里是让AI生成了一个计算器UI的界面skill</p>
+<p>mkdir -p ~/.claude/skills/UI_style</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217215600741.png"  alt="image-20260217215600741" style="zoom:50%;" /></p>
+<p>添加技能文档skill.md</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">name: explain-code</span><br><span class="line"><span class="section">description: Explains code with visual diagrams and analogies. Use when explaining how code works, teaching about a codebase, or when the user asks &quot;how does this work?&quot;</span></span><br><span class="line"><span class="section">---</span></span><br><span class="line"></span><br><span class="line">When explaining code, always include:</span><br><span class="line"></span><br><span class="line"><span class="bullet">1.</span> <span class="strong">**Start with an analogy**</span>: Compare the code to something from everyday life</span><br><span class="line"><span class="bullet">2.</span> <span class="strong">**Draw a diagram**</span>: Use ASCII art to show the flow, structure, or relationships</span><br><span class="line"><span class="bullet">3.</span> <span class="strong">**Walk through the code**</span>: Explain step-by-step what happens</span><br><span class="line"><span class="bullet">4.</span> <span class="strong">**Highlight a gotcha**</span>: What&#x27;s a common mistake or misconception?</span><br><span class="line"></span><br><span class="line">Keep explanations conversational. For complex concepts, use multiple analogies.</span><br></pre></td></tr></table></figure>
+<p>然后让claude重构之前写的网页计算器，这里应该是模型自己去读文件的，但是我直接指定了</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217215658081.png" class="" title="image-20260217215658081">
+<p>查看有哪些skills指令：/skills</p>
+<p>省去大模型思考用哪个skill的过程，指定加上某个skill：/skill名字 + 具体的请求</p>
+<h2 id="subagents"><a href="#subagents" class="headerlink" title="subagents"></a>subagents</h2><p>新生成一个Agent</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217220539557.png"  alt="image-20260217220539557" style="zoom:50%;" /></p>
+<p>使用claude code自动初始化或者手动创建</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217220645813.png"  alt="image-20260217220645813" style="zoom:50%;" /></p>
+<p>输入Agent描述</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217220741902.png" class="" title="image-20260217220741902">
+<p>选择Agent可用的工具，后面还有选择模型，Agent颜色等一系列设置</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217221006192.png"  alt="image-20260217221006192" style="zoom:50%;" /></p>
+<p>这是claude生成的Agent描述，结构和skill大致一样</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217221644430.png"  alt="image-20260217221644430" style="zoom:50%;" /></p>
+<p>重启后进行测试，这里由于模型能力较弱，只采用显式的调用，可以看到已经启动了subAgent</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217222624367.png" class="" title="image-20260217222624367">
+<h2 id="打包-plugin"><a href="#打包-plugin" class="headerlink" title="打包 /plugin"></a>打包 /plugin</h2><p>/plaugin进入插件管理器，相当于vscode的拓展，这里以frontend-design为例子，是一个前端设计的插件</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217225013131.png" class="" title="image-20260217225013131">
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217225027272.png" class="" title="image-20260217225027272">
+<p>安装完成</p>
+<img src="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/image-20260217225050713.png" class="" title="image-20260217225050713">
+<p>重启claude，使用mkdir新建一个目录AI2，将安装包传到新目录中，启动claude，选中install可以看到刚才打包的文件</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217225357454.png"  alt="image-20260217225357454" style="zoom:50%;" /></p>
+<p>安装</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217225513962.png"  alt="image-20260217225513962" style="zoom:50%;" /></p>
+<p>检验是否安装成功这个插件</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217225540976.png"  alt="image-20260217225540976" style="zoom:50%;" /></p>
+<p>测试一下功能</p>
+<p><img src="/2026/02/17/claude-code-国产模型/image-20260217225858767.png"  alt="image-20260217225858767" style="zoom:50%;" /></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/">http://example.com/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">MCP学习笔记</div></div><div class="info-2"><div class="info-item-1">模型上下文协议 (MCP) 深度技术架构与生态演进研究报告执行摘要随着大语言模型（LLM）从单纯的文本生成工具向具备自主行动能力的智能体（Agents）演进，人工智能系统工程面临着前所未有的挑战：上下文隔离（Context Isolation）。尽管模型本身具备广博的通用知识，但它们在本质上与企业专有数据、实时业务系统以及本地操作环境是断开连接的。传统的解决方案通常依赖于碎片化的、点对点的集成代码（Glue Code），这种模式不仅维护成本高昂，且难以扩展。 Anthropic 于 2024 年底推出的 模型上下文协议（Model Context Protocol, MCP），代表了一种旨在打破这种碎片化局面的范式转移。正如 USB-C 接口标准化了电子设备之间的数据与电力传输，MCP 旨在标准化 AI 宿主应用（Host）与外部数据源或工具（Server）之间的连接。 本报告基于用户提供的架构图表（图1-6）及广泛的技术文档，对 MCP 进行了详尽的解构。我们将从协议的底层架构出发，深入探讨其生命周期管理、核心原语（Primitives）、通信机制、安全性设计以及开发实战，旨在...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%83%A8%E7%BD%B2%E6%88%90%E5%8A%9F%E7%A4%BA%E4%BE%8B"><span class="toc-number">1.1.</span> <span class="toc-text">部署成功示例</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%BC%80%E5%A7%8Bvibe-coding"><span class="toc-number">1.2.</span> <span class="toc-text">如何开始vibe coding</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%8A%9F%E8%83%BD%E6%BC%94%E7%A4%BA"><span class="toc-number">2.</span> <span class="toc-text">功能演示</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E5%8A%9F%E8%83%BD%E5%92%8C%E4%B8%80%E4%BA%9B%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4"><span class="toc-number">2.1.</span> <span class="toc-text">基础功能和一些常用指令</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9E%E6%BB%9A%EF%BC%9A-rewind"><span class="toc-number">2.2.</span> <span class="toc-text">回滚：&#x2F;rewind</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%9F%A5%E7%9C%8B%E5%90%8E%E5%8F%B0%E4%BB%BB%E5%8A%A1%EF%BC%9A-tasks"><span class="toc-number">2.3.</span> <span class="toc-text">查看后台任务：&#x2F;tasks</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%A0%E5%85%A5%E6%96%87%E4%BB%B6"><span class="toc-number">2.4.</span> <span class="toc-text">传入文件</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9E%E5%88%B0%E5%8E%86%E5%8F%B2%E5%AF%B9%E8%AF%9D%EF%BC%9A-resume"><span class="toc-number">2.5.</span> <span class="toc-text">回到历史对话：&#x2F;resume</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B7%BB%E5%8A%A0mcp%E5%B7%A5%E5%85%B7-mcp"><span class="toc-number">2.6.</span> <span class="toc-text">添加mcp工具 &#x2F;mcp</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#HOOKs"><span class="toc-number">2.7.</span> <span class="toc-text">HOOKs</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Skills"><span class="toc-number">2.8.</span> <span class="toc-text">Skills</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#subagents"><span class="toc-number">2.9.</span> <span class="toc-text">subagents</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%93%E5%8C%85-plugin"><span class="toc-number">2.10.</span> <span class="toc-text">打包 &#x2F;plugin</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="claude code+国产模型部署和使用"/></a><div class="content"><a class="title" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用">claude code+国产模型部署和使用</a><time datetime="2026-02-17T11:10:14.000Z" title="发表于 2026-02-17 19:10:14">2026-02-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MCP学习笔记"/></a><div class="content"><a class="title" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记">MCP学习笔记</a><time datetime="2026-02-12T12:23:35.000Z" title="发表于 2026-02-12 20:23:35">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="UV环境管理"/></a><div class="content"><a class="title" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理">UV环境管理</a><time datetime="2026-01-29T02:08:18.000Z" title="发表于 2026-01-29 10:08:18">2026-01-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="docker笔记"/></a><div class="content"><a class="title" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记">docker笔记</a><time datetime="2026-01-27T04:18:18.000Z" title="发表于 2026-01-27 12:18:18">2026-01-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Git与GitLab的实战"/></a><div class="content"><a class="title" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战">Git与GitLab的实战</a><time datetime="2026-01-25T12:08:18.000Z" title="发表于 2026-01-25 20:08:18">2026-01-25</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

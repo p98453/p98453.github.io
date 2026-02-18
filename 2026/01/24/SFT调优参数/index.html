@@ -1,0 +1,297 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>SFT调优参数 | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="PackingSFT Packing详解   传统数据集构建方式大语言模型（LLM）微调中两种常见的数据构建与训练方式：单轮对话数据和多轮对话数据 单轮：prompt+response端到端的：模型接受的输入是prompt，需要预测的结果是response，最后计算response上token的loss。  如果输入文本的 Token 数量未达到 --max_length (4096)，系统会根据">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SFT调优参数">
+<meta property="og:url" content="http://example.com/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="PackingSFT Packing详解   传统数据集构建方式大语言模型（LLM）微调中两种常见的数据构建与训练方式：单轮对话数据和多轮对话数据 单轮：prompt+response端到端的：模型接受的输入是prompt，需要预测的结果是response，最后计算response上token的loss。  如果输入文本的 Token 数量未达到 --max_length (4096)，系统会根据">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2026-01-24T03:41:15.000Z">
+<meta property="article:modified_time" content="2026-02-10T10:02:25.101Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "SFT调优参数",
+  "url": "http://example.com/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2026-01-24T03:41:15.000Z",
+  "dateModified": "2026-02-10T10:02:25.101Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'SFT调优参数',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">SFT调优参数</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">SFT调优参数</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-24T03:41:15.000Z" title="发表于 2026-01-24 11:41:15">2026-01-24</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-02-10T10:02:25.101Z" title="更新于 2026-02-10 18:02:25">2026-02-10</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%AE%9E%E4%B9%A0%E7%AC%94%E8%AE%B0/">实习笔记</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">1.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>5分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="Packing"><a href="#Packing" class="headerlink" title="Packing"></a>Packing</h1><p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/707329908">SFT Packing详解 </a></p>
+<p><img src="/2026/01/24/SFT调优参数/image-20260120114555840.png"  alt="image-20260120114555840" style="zoom:50%;" /></p>
+<h2 id="传统数据集构建方式"><a href="#传统数据集构建方式" class="headerlink" title="传统数据集构建方式"></a>传统数据集构建方式</h2><p>大语言模型（LLM）微调中两种常见的数据构建与训练方式：<strong>单轮对话数据</strong>和<strong>多轮对话数据</strong></p>
+<h3 id="单轮：prompt-response"><a href="#单轮：prompt-response" class="headerlink" title="单轮：prompt+response"></a>单轮：prompt+response</h3><p>端到端的：模型接受的输入是prompt，需要预测的结果是response，最后计算response上token的loss。</p>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260119175219618.png" class="" title="image-20260119175219618">
+<p>如果输入文本的 Token 数量未达到 <code>--max_length (4096)</code>，系统会根据 <code>--padding_free false</code> 参数的设置，<strong>自动在序列末尾填充（Padding）占位符</strong>，以保证 Batch 内所有序列长度一致。</p>
+<h3 id="多轮：为了让模型在对话的任何阶段都能正确回答，会将一条长对话拆分成多个训练样本"><a href="#多轮：为了让模型在对话的任何阶段都能正确回答，会将一条长对话拆分成多个训练样本" class="headerlink" title="多轮：为了让模型在对话的任何阶段都能正确回答，会将一条长对话拆分成多个训练样本"></a>多轮：为了让模型在对话的任何阶段都能正确回答，会将一条长对话拆分成多个训练样本</h3><ul>
+<li><strong>第一阶段</strong>：只看 p1，预测 r1。</li>
+<li><strong>第二阶段</strong>：将第一轮作为上下文，看 [p1, r1, p2]，预测 r2。</li>
+<li><strong>第三阶段</strong>：看整个历史 [p1, r1, p2, r2, p3]，预测 r3。</li>
+</ul>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260119175334790.png" class="" title="image-20260119175334790">
+<p>这样数据层面没有损失，但是数据量大了N倍，训练的效率比较低</p>
+<h2 id="什么是Packing？"><a href="#什么是Packing？" class="headerlink" title="什么是Packing？"></a>什么是Packing？</h2><h3 id="核心定义"><a href="#核心定义" class="headerlink" title="核心定义"></a>核心定义</h3><p><strong>Packing</strong> 是指将<strong>多条不同的文本序列</strong>（短样本）合并、打包到<strong>同一个样本序列</strong>（固定长度的容器）中的过程。</p>
+<h3 id="解决的问题：减少-Padding-浪费"><a href="#解决的问题：减少-Padding-浪费" class="headerlink" title="解决的问题：减少 Padding 浪费"></a>解决的问题：减少 Padding 浪费</h3><ul>
+<li><strong>传统做法：</strong> 通常训练时为了对齐长度，需要将短文本填充（Padding）大量无效的 <code>[PAD]</code> token，使其达到 batch 中的最大长度或模型的截断长度。</li>
+<li><strong>痛点：</strong> 模型在处理这些无效的 Padding token 时依然会消耗计算资源，造成算力的浪费。</li>
+</ul>
+<h3 id="主要优势"><a href="#主要优势" class="headerlink" title="主要优势"></a>主要优势</h3><ul>
+<li><strong>减少冗余：</strong> 通过把多个短样本挤进同一个序列，大幅减少了序列中 <code>[PAD]</code> token 的数量。</li>
+<li><strong>加速训练：</strong> 提高了每个训练批次（Batch）中有效数据的占比，从而显著提升训练速度和吞吐量。</li>
+</ul>
+<h3 id="实现方式"><a href="#实现方式" class="headerlink" title="实现方式"></a>实现方式</h3><img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260119180749014.png" class="" title="image-20260119180749014">
+<p><strong>串联：</strong> 将所有训练数据（Token IDs）连成一整条超长的序列。</p>
+<p><strong>插入分隔符：</strong> 在每两个原本独立的样本之间插入终止符（如 <code>&lt;|EOS|&gt;</code>），告诉模型这里是句子的结束。</p>
+<p><strong>等长切分：</strong> 按照模型的最大长度（如 2048 或 4096）将长序列切割成若干个等长的“包（Pack）”。</p>
+<h3 id="存在的问题：模型在计算-Attention-时，会导致模型错误地吸收了跨样本的背景信息，也就是说，第二句的开头会把第一句的结尾当成自己的背景"><a href="#存在的问题：模型在计算-Attention-时，会导致模型错误地吸收了跨样本的背景信息，也就是说，第二句的开头会把第一句的结尾当成自己的背景" class="headerlink" title="存在的问题：模型在计算 Attention 时，会导致模型错误地吸收了跨样本的背景信息，也就是说，第二句的开头会把第一句的结尾当成自己的背景"></a>存在的问题：模型在计算 Attention 时，会导致模型错误地吸收了跨样本的背景信息，也就是说，第二句的开头会把第一句的结尾当成自己的背景</h3><h3 id="如何解决？——-分块掩码"><a href="#如何解决？——-分块掩码" class="headerlink" title="如何解决？—— 分块掩码"></a>如何解决？—— 分块掩码</h3><p>在一个标准的 Self-Attention 矩阵中，如果是一个长序列，Mask 通常是一个三角形（最后输入到注意力中呈现下三角矩阵）。但在 Packing 模式下，因为里面塞了好几个独立的小句子，Mask 矩阵会呈现出<strong>沿着对角线分布的“小方块”</strong>。</p>
+<p><strong>如果没有这个掩码，模型就会把原本不相关的句子强行联系在一起，导致生成的回答逻辑破碎。</strong></p>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260120114006722.png" class="" title="image-20260120114006722">
+<h1 id="DeepSpeed"><a href="#DeepSpeed" class="headerlink" title="DeepSpeed"></a>DeepSpeed</h1><p>DeepSpeed 是由 Microsoft 开发的一个开源深度学习优化库，旨在让训练超大规模模型变得<strong>更简单、更高效且更经济</strong>。</p>
+<h2 id="swift框架对应参数："><a href="#swift框架对应参数：" class="headerlink" title="swift框架对应参数："></a>swift框架对应参数：</h2><img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260120150111625.png" class="" title="image-20260120150111625">
+<h2 id="传统DDP数据并行方式：每个卡都存模型，把整块数据切片分到各个卡计算梯度，将最终的梯度平均值来作为最终的更新梯度"><a href="#传统DDP数据并行方式：每个卡都存模型，把整块数据切片分到各个卡计算梯度，将最终的梯度平均值来作为最终的更新梯度" class="headerlink" title="传统DDP数据并行方式：每个卡都存模型，把整块数据切片分到各个卡计算梯度，将最终的梯度平均值来作为最终的更新梯度"></a>传统DDP数据并行方式：每个卡都存模型，把整块数据切片分到各个卡计算梯度，将最终的梯度平均值来作为最终的更新梯度</h2><p>特点：数据并行，模型冗余。每张卡都要拿出一部分空间来进行模型存储，只能用剩下的空间来存放数据和参数</p>
+<ul>
+<li><strong>模型复制</strong>：在训练开始前，将同一个模型完整地拷贝到 N 张 GPU 上。</li>
+<li><strong>数据切分</strong>：将一个巨大的 Batch（批次）切分成 N 个小份，每张 GPU 分到一份不同的数据。</li>
+<li><strong>独立前向计算</strong>：每张 GPU 各自运行模型，计算出自己的 Loss（损失）。</li>
+<li><strong>梯度同步（关键点）</strong>：每张 GPU 计算出自己的梯度后，通过网络通信，取所有卡梯度的<strong>平均值。</strong></li>
+<li><strong>同步更新</strong>：每张卡拿到了完全一样的平均梯度，各自更新自己的参数。</li>
+</ul>
+<h1 id="ZeRO"><a href="#ZeRO" class="headerlink" title="ZeRO"></a><strong>ZeRO</strong></h1><p>是 DeepSpeed 的核心创新。它的核心思想是：<strong>消除冗余，把内存用在刀刃上。</strong></p>
+<p><strong>在训练过程中，占用显存的主要是模型状态</strong>：这是 ZeRO 解决的核心。包括：</p>
+<ul>
+<li><strong>参数 (P)</strong>：模型权重。</li>
+<li><strong>梯度 (G)</strong>：反向传播产生的梯度。</li>
+<li><strong>优化器状态 (OS)</strong>：如 Adam 的一阶和二阶矩。</li>
+</ul>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260120150036281.png" class="" title="image-20260120150036281">
+<h2 id="第一阶段（ZeRO1）：将优化器状态-OS-进行切片"><a href="#第一阶段（ZeRO1）：将优化器状态-OS-进行切片" class="headerlink" title="第一阶段（ZeRO1）：将优化器状态 (OS)进行切片"></a>第一阶段（<strong>ZeRO1</strong>）：将<strong>优化器状态 (OS)</strong>进行切片</h2><p>以 <strong>Adam 优化器</strong>为例<strong>，</strong>OS 包含两个部分：</p>
+<ol>
+<li><strong>Momentum (一阶矩/动量)</strong>：记录梯度过去的方向，类似于物体的惯性。</li>
+<li><strong>Variance (二阶矩/自适应项)</strong>：记录梯度波动的幅度，用于自动调整每个参数的学习率。</li>
+</ol>
+<p>流程：每张卡算完梯度，将梯度发送给负责该分片 OS 的“主管 GPU”，主管 GPU 更新 OS 后，再将更新后的参数传回来。</p>
+<h2 id="第二阶段（ZeRo2）：梯度分片"><a href="#第二阶段（ZeRo2）：梯度分片" class="headerlink" title="第二阶段（ZeRo2）：梯度分片"></a>第二阶段（<strong>ZeRo2</strong>）：梯度分片</h2><p>在上面基础上，每张 GPU 在计算出完整梯度后，立刻将不属于自己负责的那部分梯度通过 <code>Reduce</code> 操作发送出去并<strong>从显存中释放</strong>。</p>
+<h2 id="第三阶段（ZeRo3）：模型参数切片"><a href="#第三阶段（ZeRo3）：模型参数切片" class="headerlink" title="第三阶段（ZeRo3）：模型参数切片"></a>第三阶段（ZeRo3）：<strong>模型参数</strong>切片</h2><p>在上面基础上，每张卡只存 1/N 的模型权重，彻底消除模型冗余</p>
+<h2 id="对比"><a href="#对比" class="headerlink" title="对比"></a>对比</h2><div class="table-container">
+<table>
+<thead>
+<tr>
+<th><strong>阶段</strong></th>
+<th><strong>通信开销</strong></th>
+<th><strong>适用场景</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ZeRO-0（DDP）</strong></td>
+<td>1.0x</td>
+<td>小模型，显存极多</td>
+</tr>
+<tr>
+<td><strong>ZeRO-1</strong></td>
+<td>1.0x</td>
+<td>显存中等，追求速度</td>
+</tr>
+<tr>
+<td><strong>ZeRO-2</strong></td>
+<td>1.0x</td>
+<td><strong>大多数场景的首选</strong></td>
+</tr>
+<tr>
+<td><strong>ZeRO-3</strong></td>
+<td>1.5x</td>
+<td>超大规模模型 (LLM)</td>
+</tr>
+</tbody>
+</table>
+</div>
+<h1 id="Warmup"><a href="#Warmup" class="headerlink" title="Warmup"></a>Warmup</h1><p>由于刚开始训练时,模型的权重(weights)是<strong>随机初始化</strong>的，此时若选择一个较大的学习率,可能带来模型的<strong>不稳定(振荡)</strong>，选择Warmup预热学习率的方式，可以使得开始训练的几个epoches或者一些steps内学习率较小,<strong>在预热的小学习率下，模型可以慢慢趋于稳定,</strong>等模型<strong>相对稳定后再选择预先设置的学习率进行训练,使得模型收敛速度变得更快</strong>，模型效果更佳。</p>
+<h2 id="大致曲线：从0上升到设定的steps后下降到0"><a href="#大致曲线：从0上升到设定的steps后下降到0" class="headerlink" title="大致曲线：从0上升到设定的steps后下降到0"></a>大致曲线：从0上升到设定的steps后下降到0</h2><img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260121104531612.png" class="" title="image-20260121104531612">
+<h1 id="LoRa，QLoRa"><a href="#LoRa，QLoRa" class="headerlink" title="LoRa，QLoRa"></a>LoRa，QLoRa</h1><p>之前写的：<a target="_blank" rel="noopener" href="https://kukudelin.top/2025/08/21/LoRA，QLoRA大模型微调/">基于AutoDL云服务器的大模型LoRA微调原理及实战 | 小牛壮士</a></p>
+<h1 id="FlashAttention"><a href="#FlashAttention" class="headerlink" title="FlashAttention"></a>FlashAttention</h1><h2 id="swift框架下对应参数"><a href="#swift框架下对应参数" class="headerlink" title="swift框架下对应参数"></a>swift框架下对应参数</h2><p>注意：Flash Attention已经集成到了pytorch2.0+中，可以很便捷的调用，尽量避免去自己编译（pip install Flash Attention），<strong>耗时长且容易把服务器搞崩</strong></p>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260121105608865.png" class="" title="image-20260121105608865">
+<h2 id="原理"><a href="#原理" class="headerlink" title="原理"></a>原理</h2><p><strong>实际由原来的直接在HBM上计算，变成了从HBM上加载到SRAM计算，然后将结果传到HBM</strong></p>
+<p>在 GPU 上，内存主要分为两种：</p>
+<ul>
+<li><strong>HBM (High Bandwidth Memory)</strong>：主显存，容量大（如 80GB），但读写速度慢。</li>
+<li><strong>SRAM</strong>：片上缓存，读写极快，但容量极小（每核仅几百 KB）。</li>
+</ul>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260121105647662.png" class="" title="image-20260121105647662">
+<p>FlashAttention的核心原理是将输入QKV分块，并保证每个块能够在SRAM（一级缓存）上完成注意力操作，并将结果更新回HBM，从而降低对高带宽内存（HBM）的读写操作。总之，FlashAttention从GPU的内存读写入手，减少了内存读写量，从而实现2~4倍的速度提升。</p>
+<img src="/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/image-20260121105703695.png" class="" title="image-20260121105703695">
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th><strong>特性</strong></th>
+<th><strong>标准 Attention</strong></th>
+<th><strong>FlashAttention</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>内存复杂度</strong></td>
+<td>$O(N^2)$ (随序列长度平方增长)</td>
+<td><strong>$O(N)$ (随序列长度线性增长)</strong></td>
+</tr>
+<tr>
+<td><strong>计算精度</strong></td>
+<td>精确计算</td>
+<td><strong>精确计算 (与标准一致)</strong></td>
+</tr>
+<tr>
+<td><strong>IO 读写</strong></td>
+<td>频繁读写大型中间矩阵</td>
+<td>极少读写，主要在 SRAM 内部完成</td>
+</tr>
+<tr>
+<td><strong>适用场景</strong></td>
+<td>短文本</td>
+<td><strong>长文本 (16k, 32k 甚至更高)</strong></td>
+</tr>
+</tbody>
+</table>
+</div>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/">http://example.com/2026/01/24/SFT%E8%B0%83%E4%BC%98%E5%8F%82%E6%95%B0/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Git与GitLab的实战</div></div><div class="info-2"><div class="info-item-1">Git与GitLab的企业实战第1章 Git概述Git是一个免费的、开源的分布式版本控制系统，可以快速高效地处理从小型到大型的各种项目。 Git易于学习，占地面积小，性能极快。 它具有廉价的本地库，方便的暂存区域和多个工作流分支等特性。其性能优于Subversion(svn)、CVS、Perforce和ClearCase等版本控制工具。 1. 何为版本控制版本控制是一种记录文件内容变化，以便将来查阅特定版本修订情况的系统。 版本控制其实最重要的是可以记录文件修改历史记录，从而让用户能够查看历史版本，方便版本切换。   2. 为什么需要版本控制个人开发过渡到团队协作。   3. 版本控制工具 集中式版本控制工具  CVS、SVN(Subversion)、VSS…… 集中化的版本控制系统诸如 CVS、SVN等，都有一个单一的集中管理的服务器，保存所有文件的修订版本，而协同工作的人们都通过客户端连到这台服务器，取出最新的文件或者提交更新。多年以来，这已成为版本控制系统的标准做法。 这种做法带来了许多好处，每个人都可以在一定程度上看到项目中的其他人正在做些什么。而管理员也可以轻松掌控每个...</div></div></div></a><a class="pagination-related" href="/2026/01/11/RAG%E4%BC%98%E5%8C%96%E7%AD%96%E7%95%A5%E6%B1%87%E6%80%BB/" title="RAG优化策略汇总"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">RAG优化策略汇总</div></div><div class="info-2"><div class="info-item-1">数据层——chunks策略优化经典RAG系统面临接受文档长度有限的问题，当私有数据量过大时，传入所有context信息可能导致提示词过长，从而影响模型的处理效率或达到长度上限。在这个流程中，要实现高质量的检索，需要对原始知识文档进行有效的预处理，这也就引出了 RAG 流程中一个至关重要的准备工作——文档分块 (Chunking)。 固定大小分块按照预先设定的固定长度（ 最大 token 数）将文本进行切割。为了尽量减少信息损失，通常会在相邻的块之间保留一部分重叠内容（Overlap）。  语义分块将语义关联紧密的句子或段落聚合在一起。 先将文本分成基础单元（如句子），然后计算相邻单元的语义相似度（例如通过嵌入向量的余弦相似度），如果相似度高于某个阈值，则合并这些单元，直到相似度显著下降时才创建一个新的块。  递归分块优先按段落等大语义标识切割，对超限部分逐级降维、递归细化（如换行、句点），直至全部分块达标，实现“大块优先、语义保护、按需精分。  基于文档结构的分块直接利用文档本身固有的、明确的结构元素（如标题层级、章节、列表项、表格、代码块、Markdown 标记等）来定义块的边...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Packing"><span class="toc-number">1.</span> <span class="toc-text">Packing</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9F%E6%95%B0%E6%8D%AE%E9%9B%86%E6%9E%84%E5%BB%BA%E6%96%B9%E5%BC%8F"><span class="toc-number">1.1.</span> <span class="toc-text">传统数据集构建方式</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8D%95%E8%BD%AE%EF%BC%9Aprompt-response"><span class="toc-number">1.1.1.</span> <span class="toc-text">单轮：prompt+response</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%9A%E8%BD%AE%EF%BC%9A%E4%B8%BA%E4%BA%86%E8%AE%A9%E6%A8%A1%E5%9E%8B%E5%9C%A8%E5%AF%B9%E8%AF%9D%E7%9A%84%E4%BB%BB%E4%BD%95%E9%98%B6%E6%AE%B5%E9%83%BD%E8%83%BD%E6%AD%A3%E7%A1%AE%E5%9B%9E%E7%AD%94%EF%BC%8C%E4%BC%9A%E5%B0%86%E4%B8%80%E6%9D%A1%E9%95%BF%E5%AF%B9%E8%AF%9D%E6%8B%86%E5%88%86%E6%88%90%E5%A4%9A%E4%B8%AA%E8%AE%AD%E7%BB%83%E6%A0%B7%E6%9C%AC"><span class="toc-number">1.1.2.</span> <span class="toc-text">多轮：为了让模型在对话的任何阶段都能正确回答，会将一条长对话拆分成多个训练样本</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AFPacking%EF%BC%9F"><span class="toc-number">1.2.</span> <span class="toc-text">什么是Packing？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E5%AE%9A%E4%B9%89"><span class="toc-number">1.2.1.</span> <span class="toc-text">核心定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E8%A7%A3%E5%86%B3%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9A%E5%87%8F%E5%B0%91-Padding-%E6%B5%AA%E8%B4%B9"><span class="toc-number">1.2.2.</span> <span class="toc-text">解决的问题：减少 Padding 浪费</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BB%E8%A6%81%E4%BC%98%E5%8A%BF"><span class="toc-number">1.2.3.</span> <span class="toc-text">主要优势</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AE%9E%E7%8E%B0%E6%96%B9%E5%BC%8F"><span class="toc-number">1.2.4.</span> <span class="toc-text">实现方式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%AD%98%E5%9C%A8%E7%9A%84%E9%97%AE%E9%A2%98%EF%BC%9A%E6%A8%A1%E5%9E%8B%E5%9C%A8%E8%AE%A1%E7%AE%97-Attention-%E6%97%B6%EF%BC%8C%E4%BC%9A%E5%AF%BC%E8%87%B4%E6%A8%A1%E5%9E%8B%E9%94%99%E8%AF%AF%E5%9C%B0%E5%90%B8%E6%94%B6%E4%BA%86%E8%B7%A8%E6%A0%B7%E6%9C%AC%E7%9A%84%E8%83%8C%E6%99%AF%E4%BF%A1%E6%81%AF%EF%BC%8C%E4%B9%9F%E5%B0%B1%E6%98%AF%E8%AF%B4%EF%BC%8C%E7%AC%AC%E4%BA%8C%E5%8F%A5%E7%9A%84%E5%BC%80%E5%A4%B4%E4%BC%9A%E6%8A%8A%E7%AC%AC%E4%B8%80%E5%8F%A5%E7%9A%84%E7%BB%93%E5%B0%BE%E5%BD%93%E6%88%90%E8%87%AA%E5%B7%B1%E7%9A%84%E8%83%8C%E6%99%AF"><span class="toc-number">1.2.5.</span> <span class="toc-text">存在的问题：模型在计算 Attention 时，会导致模型错误地吸收了跨样本的背景信息，也就是说，第二句的开头会把第一句的结尾当成自己的背景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%EF%BC%9F%E2%80%94%E2%80%94-%E5%88%86%E5%9D%97%E6%8E%A9%E7%A0%81"><span class="toc-number">1.2.6.</span> <span class="toc-text">如何解决？—— 分块掩码</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#DeepSpeed"><span class="toc-number">2.</span> <span class="toc-text">DeepSpeed</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#swift%E6%A1%86%E6%9E%B6%E5%AF%B9%E5%BA%94%E5%8F%82%E6%95%B0%EF%BC%9A"><span class="toc-number">2.1.</span> <span class="toc-text">swift框架对应参数：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BC%A0%E7%BB%9FDDP%E6%95%B0%E6%8D%AE%E5%B9%B6%E8%A1%8C%E6%96%B9%E5%BC%8F%EF%BC%9A%E6%AF%8F%E4%B8%AA%E5%8D%A1%E9%83%BD%E5%AD%98%E6%A8%A1%E5%9E%8B%EF%BC%8C%E6%8A%8A%E6%95%B4%E5%9D%97%E6%95%B0%E6%8D%AE%E5%88%87%E7%89%87%E5%88%86%E5%88%B0%E5%90%84%E4%B8%AA%E5%8D%A1%E8%AE%A1%E7%AE%97%E6%A2%AF%E5%BA%A6%EF%BC%8C%E5%B0%86%E6%9C%80%E7%BB%88%E7%9A%84%E6%A2%AF%E5%BA%A6%E5%B9%B3%E5%9D%87%E5%80%BC%E6%9D%A5%E4%BD%9C%E4%B8%BA%E6%9C%80%E7%BB%88%E7%9A%84%E6%9B%B4%E6%96%B0%E6%A2%AF%E5%BA%A6"><span class="toc-number">2.2.</span> <span class="toc-text">传统DDP数据并行方式：每个卡都存模型，把整块数据切片分到各个卡计算梯度，将最终的梯度平均值来作为最终的更新梯度</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ZeRO"><span class="toc-number">3.</span> <span class="toc-text">ZeRO</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%80%E9%98%B6%E6%AE%B5%EF%BC%88ZeRO1%EF%BC%89%EF%BC%9A%E5%B0%86%E4%BC%98%E5%8C%96%E5%99%A8%E7%8A%B6%E6%80%81-OS-%E8%BF%9B%E8%A1%8C%E5%88%87%E7%89%87"><span class="toc-number">3.1.</span> <span class="toc-text">第一阶段（ZeRO1）：将优化器状态 (OS)进行切片</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%BA%8C%E9%98%B6%E6%AE%B5%EF%BC%88ZeRo2%EF%BC%89%EF%BC%9A%E6%A2%AF%E5%BA%A6%E5%88%86%E7%89%87"><span class="toc-number">3.2.</span> <span class="toc-text">第二阶段（ZeRo2）：梯度分片</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%AC%AC%E4%B8%89%E9%98%B6%E6%AE%B5%EF%BC%88ZeRo3%EF%BC%89%EF%BC%9A%E6%A8%A1%E5%9E%8B%E5%8F%82%E6%95%B0%E5%88%87%E7%89%87"><span class="toc-number">3.3.</span> <span class="toc-text">第三阶段（ZeRo3）：模型参数切片</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E6%AF%94"><span class="toc-number">3.4.</span> <span class="toc-text">对比</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Warmup"><span class="toc-number">4.</span> <span class="toc-text">Warmup</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A4%A7%E8%87%B4%E6%9B%B2%E7%BA%BF%EF%BC%9A%E4%BB%8E0%E4%B8%8A%E5%8D%87%E5%88%B0%E8%AE%BE%E5%AE%9A%E7%9A%84steps%E5%90%8E%E4%B8%8B%E9%99%8D%E5%88%B00"><span class="toc-number">4.1.</span> <span class="toc-text">大致曲线：从0上升到设定的steps后下降到0</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#LoRa%EF%BC%8CQLoRa"><span class="toc-number">5.</span> <span class="toc-text">LoRa，QLoRa</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#FlashAttention"><span class="toc-number">6.</span> <span class="toc-text">FlashAttention</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#swift%E6%A1%86%E6%9E%B6%E4%B8%8B%E5%AF%B9%E5%BA%94%E5%8F%82%E6%95%B0"><span class="toc-number">6.1.</span> <span class="toc-text">swift框架下对应参数</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8E%9F%E7%90%86"><span class="toc-number">6.2.</span> <span class="toc-text">原理</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="claude code+国产模型部署和使用"/></a><div class="content"><a class="title" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用">claude code+国产模型部署和使用</a><time datetime="2026-02-17T11:10:14.000Z" title="发表于 2026-02-17 19:10:14">2026-02-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MCP学习笔记"/></a><div class="content"><a class="title" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记">MCP学习笔记</a><time datetime="2026-02-12T12:23:35.000Z" title="发表于 2026-02-12 20:23:35">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="UV环境管理"/></a><div class="content"><a class="title" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理">UV环境管理</a><time datetime="2026-01-29T02:08:18.000Z" title="发表于 2026-01-29 10:08:18">2026-01-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="docker笔记"/></a><div class="content"><a class="title" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记">docker笔记</a><time datetime="2026-01-27T04:18:18.000Z" title="发表于 2026-01-27 12:18:18">2026-01-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Git与GitLab的实战"/></a><div class="content"><a class="title" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战">Git与GitLab的实战</a><time datetime="2026-01-25T12:08:18.000Z" title="发表于 2026-01-25 20:08:18">2026-01-25</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>

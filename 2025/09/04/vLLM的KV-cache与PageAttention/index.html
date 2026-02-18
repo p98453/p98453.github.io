@@ -1,0 +1,225 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>vLLM的优势——KV cache与PageAttention | 小牛壮士</title><meta name="author" content="kukudelin"><meta name="copyright" content="kukudelin"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="前言参考文章： (19 封私信) 长篇白话解读vLLM：让大模型推理快得飞起的“黑魔法” - 知乎 (19 封私信) 一文详解八款主流大模型推理框架 - 知乎 训练好的大模型本质上就是一堆参数文件（权重）+ 结构定义，它自己不能直接对外服务。要真正让别人（前端、业务系统、APP 用户）用起来，就必须把它部署成一个可调用的系统。 理解为：  训练完的模型 &#x3D; 一本厚厚的书，放在你电脑里，别人看不到。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="vLLM的优势——KV cache与PageAttention">
+<meta property="og:url" content="http://example.com/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/index.html">
+<meta property="og:site_name" content="小牛壮士">
+<meta property="og:description" content="前言参考文章： (19 封私信) 长篇白话解读vLLM：让大模型推理快得飞起的“黑魔法” - 知乎 (19 封私信) 一文详解八款主流大模型推理框架 - 知乎 训练好的大模型本质上就是一堆参数文件（权重）+ 结构定义，它自己不能直接对外服务。要真正让别人（前端、业务系统、APP 用户）用起来，就必须把它部署成一个可调用的系统。 理解为：  训练完的模型 &#x3D; 一本厚厚的书，放在你电脑里，别人看不到。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png">
+<meta property="article:published_time" content="2025-09-04T07:19:12.000Z">
+<meta property="article:modified_time" content="2025-09-19T10:55:53.611Z">
+<meta property="article:author" content="kukudelin">
+<meta property="article:tag" content="Python基础 OpenCV NLP 大模型">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "vLLM的优势——KV cache与PageAttention",
+  "url": "http://example.com/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/",
+  "image": "http://example.com/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png",
+  "datePublished": "2025-09-04T07:19:12.000Z",
+  "dateModified": "2025-09-19T10:55:53.611Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "kukudelin",
+      "url": "http://example.com"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/%E5%A4%B4%E5%83%8F.png"><link rel="canonical" href="http://example.com/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":300,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'vLLM的优势——KV cache与PageAttention',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><link rel="stylesheet" href="/fonts/fonts.css"><meta name="generator" content="Hexo 7.3.0"></head><body><div id="web_bg" style="background-image: url(/img/%E4%B8%BB%E9%A1%B5%E8%83%8C%E6%99%AF%E5%9B%BE.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">小牛壮士</span></a><a class="nav-page-title" href="/"><span class="site-name">vLLM的优势——KV cache与PageAttention</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/categories"><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">vLLM的优势——KV cache与PageAttention</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-09-04T07:19:12.000Z" title="发表于 2025-09-04 15:19:12">2025-09-04</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-09-19T10:55:53.611Z" title="更新于 2025-09-19 18:55:53">2025-09-19</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E5%A4%A7%E6%A8%A1%E5%9E%8B%E5%BC%80%E5%8F%91/">大模型开发</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">2.5k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>7分钟</span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h1><p><strong>参考文章：</strong></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/1891089721192599865">(19 封私信) 长篇白话解读vLLM：让大模型推理快得飞起的“黑魔法” - 知乎</a></p>
+<p><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/32055623013">(19 封私信) 一文详解八款主流大模型推理框架 - 知乎</a></p>
+<p>训练好的大模型本质上就是一堆<strong>参数文件（权重）+ 结构定义</strong>，它自己不能直接对外服务。要真正让别人（前端、业务系统、APP 用户）用起来，就必须把它<strong>部署</strong>成一个可调用的系统。</p>
+<p>理解为：</p>
+<ul>
+<li><strong>训练完的模型</strong> = 一本厚厚的书，放在你电脑里，别人看不到。</li>
+<li><strong>部署好的模型服务</strong> = 建了一个图书馆窗口，别人能来借书、问问题。</li>
+</ul>
+<p>目前主流的大模型推理框架有Hugging Face（国外），ModelScope（国内），Ollama，以及本篇文章要着重介绍的vLLM。</p>
+<p>对于获取句子嵌入向量的大模型，可以使用更加便捷的Sentence Transformers库，我们在后面的文章中会介绍。</p>
+<h1 id="一、Hugging-Face-ModelScope（魔塔社区）"><a href="#一、Hugging-Face-ModelScope（魔塔社区）" class="headerlink" title="一、Hugging Face/ModelScope（魔塔社区）"></a>一、Hugging Face/ModelScope（魔塔社区）</h1><p>这两个平台本质都差不多，都是<strong>通过调用 API 或 SDK 来下载、加载和推理模型，适合用来下载到本地部署和运行推理，只是 Hugging Face 更国际化、生态更全，而 ModelScope 在中文和国内部署上更有优势</strong></p>
+<ul>
+<li>API 是一组“<strong>接口规范</strong>”，告诉你能调用什么，写好请求数据后直接调用 HTTP POST请求</li>
+<li>SDK 是一个“<strong>工具包</strong>”，在 API 基础上封装好代码和工具，让你更方便地调用和开发，用pipeline实现。</li>
+</ul>
+<p>分别提供一个示例：</p>
+<p><strong>API：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line"><span class="comment"># 模型推理 API 地址</span></span><br><span class="line">url = <span class="string">&quot;https://api.example.com/v1/text-generation&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 请求数据</span></span><br><span class="line">payload = &#123;</span><br><span class="line">    <span class="string">&quot;model&quot;</span>: <span class="string">&quot;gpt2&quot;</span>,</span><br><span class="line">    <span class="string">&quot;prompt&quot;</span>: <span class="string">&quot;今天天气很好，&quot;</span>,</span><br><span class="line">    <span class="string">&quot;max_tokens&quot;</span>: <span class="number">50</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment"># 直接调用 HTTP POST</span></span><br><span class="line">response = requests.post(url, json=payload)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 返回结果</span></span><br><span class="line"><span class="built_in">print</span>(response.json())</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p><strong>SDK：</strong></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">from</span> transformers <span class="keyword">import</span> pipeline</span><br><span class="line"></span><br><span class="line"><span class="comment"># 一行代码创建文本生成器</span></span><br><span class="line"></span><br><span class="line">generator = pipeline(<span class="string">&quot;text-generation&quot;</span>, model=<span class="string">&quot;gpt2&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 调用推理</span></span><br><span class="line"></span><br><span class="line">result = generator(<span class="string">&quot;今天天气很好，&quot;</span>, max_length=<span class="number">50</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 返回结果</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">print</span>(result)</span><br></pre></td></tr></table></figure>
+<h1 id="二、Ollama"><a href="#二、Ollama" class="headerlink" title="二、Ollama"></a>二、Ollama</h1><p>Ollama 目标在于简化在 <a target="_blank" rel="noopener" href="https://zhida.zhihu.com/search?content_id=242434953&amp;content_type=Article&amp;match_order=1&amp;q=Docker&amp;zhida_source=entity">Docker</a> 容器中部署大型语言模型的过程，使得非专业用户也能方便地管理和运行这些复杂的模型，并且能够<strong>离线使用</strong>，但是只适合部署在本地。</p>
+<h1 id="三、vLLM"><a href="#三、vLLM" class="headerlink" title="三、vLLM"></a>三、vLLM</h1><p>前两种模型虽然的确能够部署一些中小型的模型，但是当参数量来到千亿级别，就会出现<strong>显存瓶颈、计算延迟和高成本（硬件资源消耗大和时间成本高）</strong>的问题，这个时候就要请出我们的真神——<strong>vLLM</strong></p>
+<h2 id="3-1-LLM-Inference面临的问题"><a href="#3-1-LLM-Inference面临的问题" class="headerlink" title="3.1 LLM Inference面临的问题"></a>3.1 LLM Inference面临的问题</h2><h3 id="3-1-1-自回归生成模式的隐患"><a href="#3-1-1-自回归生成模式的隐患" class="headerlink" title="3.1.1 自回归生成模式的隐患"></a>3.1.1 自回归生成模式的隐患</h3><p>LLM（尤其是GPT类）的自回归生成方式是“<strong>一个字一个字往外蹦</strong>”：模型<strong>先一次性处理初始输入，然后基于输入预测第一个token，接着把第一个token拼接到输入后形成新序列，再基于新序列预测第二个token</strong>，如此循环，直到生成结束符或达到最大长度限制。</p>
+<p>这种模式下，每生成一个新token都要进行一次完整的前向计算，虽然每次只生成一个token，但因需回顾前面所有内容，计算量依然很大。</p>
+<h3 id="3-1-2-KV-Cache的局限"><a href="#3-1-2-KV-Cache的局限" class="headerlink" title="3.1.2 KV Cache的局限"></a>3.1.2 KV Cache的局限</h3><p>既然每次生成一个token都需要计算前面的所有内容，那我能不能把前面的内容缓存起来，当<strong>生成新的token时，只需要计算这个新token的QKV</strong>，这样就可以极大的减少重复的运算了</p>
+<p>首先我们来回顾一下Transformer的整套流程，大致分为Encoder 和 Decoder两部分，前面文章都有详细结构解析，这里只是补充一下当我们输入文本时，Transformers会如何处理。</p>
+<p><strong>总的来说</strong>，当我输入一个文本，该文本数据会先 经过一个叫Encoders的模块，对该文本进行编码，然后将编码后的数据再传入一个叫Decoders的模块进行解码，解码后就得到了翻译后的文本，对应的我们称Encoder为编码器，Decoder为解码器。</p>
+<p><img src="/2025/09/04/vLLM的KV-cache与PageAttention/image-20250916160611392.png"  alt="image-20250916160611392" style="zoom:25%;" /></p>
+<p><strong>详细拆解，</strong>在Transformer模型中，编码器通过嵌入层和位置编码将输入序列的每个token（<strong>初始状态下，一个token就是嵌入矩阵的一行</strong>）转换为向量表示，并输入到由多层编码器层堆叠而成的编码器中。每个编码器层包含多头自注意力和前馈神经网络两个子层，多头自注意力通过Q、K、V的点积计算注意力得分并加权求和，随后应用残差连接和层归一化，再传递给前馈神经网络进行进一步处理。经过所有编码器层后，生成包含输入序列语义和句法信息的上下文表示。</p>
+<p>解码器以目标序列的初始token（如BOS）为输入，由多层解码器层堆叠而成，每层包含掩码多头自注意力、编码器-解码器注意力和前馈神经网络三个子层。掩码多头自注意力屏蔽未来token，编码器-解码器注意力结合编码器的上下文信息，同样应用残差连接和层归一化。解码器逐个生成目标序列的token，每次生成后更新输入和KV缓存，KV缓存存储已计算的K和V（<strong>生成下一个token的第一轮计算</strong>），提高生成效率。最终，解码器通过线性层和softmax层输出概率分布，生成下一个token。</p>
+<p><strong>（上面这段话很重要）</strong></p>
+<p><img src="/2025/09/04/vLLM的KV-cache与PageAttention/image-20250916170006457.png"  alt="image-20250916170006457" style="zoom: 50%;" /></p>
+<p><strong>下面贴了一个对话我们以这个对话来探究</strong> ★★</p>
+<p><img src="/2025/09/04/vLLM的KV-cache与PageAttention/image-20250916161246503.png"  alt="image-20250916161246503" style="zoom:50%;" /></p>
+<p><strong>“用一段话介绍一下成都”</strong>：</p>
+<p>把这句话用<strong>Tokenizer和Word2Vec</strong>分成多个tokens的词嵌入向量，经过位置编码后进入编码器，生成上下文表示并把其中的K和V转递给解码器，由于是生成的第一个token，所以初始化一个BOS，在经过第一个注意力机制计算得到的K,V缓存到KV Cache中，再经过编码器传递过来的K和V输出第一个token，以此类推，输出第一个问题的所有回答。</p>
+<p><strong>“再用一段话介绍一下它的历史”</strong>：</p>
+<p>明明已经是第二个问题了，大模型是怎么知道”他”是谁呢？</p>
+<p>这是因为我们将大模型在上一个问题的回答添加进入了上下文中一起提交给大模型，所以别看你只是提了一个简短的问题，实际上输入大模型的内容还有他上一轮的回答以及其他检索到的知识点，输入的上下文在经过同样的流程生成这个问题的所有tokens</p>
+<p><strong>但是，KV缓存是有代价的</strong></p>
+<p>当对话的tokens足够多时， KV Cache 非常<strong>占用显存</strong>，一个稍微大点的 Batch Size（每次处理句子数量），或者长一点的序列，KV Cache 就能轻松吃掉几十 GB 甚至上百 GB 的显存</p>
+<h3 id="3-1-3-显存加载的瓶颈"><a href="#3-1-3-显存加载的瓶颈" class="headerlink" title="3.1.3 显存加载的瓶颈"></a>3.1.3 显存加载的瓶颈</h3><p><strong>Decoder主要分为两个阶段</strong></p>
+<ul>
+<li>Prefill阶段：<ul>
+<li>主要<strong>处理输入Prompt，</strong>涉及大量矩阵乘法（如Attention计算和Feed Forward网络），计算量密集，能够较好地利用GPU的计算能力。</li>
+</ul>
+</li>
+<li>Decoding阶段：<ul>
+<li>逐个生成Token，每次只处理一个新token，计算量相对较小。</li>
+<li>但每次计算都需要从显存中读取巨大的模型权重（几十GB）和不断增长的KV Cache（几GB到几十GB）。</li>
+<li>在这个阶段，GPU大部分时间都在等待数据从显存加载到计算单元。</li>
+</ul>
+</li>
+</ul>
+<p><strong>Decoding阶段的GPU无法充分利用其强大的计算能力，就像一个干活快的“牛马”因“搬砖”速度慢而闲置。</strong></p>
+<p>★  <strong>并且，在显存中采用预先分配内存的方式，导致大量空间浪费（内部碎片），每次都按照最大序列长度来分配一块显存空间，根本不考虑实际输入的文本长度，导致大量的空间没有被填满造成处理效率低下</strong></p>
+<h2 id="3-2-vLLM的破局之法——PageAttention"><a href="#3-2-vLLM的破局之法——PageAttention" class="headerlink" title="3.2 vLLM的破局之法——PageAttention"></a>3.2 vLLM的破局之法——PageAttention</h2><p>上述的问题总结下来都是一个问题——显存不够，那么在有限的资源下，怎么才能更好地利用显存呢？</p>
+<p>PagedAttention 不再为每个序列预分配一个巨大的、连续的显存块来存储 KV Cache,而是把它切分成小块，<strong>需要就加，不够就补</strong>，用一个个小的显存块为不断增大的KV Cache提供存储空间</p>
+<p><strong>举个例子：</strong></p>
+<p><strong>假设每个物理块大小为64KB，显存被划分为多个这样的物理块。</strong>当用户输入一个Prompt时，模型开始处理，此时仅需要64KB的KV Cache，于是从空闲物理块池中分配<strong>1个物理块</strong>（假设是块1），并在块表中记录逻辑块1映射到物理块1。随后，模<strong>型开始生成后续Token，KV Cache需要更多空间，超出当前已分配的物理块时，就从空闲物理块池中再分配1个物理块（假设是块2）</strong>，并在块表中记录逻辑块2映射到物理块2。随着模型继续生成更多Token，需要更多空间时，继续分配新的物理块（假设是块3），并更新块表记录逻辑块3映射到物理块3。</p>
+<p>PagedAttention通过这种“需要就加，不够就补”的机制，将KV Cache分成一个个小的物理块进行动态管理，避免了预分配大块显存的浪费，同时灵活地支持KV Cache的动态增长。</p>
+<img src="/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/image-20250916180955518.png" class="" title="image-20250916180955518">
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">kukudelin</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/">http://example.com/2025/09/04/vLLM%E7%9A%84KV-cache%E4%B8%8EPageAttention/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">小牛壮士</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/09/06/RAG%E7%9A%84%E8%AF%84%E4%BC%B0%EF%BC%88RAGAS%EF%BC%89%E5%92%8C%E6%A3%80%E7%B4%A2%E4%BC%98%E5%8C%96/" title="RAG的评估（RAGAS）和检索优化"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">RAG的评估（RAGAS）和检索优化</div></div><div class="info-2"><div class="info-item-1">前言：评估RAG有效性主要采用两种方法：独立评估和端到端评估。这两种方法从不同角度检验RAG系统的效能，确保其在各个组成部分均表现出色。 一、独立评估独立评估侧重于对RAG系统中检索模块和生成模块的单独评估，以确保每个模块都能有效地完成其任务 1.1 检索模块评估检索模块能够从知识库中检索到与输入查询最相关的内容的能力，这些指标衡量了系统在给定查询或任务下的项目排名效能，包括命中率（Hit Rate）、平均排名倒数（MRR）、归一化折损累积增益（NDCG）、精度（Precision）等。 1.1.1 命中率（Hit Rate）很好理解，就是看总的查询里面有几次查到了文档  举例：  检索系统命中率计算示例： 假设我们有一个简单的检索系统和以下的查询记录：  总共有10次查询。  在这10次查询中，有7次查询检索到了至少一个相关的文档。      命中率计算公式：      结果解释：在所有查询中，有 $70\%$ 的查询至少检索到了一个相关文档，显示出检索系统对用户查询有较好的响应能力。  1.1.2 平均排名倒数（MRR） 在文档A、文档B、文档C、文档D中，我们人工标注文档C...</div></div></div></a><a class="pagination-related" href="/2025/09/01/RAG%E2%80%94%E2%80%94%E6%A3%80%E7%B4%A2%E5%A2%9E%E5%BC%BA%E7%94%9F%E6%88%90/" title="RAG——检索增强生成"><img class="cover" src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">RAG——检索增强生成</div></div><div class="info-2"><div class="info-item-1">前言：大模型在生成回答的时候，有时总是会词不达意，甚至毫无根据的乱说一通，我们把这种现象称为大模型的幻觉 产生幻觉问题主要是因为其基于大量数据和复杂算法进行概率性预测来生成内容，当遇到训练数据中未充分覆盖或模糊不清的情境时，容易生成看似合理但实际错误或无根据的信息，且难以自我验证内容的真实性，然而大模型的生成机制是计算出下一个最有可能出现的词或短语。这种概率生成的方式本身没有绝对的对错判断机制。** 另外，在实际生产中，还需要面临时效性和可解释性的问题，更具具体业务来生成有针对性的回答，实现这个功能似乎微调能够办到，但是不可能每次有需要更新的内容都微调一次，这样成本太高了 因此我们在大模型中引入RAG技术，通过丰富大模型上下文来大幅提高模型输出质量 一、什么是RAG？通俗点来讲，就是相当于给大模型提供了一个专属图书馆，前期通过数据预处理，把原始文档（PDF、Word、图片等）处理成机器能理解的 “知识片段”，并存储到向量数据库中，在客户向大模型提问（Query）时，大模型通过分析Query，在数据库中检索到与之相关的知识块添加到上下文一起作为prompt传入大模型  R： Ret...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/%E5%A4%B4%E5%83%8F.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">kukudelin</div><div class="author-info-description">林勇的个人博客</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">58</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/p98453"><i class="fab fa-github"></i><span>个人开源项目🎯</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://blog.csdn.net/hdsbdjsjsbs?type=blog" target="_blank" title="CSDN"><i class="fa-solid fa-blog fa-bounce" style="color: #fc5531;"></i></a><a class="social-icon" href="mailto:3224688576@qq.com" target="_blank" title="Email"><i class="fa-brands fa-qq fa-bounce" style="color: #4a7dbe;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">欢迎来到我的小站</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%89%8D%E8%A8%80"><span class="toc-number">1.</span> <span class="toc-text">前言</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%80%E3%80%81Hugging-Face-ModelScope%EF%BC%88%E9%AD%94%E5%A1%94%E7%A4%BE%E5%8C%BA%EF%BC%89"><span class="toc-number">2.</span> <span class="toc-text">一、Hugging Face&#x2F;ModelScope（魔塔社区）</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BA%8C%E3%80%81Ollama"><span class="toc-number">3.</span> <span class="toc-text">二、Ollama</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%89%E3%80%81vLLM"><span class="toc-number">4.</span> <span class="toc-text">三、vLLM</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#3-1-LLM-Inference%E9%9D%A2%E4%B8%B4%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">4.1.</span> <span class="toc-text">3.1 LLM Inference面临的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-1-%E8%87%AA%E5%9B%9E%E5%BD%92%E7%94%9F%E6%88%90%E6%A8%A1%E5%BC%8F%E7%9A%84%E9%9A%90%E6%82%A3"><span class="toc-number">4.1.1.</span> <span class="toc-text">3.1.1 自回归生成模式的隐患</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-2-KV-Cache%E7%9A%84%E5%B1%80%E9%99%90"><span class="toc-number">4.1.2.</span> <span class="toc-text">3.1.2 KV Cache的局限</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-3-%E6%98%BE%E5%AD%98%E5%8A%A0%E8%BD%BD%E7%9A%84%E7%93%B6%E9%A2%88"><span class="toc-number">4.1.3.</span> <span class="toc-text">3.1.3 显存加载的瓶颈</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-2-vLLM%E7%9A%84%E7%A0%B4%E5%B1%80%E4%B9%8B%E6%B3%95%E2%80%94%E2%80%94PageAttention"><span class="toc-number">4.2.</span> <span class="toc-text">3.2 vLLM的破局之法——PageAttention</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="claude code+国产模型部署和使用"/></a><div class="content"><a class="title" href="/2026/02/17/claude-code-%E5%9B%BD%E4%BA%A7%E6%A8%A1%E5%9E%8B/" title="claude code+国产模型部署和使用">claude code+国产模型部署和使用</a><time datetime="2026-02-17T11:10:14.000Z" title="发表于 2026-02-17 19:10:14">2026-02-17</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="MCP学习笔记"/></a><div class="content"><a class="title" href="/2026/02/12/MCP%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/" title="MCP学习笔记">MCP学习笔记</a><time datetime="2026-02-12T12:23:35.000Z" title="发表于 2026-02-12 20:23:35">2026-02-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="UV环境管理"/></a><div class="content"><a class="title" href="/2026/01/29/UV%E7%8E%AF%E5%A2%83%E7%AE%A1%E7%90%86/" title="UV环境管理">UV环境管理</a><time datetime="2026-01-29T02:08:18.000Z" title="发表于 2026-01-29 10:08:18">2026-01-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="docker笔记"/></a><div class="content"><a class="title" href="/2026/01/27/docker%E7%AC%94%E8%AE%B0/" title="docker笔记">docker笔记</a><time datetime="2026-01-27T04:18:18.000Z" title="发表于 2026-01-27 12:18:18">2026-01-27</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战"><img src="/img/%E6%96%87%E7%AB%A0%E9%BB%98%E8%AE%A4%E5%B0%81%E9%9D%A2.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="Git与GitLab的实战"/></a><div class="content"><a class="title" href="/2026/01/25/Git%E4%B8%8EGitLab%E7%9A%84%E5%AE%9E%E6%88%98/" title="Git与GitLab的实战">Git与GitLab的实战</a><time datetime="2026-01-25T12:08:18.000Z" title="发表于 2026-01-25 20:08:18">2026-01-25</time></div></div></div></div></div></div></main><footer id="footer"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2025 - 2026 By kukudelin</span><span class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo 7.3.0</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly 5.4.3</a></span></div><div class="footer_custom_text">平静的大海培养不出优秀的水手</div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div></div></body></html>
