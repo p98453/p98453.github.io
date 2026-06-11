@@ -243,21 +243,25 @@
 
     const title = document.createElement('div');
     title.className = 'kb-chat-sources-title';
-    title.textContent = `📖 参考来源 (${sources.length} 篇)`;
+    title.textContent = `📖 参考来源 (${sources.length} 篇) — 点击折叠`;
+    title.addEventListener('click', () => {
+      title.classList.toggle('kb-chat-sources-collapsed');
+      list.classList.toggle('kb-chat-sources-collapsed');
+    });
     ui.sources.appendChild(title);
 
+    const list = document.createElement('div');
+    list.className = 'kb-chat-sources-list';
     sources.forEach((s, i) => {
       const item = document.createElement('a');
       item.className = 'kb-chat-source-item';
       item.href = s.url || '#';
       item.target = '_blank';
-      item.innerHTML = `<span class="kb-chat-source-idx">${i + 1}</span>
-        <span class="kb-chat-source-text">
-          <strong>${escapeHtml(s.title || '无标题')}</strong>
-          ${s.section ? `<br><small>${escapeHtml(s.section)}</small>` : ''}
-        </span>`;
-      ui.sources.appendChild(item);
+      item.title = s.title || '';
+      item.innerHTML = `<span class="kb-chat-source-idx">${i + 1}</span>${escapeHtml((s.title || '无标题').substring(0, 30))}`;
+      list.appendChild(item);
     });
+    ui.sources.appendChild(list);
   }
 
   function escapeHtml(s) {
@@ -346,6 +350,7 @@
 
     ui.close.addEventListener('click', () => {
       ui.panel.classList.add('kb-chat-hidden');
+      ui.trigger.classList.remove('kb-chat-trigger--open');
     });
 
     // 清空对话
