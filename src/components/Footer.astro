@@ -1,0 +1,13 @@
+---
+import { site } from '../lib/site.js';
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <span>© {year} {site.author}</span>
+  <span>
+    <a href="/rss.xml">RSS</a>
+    <span aria-hidden="true"> · </span>
+    <a href={site.url}>{site.url.replace('https://', '')}</a>
+  </span>
+</footer>

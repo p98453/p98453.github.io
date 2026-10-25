@@ -1,0 +1,62 @@
+---
+import { categoryKey } from '../lib/site.js';
+
+const { posts } = Astro.props;
+const groups = [];
+for (const post of posts) {
+  const last = groups[groups.length - 1];
+  if (!last || last.year !== post.year) groups.push({ year: post.year, posts: [post] });
+  else last.posts.push(post);
+}
+---
+
+<div class="post-index">
+  {
+    groups.map((group) => (
+      <section class="year-block" data-year={group.year}>
+        <h2 class="year-label">{group.year}</h2>
+        <ol class="post-list">
+          {group.posts.map((post) => (
+            <li
+              class="post-row"
+              data-search={`${post.title} ${post.categories.join(' ')} ${post.tags.join(' ')}`.toLowerCase()}
+            >
+              <time datetime={post.dateText}>{post.dateText.slice(5)}</time>
+              <div>
+                <a class="title" href={post.permalink}>
+                  {post.title}
+                </a>
+                {post.categories.length > 0 && (
+                  <div class="chips">
+                    {post.categories.map((category) => (
+                      <a class="chip" href={`/categories/${categoryKey(category)}/`}>
+                        {category}
+                      </a>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </section>
+    ))
+  }
+</div>
+
+<script is:inline>
+  (function () {
+    var input = document.getElementById('filter');
+    if (!input) return;
+    var apply = function () {
+      var query = input.value.trim().toLowerCase();
+      document.querySelectorAll('[data-search]').forEach(function (row) {
+        row.hidden = Boolean(query) && !row.getAttribute('data-search').includes(query);
+      });
+      document.querySelectorAll('[data-year]').forEach(function (group) {
+        group.hidden = group.querySelectorAll('[data-search]:not([hidden])').length === 0;
+      });
+    };
+    input.addEventListener('input', apply);
+  })();
+</script>

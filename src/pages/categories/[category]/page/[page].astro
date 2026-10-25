@@ -1,0 +1,17 @@
+---
+import Redirect from '../../../../components/Redirect.astro';
+
+export function getStaticPaths() {
+  return [
+    { category: '人工智能基础', page: '2' },
+    { category: '实习笔记', page: '2' },
+  ].map((item) => ({
+    params: item,
+    props: { category: item.category },
+  }));
+}
+
+const { category } = Astro.props;
+---
+
+<Redirect to={`/categories/${category}/`} />
