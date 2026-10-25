@@ -1,0 +1,6 @@
+﻿site: kukudelin.top
+title: 小牛壮士
+subtitle: 个人博客
+description: 林勇的个人博客
+author: kukudelin
+theme_note: migrate from Hexo butterfly; keep all posts and images; drop Hexo/node_modules/db.json/kb binaries
