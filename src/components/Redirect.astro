@@ -1,0 +1,23 @@
+---
+import { site } from '../lib/site.js';
+
+const { to } = Astro.props;
+const target = new URL(to, site.url).toString();
+---
+
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <title>跳转中 · 小牛壮士</title>
+    <link rel="canonical" href={target} />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content={`0; url=${to}`} />
+    <script is:inline define:vars={{ to }}>
+      location.replace(to);
+    </script>
+  </head>
+  <body>
+    <p><a href={to}>继续访问</a></p>
+  </body>
+</html>

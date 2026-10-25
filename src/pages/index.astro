@@ -1,0 +1,26 @@
+---
+import Base from '../layouts/Base.astro';
+import PostList from '../components/PostList.astro';
+import { getPosts } from '../lib/posts.js';
+import { site } from '../lib/site.js';
+
+const posts = getPosts();
+---
+
+<Base title={site.title} description={site.description}>
+  <div class="shell">
+    <header class="hero">
+      <p class="eyebrow">{site.subtitle}</p>
+      <h1>{site.title}</h1>
+      <p class="lede">{site.description}。学习笔记，从神经网络、计算机视觉到大模型，也记工具和部署。</p>
+      <div class="toolbar">
+        <label class="filter">
+          <span class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden">筛选文章</span>
+          <input id="filter" type="search" placeholder="搜索标题或分类" autocomplete="off" />
+        </label>
+        <p class="count">{posts.length} 篇</p>
+      </div>
+    </header>
+    <PostList posts={posts} />
+  </div>
+</Base>

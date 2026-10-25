@@ -1,0 +1,83 @@
+---
+import Base from '../../../../layouts/Base.astro';
+import Mermaid from '../../../../components/Mermaid.astro';
+import { getPosts, getPost } from '../../../../lib/posts.js';
+import { renderPost } from '../../../../lib/render.js';
+import { categoryKey, site } from '../../../../lib/site.js';
+
+export function getStaticPaths() {
+  return getPosts().map((post) => ({
+    params: {
+      year: post.year,
+      month: post.month,
+      day: post.day,
+      slug: post.slug,
+    },
+    props: { permalink: post.permalink },
+  }));
+}
+
+const { permalink } = Astro.props;
+const post = getPost(permalink);
+const html = await renderPost(post);
+const posts = getPosts();
+const index = posts.findIndex((item) => item.permalink === permalink);
+const newer = index > 0 ? posts[index - 1] : null;
+const older = index < posts.length - 1 ? posts[index + 1] : null;
+const description = post.excerpt || site.description;
+---
+
+<Base title={post.title} description={description} ogType="article">
+  <article class="shell article">
+    {
+      post.categories.length > 0 && (
+        <p class="article-kicker chips">
+          {post.categories.map((category) => (
+            <a class="chip" href={`/categories/${categoryKey(category)}/`}>
+              {category}
+            </a>
+          ))}
+        </p>
+      )
+    }
+    <h1>{post.title}</h1>
+    <p class="meta">
+      <time datetime={post.date.toISOString()}>{post.dateText}</time>
+      <span aria-hidden="true"> · </span>
+      <span>{post.readingMinutes} 分钟阅读</span>
+      {
+        post.tags.length > 0 &&
+          post.tags.map((tag) => (
+            <>
+              <span aria-hidden="true"> · </span>
+              <a href={`/tags/${tag}/`}>{tag}</a>
+            </>
+          ))
+      }
+    </p>
+    <div class="prose" set:html={html} />
+    {post.hasMermaid && <Mermaid />}
+    <nav class="pager" aria-label="相邻文章">
+      {
+        older ? (
+          <a href={older.permalink}>
+            <span>较早</span>
+            {older.title}
+          </a>
+        ) : (
+          <span></span>
+        )
+      }
+      {
+        newer ? (
+          <a class="next" href={newer.permalink}>
+            <span>较新</span>
+            {newer.title}
+          </a>
+        ) : (
+          <span></span>
+        )
+      }
+    </nav>
+  </article>
+</Base>

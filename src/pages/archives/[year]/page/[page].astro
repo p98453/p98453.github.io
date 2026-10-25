@@ -1,0 +1,14 @@
+---
+import Redirect from '../../../../components/Redirect.astro';
+
+export function getStaticPaths() {
+  return [2, 3, 4, 5, 6].map((page) => ({
+    params: { year: '2025', page: String(page) },
+    props: { year: '2025' },
+  }));
+}
+
+const { year } = Astro.props;
+---
+
+<Redirect to={`/archives/${year}/`} />

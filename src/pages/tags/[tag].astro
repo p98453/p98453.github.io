@@ -1,0 +1,23 @@
+---
+import Base from '../../layouts/Base.astro';
+import PostList from '../../components/PostList.astro';
+import { getTag, getTags } from '../../lib/posts.js';
+
+export function getStaticPaths() {
+  return getTags().map((tag) => ({
+    params: { tag: tag.name },
+    props: { name: tag.name },
+  }));
+}
+
+const tag = getTag(Astro.props.name);
+---
+
+<Base title={tag.name} description={`标签 ${tag.name} 下的文章。`}>
+  <div class="shell page-intro">
+    <p class="eyebrow"><a href="/tags/">标签</a></p>
+    <h1 class="page-title">{tag.name}</h1>
+    <p class="lede">{tag.posts.length} 篇</p>
+    <PostList posts={tag.posts} />
+  </div>
+</Base>
