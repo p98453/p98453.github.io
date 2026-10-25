@@ -10,7 +10,7 @@ const topLevel = posts.filter((post) => !post.nested).length;
 
 console.log(`posts: ${posts.length} (top-level ${topLevel}, nested ${posts.length - topLevel})`);
 
-if (topLevel !== 60) errors.push(`expected 60 top-level posts, found ${topLevel}`);
+if (topLevel !== 61) errors.push(`expected 61 top-level posts, found ${topLevel}`);
 if (posts.length < 60) errors.push(`expected at least 60 published posts, found ${posts.length}`);
 
 const cnamePath = path.join(dist, 'CNAME');
