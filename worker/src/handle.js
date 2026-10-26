@@ -9,6 +9,9 @@ const REVIEW_MS = 7 * 24 * 60 * 60 * 1000;
 const REVOKE_MS = 30 * 24 * 60 * 60 * 1000;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 const SLUG = /^[a-z0-9-]{1,80}$/;
+const ASSET = /^[a-z0-9][a-z0-9._-]{0,99}$/;
+const ASSET_MAX = 5 * 1024 * 1024;
+const ASSET_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/avif']);
 
 function nowMs(env) {
   return typeof env.now === 'function' ? env.now() : Date.now();
@@ -302,7 +305,43 @@ async function oneThought(env, request, slug, headers) {
   if (!(await accessRecord(env, request))) return json(401, { error: 'unauthorized' }, headers);
   const thought = await readJson(env.THOUGHTS, `thought:${slug}`);
   if (!thought) return json(404, { error: 'missing' }, headers);
-  return json(200, { slug: thought.slug, title: thought.title, date: thought.date, markdown: thought.markdown }, headers);
+  return json(200, {
+    slug: thought.slug,
+    title: thought.title,
+    date: thought.date,
+    tags: Array.isArray(thought.tags) ? thought.tags : [],
+    markdown: thought.markdown,
+  }, headers);
+}
+
+async function oneAsset(env, request, slug, name, headers) {
+  if (!SLUG.test(slug) || !ASSET.test(name)) return json(404, { error: 'missing' }, headers);
+  if (!(await accessRecord(env, request))) return json(401, { error: 'unauthorized' }, headers);
+  const { value, metadata } = await env.THOUGHTS.getWithMetadata(`asset:${slug}:${name}`, { type: 'arrayBuffer' });
+  if (!value) return json(404, { error: 'missing' }, headers);
+  return new Response(value, {
+    status: 200,
+    headers: {
+      ...headers,
+      'content-type': metadata?.contentType || 'application/octet-stream',
+      'cache-control': 'private, max-age=3600',
+      'cross-origin-resource-policy': 'same-site',
+      'x-content-type-options': 'nosniff',
+      'referrer-policy': 'no-referrer',
+      vary: 'Cookie, Origin',
+    },
+  });
+}
+
+async function saveAsset(request, env, slug, name) {
+  if (!authorized(env, request)) return json(401, { error: 'unauthorized' });
+  if (!SLUG.test(slug) || !ASSET.test(name)) return json(400, { error: 'invalid' });
+  const contentType = (request.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  if (!ASSET_TYPES.has(contentType)) return json(415, { error: 'unsupported' });
+  const body = await request.arrayBuffer();
+  if (!body.byteLength || body.byteLength > ASSET_MAX) return json(413, { error: 'too large' });
+  await env.THOUGHTS.put(`asset:${slug}:${name}`, body, { metadata: { contentType, size: body.byteLength } });
+  return json(200, { ok: true, slug, name, size: body.byteLength });
 }
 
 async function saveThought(request, env) {
@@ -317,10 +356,13 @@ async function saveThought(request, env) {
   const title = String(body.title || '').trim();
   const date = String(body.date || '');
   const markdown = String(body.markdown || '');
+  const tags = Array.isArray(body.tags)
+    ? body.tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 20)
+    : [];
   if (!SLUG.test(slug) || !title || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !markdown || markdown.length > 100000) {
     return json(400, { error: 'invalid' });
   }
-  await env.THOUGHTS.put(`thought:${slug}`, JSON.stringify({ slug, title, date, markdown }));
+  await env.THOUGHTS.put(`thought:${slug}`, JSON.stringify({ slug, title, date, tags, markdown }));
   const index = (await readJson(env.THOUGHTS, 'thoughts:index')) || [];
   const next = index.filter((item) => item.slug !== slug);
   next.push({ slug, title, date });
@@ -333,6 +375,12 @@ async function removeThought(request, env, slug) {
   if (!authorized(env, request)) return json(401, { error: 'unauthorized' });
   if (!SLUG.test(slug)) return json(400, { error: 'invalid' });
   await env.THOUGHTS.delete(`thought:${slug}`);
+  let cursor;
+  do {
+    const page = await env.THOUGHTS.list({ prefix: `asset:${slug}:`, cursor });
+    for (const key of page.keys) await env.THOUGHTS.delete(key.name);
+    cursor = page.list_complete ? undefined : page.cursor;
+  } while (cursor);
   const index = ((await readJson(env.THOUGHTS, 'thoughts:index')) || []).filter((item) => item.slug !== slug);
   await env.THOUGHTS.put('thoughts:index', JSON.stringify(index));
   return json(200, { ok: true });
@@ -457,6 +505,10 @@ export async function handle(request, env, fetchImpl = fetch) {
   if (path.startsWith('/admin')) {
     if (request.headers.get('origin')) return json(403, { error: 'forbidden' });
     if (request.method === 'PUT' && path === '/admin/thoughts') return saveThought(request, env);
+    const assetPut = /^\/admin\/thoughts\/([^/]+)\/assets\/([^/]+)$/.exec(path);
+    if (request.method === 'PUT' && assetPut) {
+      return saveAsset(request, env, decodeURIComponent(assetPut[1]), decodeURIComponent(assetPut[2]));
+    }
     const slug = path.startsWith('/admin/thoughts/') ? path.slice('/admin/thoughts/'.length) : '';
     if (request.method === 'DELETE' && slug) return removeThought(request, env, decodeURIComponent(slug));
     return json(404, { error: 'missing' });
@@ -475,6 +527,10 @@ export async function handle(request, env, fetchImpl = fetch) {
   if (request.method === 'POST' && path === '/api/session') return session(request, env, headers);
   if (request.method === 'POST' && path === '/api/logout') return logout(env, headers);
   if (request.method === 'GET' && path === '/api/thoughts') return listThoughts(env, request, headers);
+  const assetGet = /^\/api\/thoughts\/([^/]+)\/assets\/([^/]+)$/.exec(path);
+  if (request.method === 'GET' && assetGet) {
+    return oneAsset(env, request, decodeURIComponent(assetGet[1]), decodeURIComponent(assetGet[2]), headers);
+  }
   if (request.method === 'GET' && path.startsWith('/api/thoughts/')) {
     return oneThought(env, request, decodeURIComponent(path.slice('/api/thoughts/'.length)), headers);
   }

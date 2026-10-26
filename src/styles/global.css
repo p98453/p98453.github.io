@@ -943,3 +943,42 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Private thought images: served by the gated Worker, captioned from alt text. */
+.thought-gallery {
+  display: grid;
+  gap: 18px;
+  margin: 30px 0;
+}
+
+.thought-gallery--pair { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+.thought-figure { margin: 0; }
+
+.prose .thought-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 78vh;
+  margin: 0;
+  object-fit: cover;
+  border-radius: 3px;
+  background: var(--code-inline);
+  box-shadow: 0 6px 18px -10px var(--pre-shadow);
+}
+
+.thought-gallery--pair .thought-figure img { aspect-ratio: 4 / 5; }
+
+.thought-figure figcaption {
+  margin-top: 10px;
+  color: var(--muted);
+  font-family: var(--kai);
+  font-size: 15px;
+  text-align: center;
+  letter-spacing: 0.08em;
+}
+
+@media (max-width: 560px) {
+  .thought-gallery--pair { grid-template-columns: 1fr; gap: 26px; }
+  .thought-gallery--pair .thought-figure img { aspect-ratio: auto; max-height: none; }
+}
