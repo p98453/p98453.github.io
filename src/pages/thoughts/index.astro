@@ -2,7 +2,9 @@
 import Base from '../../layouts/Base.astro';
 import { site } from '../../lib/site.js';
 
-const question = '如果你能描述某个和我有关的瞬间，也许我会想起你是谁。';
+const askLead = '如果你能描述某个和我有关的瞬间，';
+const askTail = '也许我会想起你是谁。';
+const question = askLead + askTail;
 ---
 
 <Base quiet documentTitle={`个人随想 · ${site.title}`} description={question}>
@@ -11,7 +13,7 @@ const question = '如果你能描述某个和我有关的瞬间，也许我会�
     <h1>个人随想</h1>
     <p class="portal-lead">回答一个问题，便可进入</p>
     <form id="thought-apply" data-api={site.thoughtsApi} novalidate>
-      <p class="ask">{question}</p>
+      <p class="ask"><span class="ask-part">{askLead}</span><wbr /><span class="ask-part">{askTail}</span></p>
       <div class="apply-fields">
         <label class="answer-label">
           <span class="visually-hidden">你的答案</span>
