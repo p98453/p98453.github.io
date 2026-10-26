@@ -1,0 +1,12 @@
+---
+import Base from '../../layouts/Base.astro';
+import Listing from '../../components/Listing.astro';
+import { getPosts } from '../../lib/posts.js';
+import { site } from '../../lib/site.js';
+
+const posts = getPosts();
+---
+
+<Base title={site.title} description={site.description}>
+  <Listing posts={posts} page={1} base="/blog/" search />
+</Base>

@@ -10,7 +10,7 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) => !/\/page\/\d+\/$/.test(page),
+      filter: (page) => !/\/page\/\d+\/$/.test(page) && !/\/thoughts\/(list|view)\/$/.test(page),
     }),
     postAssets(),
   ],

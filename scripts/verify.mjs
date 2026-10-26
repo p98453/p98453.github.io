@@ -80,17 +80,24 @@ function readHtml(file) {
   return fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
 }
 
-const indexPages = [path.join(dist, 'index.html')];
-const pageDir = path.join(dist, 'page');
+const entryPage = readHtml(path.join(dist, 'index.html'));
+const indexPages = [path.join(dist, 'blog', 'index.html')];
+const pageDir = path.join(dist, 'blog', 'page');
 if (fs.existsSync(pageDir)) {
   for (const entry of fs.readdirSync(pageDir)) {
     indexPages.push(path.join(pageDir, entry, 'index.html'));
   }
 }
-const home = readHtml(indexPages[0]);
+const home = entryPage;
 const indexHtml = indexPages.map(readHtml).join('\n');
 if (!home.includes('小牛壮士')) errors.push('home page missing site title');
-if (!home.includes('class="seal"') || !home.includes('>林<')) errors.push('home seal is not 林');
+if (!home.includes('技术博客') || !home.includes('个人随想')) errors.push('home page missing the two doors');
+if (!home.includes('class="seal portal-seal"') || !home.includes('>林<')) errors.push('home seal is not 林');
+if (home.includes('示例随想')) errors.push('placeholder thought shipped on the public entry page');
+const publicHtml = [home, indexHtml, readHtml(path.join(dist, 'thoughts', 'index.html')), readHtml(path.join(dist, 'thoughts', 'list', 'index.html'))].join('\n');
+if (publicHtml.includes('RESEND_API_KEY') || publicHtml.includes('HMAC_SECRET') || publicHtml.includes('UPLOAD_TOKEN')) {
+  errors.push('a secret name leaked into public HTML');
+}
 const placeholders = [
   '一次把博客迁移交给 AI 助手：写作还是我，运营交给它。',
   '从 HTTPS Token 换到 SSH 密钥，顺手清理泄露隐患。',

@@ -11,9 +11,12 @@ const {
   description = site.description,
   canonical = new URL(Astro.url.pathname, site.url).toString(),
   ogType = 'website',
+  quiet = false,
+  documentTitle = '',
+  noindex = false,
 } = Astro.props;
 
-const fullTitle = title === site.title ? `${site.title} · ${site.subtitle}` : `${title} · ${site.title}`;
+const fullTitle = documentTitle || (title === site.title ? `${site.title} · ${site.subtitle}` : `${title} · ${site.title}`);
 ---
 
 <!doctype html>
@@ -34,6 +37,7 @@ const fullTitle = title === site.title ? `${site.title} · ${site.subtitle}` : `
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
     <meta name="author" content={site.authorName} />
+    {noindex && <meta name="robots" content="noindex" />}
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={site.title} href="/rss.xml" />
@@ -47,14 +51,14 @@ const fullTitle = title === site.title ? `${site.title} · ${site.subtitle}` : `
   <body>
     <a class="skip" href="#main">跳到正文</a>
     <Blobs variant="top" />
-    <div class="container">
-      <Header />
+    <div class:list={['container', { quiet }]}>
+      {!quiet && <Header />}
       <div class="body">
         <main id="main">
           <slot />
         </main>
       </div>
-      <Footer />
+      {!quiet && <Footer />}
     </div>
     <Blobs variant="bottom" />
     <script is:inline>

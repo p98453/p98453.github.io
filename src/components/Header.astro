@@ -1,14 +1,14 @@
 ---
 const path = Astro.url.pathname;
 const items = [
-  ['/', '博客'],
+  ['/blog/', '博客'],
   ['/archives/', '归档'],
   ['/categories/', '分类'],
   ['/tags/', '标签'],
 ];
 
 function current(href) {
-  if (href === '/') return path === '/' || /^\/page\/\d+\/$/.test(path);
+  if (href === '/blog/') return path === '/blog/' || path.startsWith('/blog/page/');
   return path === href || path.startsWith(href);
 }
 ---

@@ -1,0 +1,44 @@
+---
+import Base from '../../layouts/Base.astro';
+import { site } from '../../lib/site.js';
+
+const question = '要是能回到某个和我有关的瞬间，你会选哪一个？';
+---
+
+<Base quiet documentTitle={`个人随想 · ${site.title}`} description={question}>
+  <div class="portal gate" data-api={site.thoughtsApi}>
+    <a class="seal portal-seal" href="/" aria-label={site.title}>林</a>
+    <h1>个人随想</h1>
+    <p class="portal-lead">回答一个问题，便可进入</p>
+    <form id="thought-apply" data-api={site.thoughtsApi} novalidate>
+      <p class="ask">{question}</p>
+      <div class="apply-fields">
+        <label class="answer-label">
+          <span class="visually-hidden">你的答案</span>
+          <textarea name="answer" rows="1" maxlength="2000" placeholder="你的答案" required></textarea>
+        </label>
+        <div class="apply-row">
+          <label class="email-label">
+            <span class="visually-hidden">你的邮箱</span>
+            <input type="email" name="email" maxlength="254" placeholder="你的邮箱" autocomplete="email" required />
+          </label>
+          <button type="submit">进入</button>
+        </div>
+        <p class="honeypot">
+          <label>网站 <input name="website" tabindex="-1" autocomplete="off" /></label>
+        </p>
+        {site.turnstileSiteKey && <div class="cf-turnstile" data-sitekey={site.turnstileSiteKey}></div>}
+      </div>
+      <p class="form-status" role="status" hidden></p>
+    </form>
+    <p class="lock-note">内容已加密。通过后，入口会寄到你的邮箱。</p>
+    <p class="back-link"><a href="/">← 返回</a></p>
+  </div>
+</Base>
+
+{site.turnstileSiteKey && <script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer />}
+
+<script>
+  import { bootGate } from '../../scripts/thoughts-client.js';
+  bootGate();
+</script>
