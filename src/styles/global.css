@@ -777,12 +777,7 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .answer-label,
 .email-label { display: block; width: 100%; }
 
-.apply-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
+.apply-fields { display: flex; flex-direction: column; gap: 14px; }
 
 .gate textarea,
 .gate input[type="email"] {
@@ -820,6 +815,7 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 
 .gate button[type="submit"] {
   flex: none;
+  min-width: 96px;
   padding: 7px 16px;
   border: 1px solid var(--link);
   background: transparent;
@@ -854,7 +850,14 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .form-status[data-kind="ok"] { color: var(--heading); }
 
 .lock-note { margin: 22px 0 0; }
-.back-link { margin: 18px 0 0; }
+.gate-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin: 26px 0 0;
+}
+.gate-actions .back-link { font-family: var(--sans); font-size: 15px; }
 
 .thoughts-home { max-width: 680px; margin: 12px auto 48px; }
 
@@ -935,7 +938,6 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   .container.quiet { min-height: calc(100vh - 100px - 300px); padding: 12px; }
   .doors { flex-direction: column; gap: 36px; align-items: center; }
   .portal-name { margin-bottom: 36px; }
-  .apply-row { flex-direction: column; align-items: stretch; }
   .thought { grid-template-columns: 1fr; gap: 2px; }
   .thought time { text-align: left; }
 }

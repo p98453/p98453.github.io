@@ -134,12 +134,12 @@ export function bootGate() {
       form.answer.focus();
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       showStatus(status, '邮箱看起来不对，请再核对一次。', 'error');
       form.email.focus();
       return;
     }
-    const button = form.querySelector('button');
+    const button = document.querySelector('button[form="thought-apply"]') || form.querySelector('button');
     button.disabled = true;
     try {
       const response = await fetch(`${endpoint(form)}/api/apply`, {
@@ -153,12 +153,21 @@ export function bootGate() {
           turnstile: form.querySelector('[name="cf-turnstile-response"]')?.value || '',
         }),
       });
+      const result = response.ok ? await response.json().catch(() => ({})) : {};
+      if (response.ok && result.status === 'owner') {
+        location.href = '/thoughts/list/';
+        return;
+      }
       if (response.status === 429) showStatus(status, '提交太频繁了，请稍后再试。', 'error');
-      else if (response.status === 400) showStatus(status, '有一项没有通过检查，请改一改再送出。', 'error');
+      else if (response.status === 400 && !email) {
+        showStatus(status, '请留下邮箱，结果会寄到那里。', 'error');
+        form.email.focus();
+      } else if (response.status === 400) showStatus(status, '有一项没有通过检查，请改一改再送出。', 'error');
       else if (!response.ok) showStatus(status, '网络异常，没有送出。请稍后再试。', 'error');
       else {
         showStatus(status, '已收到。如果通过，入口会寄到你的邮箱。', 'ok');
         fields.hidden = true;
+        button.hidden = true;
         return;
       }
     } catch {

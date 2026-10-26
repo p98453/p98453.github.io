@@ -1,10 +1,12 @@
-import { QUESTION, approveEmail, declineEmail, decisionPage, reviewEmail } from './emails.js';
+import { APPROVE_SUBJECT, DECLINE_SUBJECT, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, reviewEmail } from './emails.js';
 
 const ANSWER_MIN = 2;
 const ANSWER_MAX = 2000;
 const EMAIL_MAX = 254;
 const IP_LIMIT = 5;
 const EMAIL_DAY_LIMIT = 3;
+const PASS_LIMIT = 5;
+const PASS_WINDOW_MS = 10 * 60 * 1000;
 const REVIEW_MS = 7 * 24 * 60 * 60 * 1000;
 const REVOKE_MS = 30 * 24 * 60 * 60 * 1000;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -40,6 +42,27 @@ function safeEqual(left, right) {
     diff |= (a.charCodeAt(index) || 0) ^ (b.charCodeAt(index) || 0);
   }
   return diff === 0;
+}
+
+async function sha256(value) {
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(value))));
+}
+
+async function digestEqual(left, right) {
+  const [a, b] = await Promise.all([sha256(left), sha256(right)]);
+  let diff = 0;
+  for (let index = 0; index < a.length; index += 1) diff |= a[index] ^ b[index];
+  return diff === 0;
+}
+
+async function ownerPass(env, request, answer, now) {
+  if (!env.OWNER_PASSPHRASE || !answer) return 'skip';
+  const key = `rate:pass:${clientIp(request)}:${Math.floor(now / PASS_WINDOW_MS)}`;
+  const tries = Number((await env.THOUGHTS.get(key)) || '0');
+  if (tries >= PASS_LIMIT) return 'limited';
+  if (await digestEqual(answer, env.OWNER_PASSPHRASE)) return 'ok';
+  await env.THOUGHTS.put(key, String(tries + 1), { expirationTtl: 1200 });
+  return 'skip';
 }
 
 async function hmac(secret, message) {
@@ -189,6 +212,7 @@ async function sendMail(env, fetchImpl, message) {
       to: [message.to],
       subject: message.subject,
       html: message.html,
+      ...(message.text ? { text: message.text } : {}),
     }),
   });
   return response.ok;
@@ -228,9 +252,6 @@ async function accessRecord(env, request) {
 }
 
 async function apply(request, env, fetchImpl, headers) {
-  if (!env.OWNER_EMAIL || !env.HMAC_SECRET || !env.RESEND_API_KEY) {
-    return json(503, { error: 'unconfigured' }, headers);
-  }
   let text = '';
   try {
     text = await request.text();
@@ -248,8 +269,22 @@ async function apply(request, env, fetchImpl, headers) {
 
   const answer = typeof body.answer === 'string' ? body.answer.trim() : '';
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (answer.length <= ANSWER_MAX) {
+    const now = nowMs(env);
+    const pass = await ownerPass(env, request, answer, now);
+    if (pass === 'ok') {
+      const token = randomToken();
+      await env.THOUGHTS.put(`access:${token}`, JSON.stringify({ email: 'owner', appId: 'owner', createdAt: now, revoked: false }));
+      return json(200, { ok: true, status: 'owner' }, { ...headers, 'set-cookie': cookieHeader(env, token, false) });
+    }
+    if (pass === 'limited' && !validEmail(email)) return json(429, { error: 'rate_limited' }, headers);
+  }
   if (answer.length < ANSWER_MIN || answer.length > ANSWER_MAX || !validEmail(email)) {
     return json(400, { error: 'invalid' }, headers);
+  }
+
+  if (!env.OWNER_EMAIL || !env.HMAC_SECRET || !env.RESEND_API_KEY) {
+    return json(503, { error: 'unconfigured' }, headers);
   }
 
   if (env.TURNSTILE_SECRET) {
@@ -488,8 +523,9 @@ async function approve(env, fetchImpl, application) {
   const accessUrl = `${siteOrigin(env)}/thoughts/list/#${token}`;
   const mailed = await sendMail(env, fetchImpl, {
     to: application.email,
-    subject: '个人随想的入口',
+    subject: APPROVE_SUBJECT,
     html: approveEmail({ accessUrl }),
+    text: approveText({ accessUrl }),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '入口还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
   const now = nowMs(env);
@@ -515,8 +551,9 @@ async function approve(env, fetchImpl, application) {
 async function reject(env, fetchImpl, application) {
   const mailed = await sendMail(env, fetchImpl, {
     to: application.email,
-    subject: '关于个人随想',
+    subject: DECLINE_SUBJECT,
     html: declineEmail(),
+    text: declineText(),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '回绝的信还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
   application.status = 'rejected';
