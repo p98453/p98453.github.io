@@ -307,7 +307,20 @@ async function apply(request, env, fetchImpl, headers) {
 
   const previousId = await env.THOUGHTS.get(`email:${email}`);
   const previous = previousId ? await readJson(env.THOUGHTS, `apply:${previousId}`) : null;
-  if (previous && (previous.status === 'pending' || previous.status === 'approved')) {
+  if (previous && previous.status === 'approved') {
+    return json(200, { ok: true, status: 'pending' }, headers);
+  }
+  if (previous && previous.status === 'pending') {
+    // Someone writing again while still waiting should reach the owner rather than vanish;
+    // the per-email daily limit above keeps this from becoming a mail cannon.
+    const links = await reviewLinks(env, previous.id, now);
+    const mailed = await sendMail(env, fetchImpl, {
+      to: env.OWNER_EMAIL,
+      subject: '个人随想：有一份新的申请',
+      html: reviewEmail({ answer, email, ...links }),
+    });
+    if (!mailed) return json(502, { error: 'network' }, headers);
+    await env.THOUGHTS.put(`apply:${previous.id}`, JSON.stringify({ ...previous, answer, updatedAt: now }));
     return json(200, { ok: true, status: 'pending' }, headers);
   }
 

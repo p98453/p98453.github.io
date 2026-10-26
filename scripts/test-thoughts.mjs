@@ -113,7 +113,11 @@ const again = await call(request('/api/apply', {
   body: { answer: '另一段话也写在这里。', email: 'person@example.com' },
 }));
 assert.equal(again.status, 200);
-assert.equal(sent.length, 1);
+// A second answer while still pending reaches the owner again instead of silently vanishing.
+assert.equal(sent.length, 2);
+assert.equal(sent[1].body.to[0], 'owner@example.com');
+assert.match(sent[1].body.html, /另一段话也写在这里/);
+sent.splice(1, 1);
 
 for (let index = 0; index < 3; index += 1) {
   const extra = await call(request('/api/apply', {
