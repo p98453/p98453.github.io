@@ -130,7 +130,28 @@ const limited = await call(request('/api/apply', {
 }));
 assert.equal(limited.status, 429);
 
-const approved = await call(request('/review', { method: 'POST', form: { token: approveUrl.searchParams.get('token') } }));
+for (let index = 0; index < 3; index += 1) {
+  const prefetch = await call(request(approveUrl.pathname + approveUrl.search));
+  assert.equal(prefetch.status, 200);
+}
+const rawToken = approveUrl.searchParams.get('token');
+const foreignReview = await call(request('/review', { method: 'POST', origin: 'https://evil.example', form: { token: rawToken } }));
+assert.equal(foreignReview.status, 403);
+assert.match(foreignReview.headers.get('content-type'), /text\/html/);
+assert.match(await foreignReview.text(), /无法确认/);
+const forged = await call(request('/review', { method: 'POST', origin: 'null', form: { token: `${rawToken.split('.')[0]}.AAAA` } }));
+assert.equal(forged.status, 400);
+assert.match(forged.headers.get('content-type'), /text\/html/);
+const wrongMethod = await call(request('/review', { method: 'PUT' }));
+assert.equal(wrongMethod.status, 405);
+assert.match(wrongMethod.headers.get('content-type'), /text\/html/);
+for (const variant of [encodeURIComponent(encodeURIComponent(rawToken)), ` ${rawToken}\n`, `${rawToken})`, `${rawToken}&amp;utm=x`]) {
+  const viewed = await call(request(`/review?token=${encodeURIComponent(variant)}`));
+  assert.equal(viewed.status, 200, variant);
+  assert.match(await viewed.text(), /确认同意/);
+}
+
+const approved = await call(request('/review', { method: 'POST', origin: 'https://thoughts.kukudelin.top', form: { token: encodeURIComponent(rawToken) } }));
 assert.equal(approved.status, 200);
 assert.match(await approved.text(), /已同意/);
 const visitorMail = sent.at(-1);
@@ -140,7 +161,9 @@ assert.match(visitorMail.body.subject, /入口/);
 const accessUrl = visitorMail.body.html.match(/href="(https:\/\/kukudelin\.top\/thoughts\/list\/#[^"]+)"/)[1];
 const accessToken = decodeURIComponent(accessUrl.split('#')[1]);
 
-const approvedAgain = await call(request('/review', { method: 'POST', form: { token: approveUrl.searchParams.get('token') } }));
+const approvedAgain = await call(request('/review', { method: 'POST', origin: 'null', form: { token: approveUrl.searchParams.get('token') } }));
+assert.equal(approvedAgain.status, 200);
+assert.match(approvedAgain.headers.get('content-type'), /text\/html/);
 assert.match(await approvedAgain.text(), /已经同意过了/);
 assert.equal(sent.at(-1), visitorMail);
 

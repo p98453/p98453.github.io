@@ -59,8 +59,22 @@ export async function signPayload(secret, payload) {
   return `${body}.${await hmac(secret, body)}`;
 }
 
+export function normalizeToken(raw) {
+  let value = String(raw || '');
+  for (let round = 0; round < 3 && /%[0-9a-fA-F]{2}/.test(value); round += 1) {
+    try {
+      value = decodeURIComponent(value);
+    } catch {
+      break;
+    }
+  }
+  value = value.replace(/^token=/, '').replace(/&amp;/g, '&').split('&')[0];
+  value = value.replace(/\s+/g, '').replaceAll('+', '-').replaceAll('/', '_').replace(/=+(?=\.|$)/g, '');
+  return value.replace(/[^A-Za-z0-9_.-]+$/, '').replace(/^[^A-Za-z0-9_-]+/, '');
+}
+
 async function readPayload(secret, token, now) {
-  const parts = String(token || '').split('.');
+  const parts = normalizeToken(token).split('.');
   if (parts.length !== 2) return null;
   const [body, signature] = parts;
   const expected = await hmac(secret, body);
@@ -395,7 +409,7 @@ async function showReview(env, token) {
       heading: '收回入口',
       message: '确认之后，这个人的入口会失效。已经打开的页面在下一次读取时也会进不去。',
       confirm: '确认收回',
-      token,
+      token: normalizeToken(token),
     }));
   }
   const application = await readJson(env.THOUGHTS, `apply:${payload.id}`);
@@ -414,16 +428,44 @@ async function showReview(env, token) {
     heading: `确认${verb}`,
     message: `邮箱 ${safeEmail}。<br /><br />${answer}`,
     confirm: `确认${verb}`,
-    token,
+    token: normalizeToken(token),
   }));
 }
 
-async function actReview(request, env, fetchImpl) {
-  const form = await request.formData();
-  const token = String(form.get('token') || '');
+function reviewOriginOk(env, request) {
+  const origin = request.headers.get('origin');
+  if (!origin || origin === 'null') return true;
+  return origin === workerOrigin(env);
+}
+
+async function reviewRoute(request, env, fetchImpl, url) {
+  try {
+    if (request.method === 'GET' || request.method === 'HEAD') return await showReview(env, url.searchParams.get('token'));
+    if (request.method === 'POST') {
+      if (!reviewOriginOk(env, request)) {
+        return html(403, decisionPage({ heading: '无法确认', message: '这个确认不是从审核页发出的。请回到邮件里重新点开链接。' }));
+      }
+      return await actReview(request, env, fetchImpl, url);
+    }
+    return html(405, decisionPage({ heading: '打开方式不对', message: '请直接点邮件里的链接，在打开的页面上确认。' }));
+  } catch {
+    return html(500, decisionPage({ heading: '出了点问题', message: '这次没有处理成功，链接仍然有效，请稍后再点一次。' }));
+  }
+}
+
+async function actReview(request, env, fetchImpl, url) {
+  let token = '';
+  try {
+    const form = await request.formData();
+    token = String(form.get('token') || '');
+  } catch {
+    token = '';
+  }
+  if (!token && url) token = url.searchParams.get('token') || '';
   const payload = await readPayload(env.HMAC_SECRET, token, nowMs(env));
-  if (!payload || payload.expired) {
-    return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经不能使用。' }));
+  if (!payload) return html(400, decisionPage({ heading: '链接无效', message: '这个链接签不出来，已经不能使用。' }));
+  if (payload.expired) {
+    return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经过了有效期。如果还要处理，请让对方再提交一次。' }));
   }
   if (payload.action === 'revoke') return revoke(env, payload.id);
   const key = `apply:${payload.id}`;
@@ -514,6 +556,8 @@ export async function handle(request, env, fetchImpl = fetch) {
     return json(404, { error: 'missing' });
   }
 
+  if (path === '/review') return reviewRoute(request, env, fetchImpl, url);
+
   if (request.method === 'OPTIONS') {
     const headers = cors(env, request);
     if (!headers) return json(403, { error: 'forbidden' });
@@ -534,8 +578,6 @@ export async function handle(request, env, fetchImpl = fetch) {
   if (request.method === 'GET' && path.startsWith('/api/thoughts/')) {
     return oneThought(env, request, decodeURIComponent(path.slice('/api/thoughts/'.length)), headers);
   }
-  if (path === '/review' && request.method === 'GET') return showReview(env, url.searchParams.get('token'));
-  if (path === '/review' && request.method === 'POST') return actReview(request, env, fetchImpl);
   return json(404, { error: 'missing' }, headers);
 }
 
