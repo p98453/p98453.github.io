@@ -1,5 +1,5 @@
-export const ASK_LEAD = '讲一件和我有关的小事，';
-export const ASK_TAIL = '我想想认不认识你。';
+export const ASK_LEAD = '如果你能描述某个和我有关的瞬间，';
+export const ASK_TAIL = '也许我会想起你是谁。';
 export const QUESTION = `${ASK_LEAD}${ASK_TAIL}`;
 
 export const ENTER_UNAVAILABLE = '这个邮箱暂时进不来。可以先提交申请，或者过会儿再试。';

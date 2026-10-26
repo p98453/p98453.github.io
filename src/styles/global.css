@@ -776,7 +776,7 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   text-wrap: balance;
 }
 
-/* Each clause stays whole, so a narrow screen breaks between them. */
+/* Each clause stays whole, so a narrow screen breaks before 也许 rather than stranding 是谁。 */
 .ask-part { display: inline-block; }
 
 @media (max-width: 480px) {
