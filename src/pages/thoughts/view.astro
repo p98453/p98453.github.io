@@ -1,0 +1,29 @@
+---
+import Base from '../../layouts/Base.astro';
+import { site } from '../../lib/site.js';
+---
+
+<Base quiet noindex documentTitle={`个人随想 · ${site.title}`} description="仅对获准进入的人可见。">
+  <article class="thoughts-home" data-thoughts="view" data-api={site.thoughtsApi}>
+    <header class="thoughts-bar">
+      <a class="seal" href="/" aria-label={site.title}>林</a>
+      <div>
+        <p class="thoughts-kicker"><a href="/thoughts/list/">个人随想</a></p>
+        <nav aria-label="随想">
+          <a href="/">首页</a>
+          <a href="/blog/">技术博客</a>
+          <a href="/thoughts/list/">目录</a>
+        </nav>
+      </div>
+    </header>
+    <p class="form-status" role="status">正在确认入口…</p>
+    <h1 class="thought-title"></h1>
+    <p class="pdate"><time></time></p>
+    <div class="prose"></div>
+  </article>
+</Base>
+
+<script>
+  import { bootView } from '../../scripts/thoughts-client.js';
+  bootView();
+</script>

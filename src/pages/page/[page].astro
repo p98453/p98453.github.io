@@ -1,29 +1,17 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Listing from '../../components/Listing.astro';
 import Redirect from '../../components/Redirect.astro';
 import { getPosts } from '../../lib/posts.js';
 import { pageEntries } from '../../lib/paging.js';
-import { site } from '../../lib/site.js';
 
 export function getStaticPaths() {
   const posts = getPosts();
-  return pageEntries(posts.length, 7).map(({ page, redirect }) => ({
+  return pageEntries(posts.length, 7).map(({ page }) => ({
     params: { page: String(page) },
-    props: { page, redirect },
+    props: { page },
   }));
 }
 
-const { page, redirect } = Astro.props;
-const posts = getPosts();
+const { page } = Astro.props;
 ---
 
-{
-  redirect ? (
-    <Redirect to="/" />
-  ) : (
-    <Base title={`第 ${page} 页`} description={site.description}>
-      <Listing posts={posts} page={page} base="/" search />
-    </Base>
-  )
-}
+<Redirect to={`/blog/page/${page}/`} />

@@ -1,0 +1,21 @@
+name = "kukudelin-thoughts"
+main = "src/index.js"
+compatibility_date = "2026-10-01"
+
+# Replace both ids after `npx wrangler kv namespace create THOUGHTS`
+# and `npx wrangler kv namespace create THOUGHTS --preview`.
+[[kv_namespaces]]
+binding = "THOUGHTS"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+preview_id = "REPLACE_WITH_PREVIEW_KV_NAMESPACE_ID"
+
+[vars]
+OWNER_EMAIL = "3224688576@qq.com"
+ALLOWED_ORIGIN = "https://kukudelin.top"
+SITE_ORIGIN = "https://kukudelin.top"
+WORKER_ORIGIN = "https://thoughts.kukudelin.top"
+RESEND_FROM = "林勇 <thoughts@kukudelin.top>"
+
+# Secrets are not stored here. Set them with wrangler secret put:
+# RESEND_API_KEY, HMAC_SECRET, UPLOAD_TOKEN
+# Optional, leave unset to keep Turnstile off: TURNSTILE_SECRET

@@ -1,0 +1,486 @@
+import { QUESTION, approveEmail, declineEmail, decisionPage, reviewEmail } from './emails.js';
+
+const ANSWER_MIN = 2;
+const ANSWER_MAX = 2000;
+const EMAIL_MAX = 254;
+const IP_LIMIT = 5;
+const EMAIL_DAY_LIMIT = 3;
+const REVIEW_MS = 7 * 24 * 60 * 60 * 1000;
+const REVOKE_MS = 30 * 24 * 60 * 60 * 1000;
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
+const SLUG = /^[a-z0-9-]{1,80}$/;
+
+function nowMs(env) {
+  return typeof env.now === 'function' ? env.now() : Date.now();
+}
+
+function bytesToB64(bytes) {
+  let binary = '';
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return btoa(binary).replaceAll('+', '-').replaceAll('/', '_').replace(/=+$/g, '');
+}
+
+function b64ToBytes(value) {
+  const padded = value.replaceAll('-', '+').replaceAll('_', '/') + '==='.slice((value.length + 3) % 4);
+  const binary = atob(padded);
+  const bytes = new Uint8Array(binary.length);
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index);
+  return bytes;
+}
+
+function safeEqual(left, right) {
+  const a = String(left);
+  const b = String(right);
+  const length = Math.max(a.length, b.length);
+  let diff = a.length === b.length ? 0 : 1;
+  for (let index = 0; index < length; index += 1) {
+    diff |= (a.charCodeAt(index) || 0) ^ (b.charCodeAt(index) || 0);
+  }
+  return diff === 0;
+}
+
+async function hmac(secret, message) {
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign'],
+  );
+  const signature = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(message));
+  return bytesToB64(new Uint8Array(signature));
+}
+
+export async function signPayload(secret, payload) {
+  const body = bytesToB64(new TextEncoder().encode(JSON.stringify(payload)));
+  return `${body}.${await hmac(secret, body)}`;
+}
+
+async function readPayload(secret, token, now) {
+  const parts = String(token || '').split('.');
+  if (parts.length !== 2) return null;
+  const [body, signature] = parts;
+  const expected = await hmac(secret, body);
+  if (!safeEqual(expected, signature)) return null;
+  try {
+    const payload = JSON.parse(new TextDecoder().decode(b64ToBytes(body)));
+    if (!payload || typeof payload.exp !== 'number') return null;
+    if (payload.exp < now) return { expired: true };
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function randomToken() {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return bytesToB64(bytes);
+}
+
+function allowedOrigin(env) {
+  return env.ALLOWED_ORIGIN || 'https://kukudelin.top';
+}
+
+function cors(env, request) {
+  const origin = request.headers.get('origin');
+  if (!origin) return {};
+  if (origin !== allowedOrigin(env)) return null;
+  return {
+    'access-control-allow-origin': origin,
+    'access-control-allow-credentials': 'true',
+    'access-control-allow-headers': 'content-type',
+    'access-control-allow-methods': 'GET, POST, OPTIONS',
+    vary: 'Origin',
+  };
+}
+
+function json(status, body, headers = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', ...headers },
+  });
+}
+
+function html(status, markup) {
+  return new Response(markup, {
+    status,
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'no-store', 'referrer-policy': 'no-referrer' },
+  });
+}
+
+function clientIp(request) {
+  return request.headers.get('cf-connecting-ip') || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '0.0.0.0';
+}
+
+function validEmail(value) {
+  return typeof value === 'string' && value.length <= EMAIL_MAX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function cookieHeader(env, token, clear) {
+  const parts = [
+    `thoughts_session=${clear ? '' : encodeURIComponent(token)}`,
+    'HttpOnly',
+    'Secure',
+    'SameSite=Lax',
+    'Path=/',
+    `Max-Age=${clear ? 0 : COOKIE_MAX_AGE}`,
+  ];
+  const host = env.WORKER_ORIGIN || '';
+  if (host.includes('kukudelin.top')) parts.push('Domain=.kukudelin.top');
+  return parts.join('; ');
+}
+
+function readCookie(request) {
+  const raw = request.headers.get('cookie') || '';
+  const match = raw.match(/(?:^|; )thoughts_session=([^;]+)/);
+  if (!match) return '';
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return '';
+  }
+}
+
+async function readJson(kv, key) {
+  const raw = await kv.get(key);
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+async function limited(kv, key, limit, ttl) {
+  const current = Number((await kv.get(key)) || '0');
+  if (current >= limit) return true;
+  await kv.put(key, String(current + 1), { expirationTtl: ttl });
+  return false;
+}
+
+async function sendMail(env, fetchImpl, message) {
+  if (!env.RESEND_API_KEY || !env.RESEND_FROM || !message.to) return false;
+  const response = await fetchImpl('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      authorization: `Bearer ${env.RESEND_API_KEY}`,
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify({
+      from: env.RESEND_FROM,
+      to: [message.to],
+      subject: message.subject,
+      html: message.html,
+    }),
+  });
+  return response.ok;
+}
+
+function workerOrigin(env) {
+  return (env.WORKER_ORIGIN || 'https://thoughts.kukudelin.top').replace(/\/$/, '');
+}
+
+function siteOrigin(env) {
+  return (env.SITE_ORIGIN || 'https://kukudelin.top').replace(/\/$/, '');
+}
+
+async function reviewLinks(env, id, now) {
+  const exp = now + REVIEW_MS;
+  const approve = await signPayload(env.HMAC_SECRET, { action: 'approve', id, exp });
+  const reject = await signPayload(env.HMAC_SECRET, { action: 'reject', id, exp });
+  const origin = workerOrigin(env);
+  return {
+    approveUrl: `${origin}/review?token=${encodeURIComponent(approve)}`,
+    rejectUrl: `${origin}/review?token=${encodeURIComponent(reject)}`,
+  };
+}
+
+function authorized(env, request) {
+  const header = request.headers.get('authorization') || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  return Boolean(env.UPLOAD_TOKEN) && token.length > 0 && safeEqual(token, env.UPLOAD_TOKEN);
+}
+
+async function accessRecord(env, request) {
+  const token = readCookie(request);
+  if (!token) return null;
+  const record = await readJson(env.THOUGHTS, `access:${token}`);
+  if (!record || record.revoked) return null;
+  return record;
+}
+
+async function apply(request, env, fetchImpl, headers) {
+  if (!env.OWNER_EMAIL || !env.HMAC_SECRET || !env.RESEND_API_KEY) {
+    return json(503, { error: 'unconfigured' }, headers);
+  }
+  let text = '';
+  try {
+    text = await request.text();
+  } catch {
+    return json(400, { error: 'invalid' }, headers);
+  }
+  if (text.length > 8000) return json(400, { error: 'invalid' }, headers);
+  let body;
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return json(400, { error: 'invalid' }, headers);
+  }
+  if (body.website) return json(200, { ok: true, status: 'pending' }, headers);
+
+  const answer = typeof body.answer === 'string' ? body.answer.trim() : '';
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (answer.length < ANSWER_MIN || answer.length > ANSWER_MAX || !validEmail(email)) {
+    return json(400, { error: 'invalid' }, headers);
+  }
+
+  if (env.TURNSTILE_SECRET) {
+    const form = new FormData();
+    form.set('secret', env.TURNSTILE_SECRET);
+    form.set('response', String(body.turnstile || ''));
+    form.set('remoteip', clientIp(request));
+    const check = await fetchImpl('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST', body: form });
+    const verdict = await check.json().catch(() => ({}));
+    if (!verdict.success) return json(400, { error: 'invalid' }, headers);
+  }
+
+  const now = nowMs(env);
+  const ip = clientIp(request);
+  const ipKey = `rate:ip:${ip}:${Math.floor(now / 3600000)}`;
+  const mailKey = `rate:mail:${email}:${Math.floor(now / 86400000)}`;
+  if (await limited(env.THOUGHTS, ipKey, IP_LIMIT, 7200) || await limited(env.THOUGHTS, mailKey, EMAIL_DAY_LIMIT, 172800)) {
+    return json(429, { error: 'rate_limited' }, headers);
+  }
+
+  const previousId = await env.THOUGHTS.get(`email:${email}`);
+  const previous = previousId ? await readJson(env.THOUGHTS, `apply:${previousId}`) : null;
+  if (previous && (previous.status === 'pending' || previous.status === 'approved')) {
+    return json(200, { ok: true, status: 'pending' }, headers);
+  }
+
+  const id = randomToken();
+  const application = { id, answer, email, createdAt: now, status: 'pending' };
+  const links = await reviewLinks(env, id, now);
+  const mailed = await sendMail(env, fetchImpl, {
+    to: env.OWNER_EMAIL,
+    subject: '个人随想：有一份新的申请',
+    html: reviewEmail({ answer, email, ...links }),
+  });
+  if (!mailed) return json(502, { error: 'network' }, headers);
+  await env.THOUGHTS.put(`apply:${id}`, JSON.stringify(application));
+  await env.THOUGHTS.put(`email:${email}`, id);
+  return json(200, { ok: true, status: 'pending' }, headers);
+}
+
+async function session(request, env, headers) {
+  let body;
+  try {
+    body = JSON.parse(await request.text());
+  } catch {
+    return json(400, { error: 'invalid' }, headers);
+  }
+  const token = typeof body.token === 'string' ? body.token : '';
+  const record = token ? await readJson(env.THOUGHTS, `access:${token}`) : null;
+  if (!record || record.revoked) return json(401, { error: 'unauthorized' }, headers);
+  return json(200, { ok: true }, { ...headers, 'set-cookie': cookieHeader(env, token, false) });
+}
+
+function logout(env, headers) {
+  return json(200, { ok: true }, { ...headers, 'set-cookie': cookieHeader(env, '', true) });
+}
+
+async function listThoughts(env, request, headers) {
+  if (!(await accessRecord(env, request))) return json(401, { error: 'unauthorized' }, headers);
+  const index = (await readJson(env.THOUGHTS, 'thoughts:index')) || [];
+  const items = index.map((item) => ({ slug: item.slug, title: item.title, date: item.date }));
+  return json(200, { items }, headers);
+}
+
+async function oneThought(env, request, slug, headers) {
+  if (!SLUG.test(slug)) return json(404, { error: 'missing' }, headers);
+  if (!(await accessRecord(env, request))) return json(401, { error: 'unauthorized' }, headers);
+  const thought = await readJson(env.THOUGHTS, `thought:${slug}`);
+  if (!thought) return json(404, { error: 'missing' }, headers);
+  return json(200, { slug: thought.slug, title: thought.title, date: thought.date, markdown: thought.markdown }, headers);
+}
+
+async function saveThought(request, env) {
+  if (!authorized(env, request)) return json(401, { error: 'unauthorized' });
+  let body;
+  try {
+    body = JSON.parse(await request.text());
+  } catch {
+    return json(400, { error: 'invalid' });
+  }
+  const slug = String(body.slug || '');
+  const title = String(body.title || '').trim();
+  const date = String(body.date || '');
+  const markdown = String(body.markdown || '');
+  if (!SLUG.test(slug) || !title || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !markdown || markdown.length > 100000) {
+    return json(400, { error: 'invalid' });
+  }
+  await env.THOUGHTS.put(`thought:${slug}`, JSON.stringify({ slug, title, date, markdown }));
+  const index = (await readJson(env.THOUGHTS, 'thoughts:index')) || [];
+  const next = index.filter((item) => item.slug !== slug);
+  next.push({ slug, title, date });
+  next.sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : a.slug < b.slug ? -1 : 1));
+  await env.THOUGHTS.put('thoughts:index', JSON.stringify(next));
+  return json(200, { ok: true, slug });
+}
+
+async function removeThought(request, env, slug) {
+  if (!authorized(env, request)) return json(401, { error: 'unauthorized' });
+  if (!SLUG.test(slug)) return json(400, { error: 'invalid' });
+  await env.THOUGHTS.delete(`thought:${slug}`);
+  const index = ((await readJson(env.THOUGHTS, 'thoughts:index')) || []).filter((item) => item.slug !== slug);
+  await env.THOUGHTS.put('thoughts:index', JSON.stringify(index));
+  return json(200, { ok: true });
+}
+
+async function showReview(env, token) {
+  const payload = await readPayload(env.HMAC_SECRET, token, nowMs(env));
+  if (!payload) return html(400, decisionPage({ heading: '链接无效', message: '这个链接签不出来，已经不能使用。' }));
+  if (payload.expired) return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经过了有效期。如果还要处理，请让对方再提交一次。' }));
+  if (payload.action === 'revoke') {
+    return html(200, decisionPage({
+      heading: '收回入口',
+      message: '确认之后，这个人的入口会失效。已经打开的页面在下一次读取时也会进不去。',
+      confirm: '确认收回',
+      token,
+    }));
+  }
+  const application = await readJson(env.THOUGHTS, `apply:${payload.id}`);
+  if (!application) return html(404, decisionPage({ heading: '没有找到申请', message: '这份申请不在记录里。' }));
+  if (application.status !== 'pending') {
+    const heading = application.status === 'approved' ? '已经同意过了' : '已经拒绝过了';
+    const message = application.status === 'approved'
+      ? '入口之前已经寄出，这次没有再寄一封。'
+      : '回绝的信之前已经寄出，这次没有再寄一封。';
+    return html(200, decisionPage({ heading, message }));
+  }
+  const verb = payload.action === 'approve' ? '同意' : '拒绝';
+  const answer = application.answer.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('\n', '<br />');
+  const safeEmail = application.email.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  return html(200, decisionPage({
+    heading: `确认${verb}`,
+    message: `邮箱 ${safeEmail}。<br /><br />${answer}`,
+    confirm: `确认${verb}`,
+    token,
+  }));
+}
+
+async function actReview(request, env, fetchImpl) {
+  const form = await request.formData();
+  const token = String(form.get('token') || '');
+  const payload = await readPayload(env.HMAC_SECRET, token, nowMs(env));
+  if (!payload || payload.expired) {
+    return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经不能使用。' }));
+  }
+  if (payload.action === 'revoke') return revoke(env, payload.id);
+  const key = `apply:${payload.id}`;
+  const application = await readJson(env.THOUGHTS, key);
+  if (!application) return html(404, decisionPage({ heading: '没有找到申请', message: '这份申请不在记录里。' }));
+  if (application.status !== 'pending') {
+    const heading = application.status === 'approved' ? '已经同意过了' : '已经拒绝过了';
+    return html(200, decisionPage({
+      heading,
+      message: application.status === 'approved' ? '入口之前已经寄出，这次没有再寄一封。' : '回绝的信之前已经寄出，这次没有再寄一封。',
+    }));
+  }
+  if (payload.action === 'approve') return approve(env, fetchImpl, application);
+  if (payload.action === 'reject') return reject(env, fetchImpl, application);
+  return html(400, decisionPage({ heading: '链接无效', message: '这个链接不能识别。' }));
+}
+
+async function approve(env, fetchImpl, application) {
+  const token = randomToken();
+  const accessUrl = `${siteOrigin(env)}/thoughts/list/#${token}`;
+  const mailed = await sendMail(env, fetchImpl, {
+    to: application.email,
+    subject: '个人随想的入口',
+    html: approveEmail({ accessUrl }),
+  });
+  if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '入口还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
+  const now = nowMs(env);
+  await env.THOUGHTS.put(`access:${token}`, JSON.stringify({
+    email: application.email,
+    appId: application.id,
+    createdAt: now,
+    revoked: false,
+  }));
+  application.status = 'approved';
+  application.accessToken = token;
+  application.decidedAt = now;
+  await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(application));
+  const revokeToken = await signPayload(env.HMAC_SECRET, { action: 'revoke', id: application.id, exp: now + REVOKE_MS });
+  const revokeUrl = `${workerOrigin(env)}/review?token=${encodeURIComponent(revokeToken)}`;
+  const safeEmail = application.email.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+  return html(200, decisionPage({
+    heading: '已同意',
+    message: `入口已经寄到 ${safeEmail}。若要收回，打开 <a href="${revokeUrl}">收回入口</a>。`,
+  }));
+}
+
+async function reject(env, fetchImpl, application) {
+  const mailed = await sendMail(env, fetchImpl, {
+    to: application.email,
+    subject: '关于个人随想',
+    html: declineEmail(),
+  });
+  if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '回绝的信还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
+  application.status = 'rejected';
+  application.decidedAt = nowMs(env);
+  await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(application));
+  return html(200, decisionPage({ heading: '已拒绝', message: '一封短信已经寄给对方。' }));
+}
+
+async function revoke(env, appId) {
+  const application = await readJson(env.THOUGHTS, `apply:${appId}`);
+  if (!application || !application.accessToken) {
+    return html(200, decisionPage({ heading: '没有可收回的入口', message: '这份申请还没有发出入口。' }));
+  }
+  const record = await readJson(env.THOUGHTS, `access:${application.accessToken}`);
+  if (record?.revoked) {
+    return html(200, decisionPage({ heading: '已经收回', message: '这个入口之前就失效了，没有重复处理。' }));
+  }
+  if (record) {
+    record.revoked = true;
+    await env.THOUGHTS.put(`access:${application.accessToken}`, JSON.stringify(record));
+  }
+  return html(200, decisionPage({ heading: '已收回', message: '这个入口已经失效。' }));
+}
+
+export async function handle(request, env, fetchImpl = fetch) {
+  const url = new URL(request.url);
+  const path = url.pathname.replace(/\/$/, '') || '/';
+  if (path.startsWith('/admin')) {
+    if (request.headers.get('origin')) return json(403, { error: 'forbidden' });
+    if (request.method === 'PUT' && path === '/admin/thoughts') return saveThought(request, env);
+    const slug = path.startsWith('/admin/thoughts/') ? path.slice('/admin/thoughts/'.length) : '';
+    if (request.method === 'DELETE' && slug) return removeThought(request, env, decodeURIComponent(slug));
+    return json(404, { error: 'missing' });
+  }
+
+  if (request.method === 'OPTIONS') {
+    const headers = cors(env, request);
+    if (!headers) return json(403, { error: 'forbidden' });
+    return new Response(null, { status: 204, headers });
+  }
+
+  const headers = cors(env, request);
+  if (!headers) return json(403, { error: 'forbidden' });
+
+  if (request.method === 'POST' && path === '/api/apply') return apply(request, env, fetchImpl, headers);
+  if (request.method === 'POST' && path === '/api/session') return session(request, env, headers);
+  if (request.method === 'POST' && path === '/api/logout') return logout(env, headers);
+  if (request.method === 'GET' && path === '/api/thoughts') return listThoughts(env, request, headers);
+  if (request.method === 'GET' && path.startsWith('/api/thoughts/')) {
+    return oneThought(env, request, decodeURIComponent(path.slice('/api/thoughts/'.length)), headers);
+  }
+  if (path === '/review' && request.method === 'GET') return showReview(env, url.searchParams.get('token'));
+  if (path === '/review' && request.method === 'POST') return actReview(request, env, fetchImpl);
+  return json(404, { error: 'missing' }, headers);
+}
+
+export { QUESTION };

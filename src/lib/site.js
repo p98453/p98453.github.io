@@ -10,6 +10,8 @@ export const site = {
   licenseUrl: 'https://creativecommons.org/licenses/by-nc/4.0/deed.zh',
   repo: 'https://github.com/p98453/p98453.github.io',
   started: 2025,
+  thoughtsApi: 'https://thoughts.kukudelin.top',
+  turnstileSiteKey: '',
 };
 
 export function categoryKey(name) {
