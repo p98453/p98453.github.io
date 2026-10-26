@@ -769,9 +769,17 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .ask {
   margin: 8px 0 26px;
   font-family: var(--display);
-  font-size: 22px;
+  font-size: 21px;
   line-height: 1.6;
   color: var(--heading);
+  text-wrap: balance;
+}
+
+/* Each clause stays whole, so a narrow screen breaks before 也许 rather than stranding 是谁。 */
+.ask-part { display: inline-block; }
+
+@media (max-width: 480px) {
+  .ask { font-size: 19px; }
 }
 
 .answer-label,
