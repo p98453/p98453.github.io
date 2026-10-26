@@ -130,17 +130,42 @@ const limited = await call(request('/api/apply', {
 }));
 assert.equal(limited.status, 429);
 
-const approved = await call(request('/review', { method: 'POST', form: { token: approveUrl.searchParams.get('token') } }));
+for (let index = 0; index < 3; index += 1) {
+  const prefetch = await call(request(approveUrl.pathname + approveUrl.search));
+  assert.equal(prefetch.status, 200);
+}
+const rawToken = approveUrl.searchParams.get('token');
+const foreignReview = await call(request('/review', { method: 'POST', origin: 'https://evil.example', form: { token: rawToken } }));
+assert.equal(foreignReview.status, 403);
+assert.match(foreignReview.headers.get('content-type'), /text\/html/);
+assert.match(await foreignReview.text(), /无法确认/);
+const forged = await call(request('/review', { method: 'POST', origin: 'null', form: { token: `${rawToken.split('.')[0]}.AAAA` } }));
+assert.equal(forged.status, 400);
+assert.match(forged.headers.get('content-type'), /text\/html/);
+const wrongMethod = await call(request('/review', { method: 'PUT' }));
+assert.equal(wrongMethod.status, 405);
+assert.match(wrongMethod.headers.get('content-type'), /text\/html/);
+for (const variant of [encodeURIComponent(encodeURIComponent(rawToken)), ` ${rawToken}\n`, `${rawToken})`, `${rawToken}&amp;utm=x`]) {
+  const viewed = await call(request(`/review?token=${encodeURIComponent(variant)}`));
+  assert.equal(viewed.status, 200, variant);
+  assert.match(await viewed.text(), /确认同意/);
+}
+
+const approved = await call(request('/review', { method: 'POST', origin: 'https://thoughts.kukudelin.top', form: { token: encodeURIComponent(rawToken) } }));
 assert.equal(approved.status, 200);
 assert.match(await approved.text(), /已同意/);
 const visitorMail = sent.at(-1);
 assert.equal(visitorMail.body.to[0], 'person@example.com');
 assert.match(visitorMail.body.html, /进入个人随想/);
-assert.match(visitorMail.body.subject, /入口/);
+assert.equal(visitorMail.body.subject, '我想起你了');
+assert.match(visitorMail.body.text, /这个链接只属于你，请别转给别人。/);
 const accessUrl = visitorMail.body.html.match(/href="(https:\/\/kukudelin\.top\/thoughts\/list\/#[^"]+)"/)[1];
 const accessToken = decodeURIComponent(accessUrl.split('#')[1]);
+assert.ok(visitorMail.body.text.includes(accessUrl));
 
-const approvedAgain = await call(request('/review', { method: 'POST', form: { token: approveUrl.searchParams.get('token') } }));
+const approvedAgain = await call(request('/review', { method: 'POST', origin: 'null', form: { token: approveUrl.searchParams.get('token') } }));
+assert.equal(approvedAgain.status, 200);
+assert.match(approvedAgain.headers.get('content-type'), /text\/html/);
 assert.match(await approvedAgain.text(), /已经同意过了/);
 assert.equal(sent.at(-1), visitorMail);
 
@@ -221,7 +246,9 @@ const reviewLinks = [...sent2[0].body.html.matchAll(/href="(https:\/\/thoughts\.
 const rejectToken = new URL(reviewLinks[1]).searchParams.get('token');
 const declined = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), env2, fetch2);
 assert.match(await declined.text(), /已拒绝/);
-assert.match(sent2.at(-1).body.html, /这次先不打开/);
+assert.match(sent2.at(-1).body.html, /我还没能想起你是谁/);
+assert.equal(sent2.at(-1).body.subject, '关于你讲的那个瞬间');
+assert.match(sent2.at(-1).body.text, /—— 小牛/);
 assert.doesNotMatch(sent2.at(-1).body.html, /thoughts\/list/);
 const declinedAgain = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), env2, fetch2);
 assert.match(await declinedAgain.text(), /已经拒绝过了/);
@@ -233,6 +260,48 @@ assert.equal(expired.status, 410);
 
 assert.match(reviewEmail({ answer: '<b>', email: 'a@b.co', approveUrl: 'https://example.com/a', rejectUrl: 'https://example.com/b' }), /&lt;b&gt;/);
 assert.match(approveEmail({ accessUrl: 'https://kukudelin.top/thoughts/list/#abc' }), /abc/);
-assert.match(declineEmail(), /林勇/);
+assert.match(declineEmail(), /—— 小牛/);
+
+{
+  const { env: env3, sent: sent3, fetchImpl: fetch3 } = createEnv();
+  env3.OWNER_PASSPHRASE = crypto.randomUUID();
+  const call3 = (req, ip = '203.0.113.7') => {
+    req.headers.set('cf-connecting-ip', ip);
+    return handle(req, env3, fetch3);
+  };
+  const owner = await call3(request('/api/apply', { method: 'POST', origin, body: { answer: ` ${env3.OWNER_PASSPHRASE} `, email: '' } }));
+  assert.equal(owner.status, 200);
+  assert.equal((await owner.json()).status, 'owner');
+  const ownerCookie = owner.headers.get('set-cookie');
+  assert.match(ownerCookie, /thoughts_session=[^;]+; HttpOnly; Secure; SameSite=Lax/);
+  assert.equal(sent3.length, 0);
+  const ownerToken = decodeURIComponent(/thoughts_session=([^;]+)/.exec(ownerCookie)[1]);
+  const ownerList = await call3(request('/api/thoughts', { origin, cookie: `thoughts_session=${encodeURIComponent(ownerToken)}` }));
+  assert.equal(ownerList.status, 200);
+
+  const noEmail = await call3(request('/api/apply', { method: 'POST', origin, body: { answer: '某个夏天', email: '' } }));
+  assert.equal(noEmail.status, 400);
+  const normal = await call3(request('/api/apply', { method: 'POST', origin, body: { answer: '某个夏天', email: 'friend@example.com' } }), '203.0.113.8');
+  assert.equal(normal.status, 200);
+  assert.equal((await normal.json()).status, 'pending');
+  assert.equal(normal.headers.get('set-cookie'), null);
+  assert.equal(sent3.length, 1);
+
+  for (let index = 0; index < 4; index += 1) {
+    const wrong = await call3(request('/api/apply', { method: 'POST', origin, body: { answer: `猜错${index}`, email: '' } }), '198.51.100.9');
+    assert.equal(wrong.status, 400);
+  }
+  // fifth wrong guess counts; afterwards even the right phrase is refused for this IP
+  await call3(request('/api/apply', { method: 'POST', origin, body: { answer: '猜错4', email: '' } }), '198.51.100.9');
+  const blocked = await call3(request('/api/apply', { method: 'POST', origin, body: { answer: env3.OWNER_PASSPHRASE, email: '' } }), '198.51.100.9');
+  assert.equal(blocked.status, 429);
+  assert.equal(blocked.headers.get('set-cookie'), null);
+  const otherIp = await call3(request('/api/apply', { method: 'POST', origin, body: { answer: env3.OWNER_PASSPHRASE, email: '' } }), '198.51.100.10');
+  assert.equal(otherIp.status, 200);
+  const nextWindow = { ...env3, now: () => Date.now() + 11 * 60 * 1000 };
+  const later = new Request(request('/api/apply', { method: 'POST', origin, body: { answer: env3.OWNER_PASSPHRASE, email: '' } }));
+  later.headers.set('cf-connecting-ip', '198.51.100.9');
+  assert.equal((await handle(later, nextWindow, fetch3)).status, 200);
+}
 
 console.log('thoughts worker tests ok');

@@ -1,10 +1,12 @@
-import { QUESTION, approveEmail, declineEmail, decisionPage, reviewEmail } from './emails.js';
+import { APPROVE_SUBJECT, DECLINE_SUBJECT, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, reviewEmail } from './emails.js';
 
 const ANSWER_MIN = 2;
 const ANSWER_MAX = 2000;
 const EMAIL_MAX = 254;
 const IP_LIMIT = 5;
 const EMAIL_DAY_LIMIT = 3;
+const PASS_LIMIT = 5;
+const PASS_WINDOW_MS = 10 * 60 * 1000;
 const REVIEW_MS = 7 * 24 * 60 * 60 * 1000;
 const REVOKE_MS = 30 * 24 * 60 * 60 * 1000;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -42,6 +44,27 @@ function safeEqual(left, right) {
   return diff === 0;
 }
 
+async function sha256(value) {
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(String(value))));
+}
+
+async function digestEqual(left, right) {
+  const [a, b] = await Promise.all([sha256(left), sha256(right)]);
+  let diff = 0;
+  for (let index = 0; index < a.length; index += 1) diff |= a[index] ^ b[index];
+  return diff === 0;
+}
+
+async function ownerPass(env, request, answer, now) {
+  if (!env.OWNER_PASSPHRASE || !answer) return 'skip';
+  const key = `rate:pass:${clientIp(request)}:${Math.floor(now / PASS_WINDOW_MS)}`;
+  const tries = Number((await env.THOUGHTS.get(key)) || '0');
+  if (tries >= PASS_LIMIT) return 'limited';
+  if (await digestEqual(answer, env.OWNER_PASSPHRASE)) return 'ok';
+  await env.THOUGHTS.put(key, String(tries + 1), { expirationTtl: 1200 });
+  return 'skip';
+}
+
 async function hmac(secret, message) {
   const key = await crypto.subtle.importKey(
     'raw',
@@ -59,8 +82,22 @@ export async function signPayload(secret, payload) {
   return `${body}.${await hmac(secret, body)}`;
 }
 
+export function normalizeToken(raw) {
+  let value = String(raw || '');
+  for (let round = 0; round < 3 && /%[0-9a-fA-F]{2}/.test(value); round += 1) {
+    try {
+      value = decodeURIComponent(value);
+    } catch {
+      break;
+    }
+  }
+  value = value.replace(/^token=/, '').replace(/&amp;/g, '&').split('&')[0];
+  value = value.replace(/\s+/g, '').replaceAll('+', '-').replaceAll('/', '_').replace(/=+(?=\.|$)/g, '');
+  return value.replace(/[^A-Za-z0-9_.-]+$/, '').replace(/^[^A-Za-z0-9_-]+/, '');
+}
+
 async function readPayload(secret, token, now) {
-  const parts = String(token || '').split('.');
+  const parts = normalizeToken(token).split('.');
   if (parts.length !== 2) return null;
   const [body, signature] = parts;
   const expected = await hmac(secret, body);
@@ -175,6 +212,7 @@ async function sendMail(env, fetchImpl, message) {
       to: [message.to],
       subject: message.subject,
       html: message.html,
+      ...(message.text ? { text: message.text } : {}),
     }),
   });
   return response.ok;
@@ -214,9 +252,6 @@ async function accessRecord(env, request) {
 }
 
 async function apply(request, env, fetchImpl, headers) {
-  if (!env.OWNER_EMAIL || !env.HMAC_SECRET || !env.RESEND_API_KEY) {
-    return json(503, { error: 'unconfigured' }, headers);
-  }
   let text = '';
   try {
     text = await request.text();
@@ -234,8 +269,22 @@ async function apply(request, env, fetchImpl, headers) {
 
   const answer = typeof body.answer === 'string' ? body.answer.trim() : '';
   const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  if (answer.length <= ANSWER_MAX) {
+    const now = nowMs(env);
+    const pass = await ownerPass(env, request, answer, now);
+    if (pass === 'ok') {
+      const token = randomToken();
+      await env.THOUGHTS.put(`access:${token}`, JSON.stringify({ email: 'owner', appId: 'owner', createdAt: now, revoked: false }));
+      return json(200, { ok: true, status: 'owner' }, { ...headers, 'set-cookie': cookieHeader(env, token, false) });
+    }
+    if (pass === 'limited' && !validEmail(email)) return json(429, { error: 'rate_limited' }, headers);
+  }
   if (answer.length < ANSWER_MIN || answer.length > ANSWER_MAX || !validEmail(email)) {
     return json(400, { error: 'invalid' }, headers);
+  }
+
+  if (!env.OWNER_EMAIL || !env.HMAC_SECRET || !env.RESEND_API_KEY) {
+    return json(503, { error: 'unconfigured' }, headers);
   }
 
   if (env.TURNSTILE_SECRET) {
@@ -395,7 +444,7 @@ async function showReview(env, token) {
       heading: '收回入口',
       message: '确认之后，这个人的入口会失效。已经打开的页面在下一次读取时也会进不去。',
       confirm: '确认收回',
-      token,
+      token: normalizeToken(token),
     }));
   }
   const application = await readJson(env.THOUGHTS, `apply:${payload.id}`);
@@ -414,16 +463,44 @@ async function showReview(env, token) {
     heading: `确认${verb}`,
     message: `邮箱 ${safeEmail}。<br /><br />${answer}`,
     confirm: `确认${verb}`,
-    token,
+    token: normalizeToken(token),
   }));
 }
 
-async function actReview(request, env, fetchImpl) {
-  const form = await request.formData();
-  const token = String(form.get('token') || '');
+function reviewOriginOk(env, request) {
+  const origin = request.headers.get('origin');
+  if (!origin || origin === 'null') return true;
+  return origin === workerOrigin(env);
+}
+
+async function reviewRoute(request, env, fetchImpl, url) {
+  try {
+    if (request.method === 'GET' || request.method === 'HEAD') return await showReview(env, url.searchParams.get('token'));
+    if (request.method === 'POST') {
+      if (!reviewOriginOk(env, request)) {
+        return html(403, decisionPage({ heading: '无法确认', message: '这个确认不是从审核页发出的。请回到邮件里重新点开链接。' }));
+      }
+      return await actReview(request, env, fetchImpl, url);
+    }
+    return html(405, decisionPage({ heading: '打开方式不对', message: '请直接点邮件里的链接，在打开的页面上确认。' }));
+  } catch {
+    return html(500, decisionPage({ heading: '出了点问题', message: '这次没有处理成功，链接仍然有效，请稍后再点一次。' }));
+  }
+}
+
+async function actReview(request, env, fetchImpl, url) {
+  let token = '';
+  try {
+    const form = await request.formData();
+    token = String(form.get('token') || '');
+  } catch {
+    token = '';
+  }
+  if (!token && url) token = url.searchParams.get('token') || '';
   const payload = await readPayload(env.HMAC_SECRET, token, nowMs(env));
-  if (!payload || payload.expired) {
-    return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经不能使用。' }));
+  if (!payload) return html(400, decisionPage({ heading: '链接无效', message: '这个链接签不出来，已经不能使用。' }));
+  if (payload.expired) {
+    return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经过了有效期。如果还要处理，请让对方再提交一次。' }));
   }
   if (payload.action === 'revoke') return revoke(env, payload.id);
   const key = `apply:${payload.id}`;
@@ -446,8 +523,9 @@ async function approve(env, fetchImpl, application) {
   const accessUrl = `${siteOrigin(env)}/thoughts/list/#${token}`;
   const mailed = await sendMail(env, fetchImpl, {
     to: application.email,
-    subject: '个人随想的入口',
+    subject: APPROVE_SUBJECT,
     html: approveEmail({ accessUrl }),
+    text: approveText({ accessUrl }),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '入口还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
   const now = nowMs(env);
@@ -473,8 +551,9 @@ async function approve(env, fetchImpl, application) {
 async function reject(env, fetchImpl, application) {
   const mailed = await sendMail(env, fetchImpl, {
     to: application.email,
-    subject: '关于个人随想',
+    subject: DECLINE_SUBJECT,
     html: declineEmail(),
+    text: declineText(),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '回绝的信还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
   application.status = 'rejected';
@@ -514,6 +593,8 @@ export async function handle(request, env, fetchImpl = fetch) {
     return json(404, { error: 'missing' });
   }
 
+  if (path === '/review') return reviewRoute(request, env, fetchImpl, url);
+
   if (request.method === 'OPTIONS') {
     const headers = cors(env, request);
     if (!headers) return json(403, { error: 'forbidden' });
@@ -534,8 +615,6 @@ export async function handle(request, env, fetchImpl = fetch) {
   if (request.method === 'GET' && path.startsWith('/api/thoughts/')) {
     return oneThought(env, request, decodeURIComponent(path.slice('/api/thoughts/'.length)), headers);
   }
-  if (path === '/review' && request.method === 'GET') return showReview(env, url.searchParams.get('token'));
-  if (path === '/review' && request.method === 'POST') return actReview(request, env, fetchImpl);
   return json(404, { error: 'missing' }, headers);
 }
 

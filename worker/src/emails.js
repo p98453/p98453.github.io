@@ -1,4 +1,4 @@
-export const QUESTION = '要是能回到某个和我有关的瞬间，你会选哪一个？';
+export const QUESTION = '如果你能描述某个和我有关的瞬间，也许我会想起你是谁。';
 
 function escapeHtml(value) {
   return String(value)
@@ -40,30 +40,43 @@ export function reviewEmail({ answer, email, approveUrl, rejectUrl }) {
   `);
 }
 
+export const APPROVE_SUBJECT = '我想起你了';
+export const DECLINE_SUBJECT = '关于你讲的那个瞬间';
+
+const APPROVE_BODY = '谢谢你讲的那个瞬间，我回忆了很久，入口已经为你打开了，点下面的链接就能进来。里面都是些零碎的日常和想法，谢谢你愿意了解真实的我。';
+const APPROVE_NOTE = '这个链接只属于你，请别转给别人。';
+const DECLINE_BODY = '谢谢你愿意停下来，讲一个和我有关的瞬间。这一次，我还没能想起你是谁，所以入口暂时没为你打开。也许是时间隔得太久，也许我们只是还不够熟。如果哪天你想起了更具体的片段，欢迎回来。';
+const SIGNATURE = '—— 小牛';
+
 export function approveEmail({ accessUrl }) {
-  return page('个人随想的入口', `
+  return page(APPROVE_SUBJECT, `
     <p style="letter-spacing:0.12em;color:#7b8894;font-size:13px;">个人随想</p>
-    <h1 style="font-weight:500;font-size:28px;margin:8px 0 18px;">门开了一条缝</h1>
-    <p style="line-height:1.9;color:#000;">你写下的那个瞬间，我留下了。</p>
-    <p style="line-height:1.9;color:#000;">下面这扇门只为你开。它不公开，也可以随时收回，请不要转给别人。</p>
+    <h1 style="font-weight:500;font-size:28px;margin:8px 0 18px;">${APPROVE_SUBJECT}</h1>
+    <p style="line-height:1.9;color:#000;">${APPROVE_BODY}</p>
     <p style="margin:28px 0;">
       <a href="${escapeHtml(accessUrl)}" style="display:inline-block;padding:8px 18px;border:1px solid #115ca1;color:#115ca1;text-decoration:none;">进入个人随想</a>
     </p>
-    <p style="line-height:1.9;color:#1b3156;">林勇</p>
+    <p style="line-height:1.9;color:#7b8894;font-size:14px;">${APPROVE_NOTE}</p>
+    <p style="line-height:1.9;color:#1b3156;margin-top:28px;">${SIGNATURE}</p>
   `);
+}
+
+export function approveText({ accessUrl }) {
+  return `${APPROVE_BODY}\n\n进入个人随想：${accessUrl}\n\n${APPROVE_NOTE}\n\n${SIGNATURE}\n`;
 }
 
 export function declineEmail() {
-  return page('关于个人随想', `
+  return page(DECLINE_SUBJECT, `
     <p style="letter-spacing:0.12em;color:#7b8894;font-size:13px;">个人随想</p>
-    <h1 style="font-weight:500;font-size:28px;margin:8px 0 18px;">这次先不打开</h1>
-    <p style="line-height:1.9;color:#000;">谢谢你愿意把一个和我有关的瞬间写下来。我读过了。</p>
-    <p style="line-height:1.9;color:#000;">这些文字我留得很小，一次只请很少的人进来。这一次我没有把入口留下。不是因为那句话不好，只是它还不是这扇门想打开的理由。</p>
-    <p style="line-height:1.9;color:#000;">如果你以后还想写，门还在原来的地方。慢慢来就好。</p>
-    <p style="line-height:1.9;color:#1b3156;">林勇</p>
+    <h1 style="font-weight:500;font-size:28px;margin:8px 0 18px;">${DECLINE_SUBJECT}</h1>
+    <p style="line-height:1.9;color:#000;">${DECLINE_BODY}</p>
+    <p style="line-height:1.9;color:#1b3156;margin-top:28px;">${SIGNATURE}</p>
   `);
 }
 
+export function declineText() {
+  return `${DECLINE_BODY}\n\n${SIGNATURE}\n`;
+}
 export function decisionPage({ heading, message, confirm, token }) {
   const form = confirm
     ? `<form method="post" action="/review" style="margin-top:28px;">

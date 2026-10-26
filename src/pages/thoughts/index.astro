@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import { site } from '../../lib/site.js';
 
-const question = '要是能回到某个和我有关的瞬间，你会选哪一个？';
+const question = '如果你能描述某个和我有关的瞬间，也许我会想起你是谁。';
 ---
 
 <Base quiet documentTitle={`个人随想 · ${site.title}`} description={question}>
@@ -17,13 +17,10 @@ const question = '要是能回到某个和我有关的瞬间，你会选哪一�
           <span class="visually-hidden">你的答案</span>
           <textarea name="answer" rows="1" maxlength="2000" placeholder="你的答案" required></textarea>
         </label>
-        <div class="apply-row">
-          <label class="email-label">
-            <span class="visually-hidden">你的邮箱</span>
-            <input type="email" name="email" maxlength="254" placeholder="你的邮箱" autocomplete="email" required />
-          </label>
-          <button type="submit">进入</button>
-        </div>
+        <label class="email-label">
+          <span class="visually-hidden">你的邮箱（可不填）</span>
+          <input type="email" name="email" maxlength="254" placeholder="你的邮箱" autocomplete="email" />
+        </label>
         <p class="honeypot">
           <label>网站 <input name="website" tabindex="-1" autocomplete="off" /></label>
         </p>
@@ -32,7 +29,10 @@ const question = '要是能回到某个和我有关的瞬间，你会选哪一�
       <p class="form-status" role="status" hidden></p>
     </form>
     <p class="lock-note">每一份回答，我都会亲自读完；结果会在某个安静的时刻，寄到你的邮箱。</p>
-    <p class="back-link"><a href="/">← 返回</a></p>
+    <div class="gate-actions">
+      <button type="submit" form="thought-apply">进入</button>
+      <a class="back-link" href="/">← 返回</a>
+    </div>
   </div>
 </Base>
 
