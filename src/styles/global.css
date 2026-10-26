@@ -295,20 +295,22 @@ html[data-theme="dark"] ::selection {
 
 .seal {
   float: left;
+  display: block;
   width: 30px;
   height: 30px;
   margin: -4px 12px 0 0;
   border: 1px solid var(--link);
   border-radius: 50%;
-  background: #cd0e0e;
-  color: #fff;
-  font-family: var(--display);
-  font-weight: 600;
-  font-size: 16px;
-  line-height: 30px;
-  text-align: center;
-  text-decoration: none;
+  object-fit: cover;
+  object-position: center;
+  background: transparent;
   box-shadow: 0 0 7px var(--border);
+}
+
+a.seal-link {
+  display: inline-block;
+  line-height: 0;
+  text-decoration: none;
 }
 
 .brand a:hover .seal { border-color: var(--hover); }
@@ -709,8 +711,6 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   width: 72px;
   height: 72px;
   margin: 0;
-  line-height: 70px;
-  font-size: 32px;
 }
 
 .portal-name,
@@ -914,9 +914,10 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   margin-bottom: 28px;
 }
 
+.thoughts-bar .seal-link { flex: none; }
+
 .thoughts-bar .seal {
   float: none;
-  flex: none;
   margin: 0;
 }
 

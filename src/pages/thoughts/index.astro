@@ -1,12 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Seal from '../../components/Seal.astro';
 import { site } from '../../lib/site.js';
 import { ASK_LEAD, ASK_TAIL, QUESTION } from '../../../worker/src/emails.js';
 ---
 
 <Base quiet documentTitle={`个人随想 · ${site.title}`} description={QUESTION}>
   <div class="portal gate" data-api={site.thoughtsApi}>
-    <a class="seal portal-seal" href="/" aria-label={site.title}>林</a>
+    <a class="seal-link" href="/" aria-label={site.title}><Seal /></a>
     <h1>个人随想</h1>
     <p class="portal-lead">想进来的话，先留一句话。</p>
     <form id="thought-apply" data-api={site.thoughtsApi} novalidate>
