@@ -5,19 +5,16 @@ import { getCategories } from '../../lib/posts.js';
 const categories = getCategories();
 ---
 
-<Base title="分类" description="按分类浏览小牛壮士的文章。">
-  <div class="shell page-intro">
-    <p class="eyebrow">Categories</p>
-    <h1 class="page-title">分类</h1>
-    <div class="card-grid">
-      {
-        categories.map((category) => (
-          <a class="card" href={`/categories/${category.key}/`}>
-            <strong>{category.label}</strong>
-            <span>{category.posts.length} 篇</span>
-          </a>
-        ))
-      }
-    </div>
-  </div>
+<Base title="分类" description="按分类浏览文章。">
+  <h1 class="page-title">分类</h1>
+  <ul class="name-list">
+    {
+      categories.map((category) => (
+        <li>
+          <a href={`/categories/${category.key}/`}>{category.label}</a>
+          <span> —— {category.posts.length} 篇</span>
+        </li>
+      ))
+    }
+  </ul>
 </Base>

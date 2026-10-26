@@ -1,0 +1,91 @@
+<p class="search-line">
+  <label>
+    搜索
+    <input id="filter" type="search" placeholder="标题、分类或标签" autocomplete="off" enterkeyhint="search" />
+  </label>
+</p>
+
+<script is:inline>
+  document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('filter');
+    var root = document.getElementById('entries');
+    if (!input || !root) return;
+    var pager = document.querySelector('.pagination');
+    var original = root.innerHTML;
+    var index = null;
+    var loading = false;
+
+    function show(items) {
+      root.replaceChildren();
+      if (!items.length) {
+        var empty = document.createElement('p');
+        empty.className = 'empty';
+        empty.textContent = '没有匹配的文章。';
+        root.appendChild(empty);
+        return;
+      }
+      items.forEach(function (post) {
+        var article = document.createElement('article');
+        article.className = 'entry';
+        var date = document.createElement('div');
+        date.className = 'date';
+        var time = document.createElement('time');
+        time.setAttribute('datetime', post.iso);
+        time.textContent = post.date;
+        date.appendChild(time);
+        var detail = document.createElement('div');
+        detail.className = 'detail';
+        var heading = document.createElement('h1');
+        var link = document.createElement('a');
+        link.href = post.url;
+        link.textContent = post.title;
+        heading.appendChild(link);
+        detail.appendChild(heading);
+        if (post.description) {
+          var summary = document.createElement('span');
+          summary.className = 'summary';
+          summary.textContent = ' \u2014\u2014 ' + post.description;
+          detail.appendChild(summary);
+        }
+        article.appendChild(date);
+        article.appendChild(detail);
+        root.appendChild(article);
+      });
+    }
+
+    function apply() {
+      var query = input.value.trim().toLowerCase();
+      if (!query) {
+        root.innerHTML = original;
+        if (pager) pager.hidden = false;
+        return;
+      }
+      if (!index) {
+        if (loading) return;
+        loading = true;
+        fetch('/search-index.json')
+          .then(function (response) {
+            if (!response.ok) throw new Error('search');
+            return response.json();
+          })
+          .then(function (data) {
+            index = data;
+            loading = false;
+            apply();
+          })
+          .catch(function () {
+            loading = false;
+          });
+        return;
+      }
+      if (pager) pager.hidden = true;
+      show(
+        index.filter(function (post) {
+          return post.text.indexOf(query) !== -1;
+        }),
+      );
+    }
+
+    input.addEventListener('input', apply);
+  });
+</script>

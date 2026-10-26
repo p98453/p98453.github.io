@@ -1,0 +1,13 @@
+---
+import PostList from './PostList.astro';
+import Pagination from './Pagination.astro';
+import Search from './Search.astro';
+import { pageCount, slicePage } from '../lib/paging.js';
+
+const { posts, page = 1, base, search = false } = Astro.props;
+const pages = pageCount(posts.length);
+---
+
+{search && <Search />}
+<PostList posts={slicePage(posts, page)} />
+<Pagination page={page} pages={pages} base={base} />

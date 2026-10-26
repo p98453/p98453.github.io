@@ -1,12 +1,11 @@
 <script>
   import mermaid from 'mermaid';
 
-  const theme = document.documentElement.dataset.theme === 'dark' ? 'dark' : 'neutral';
   mermaid.initialize({
     startOnLoad: false,
-    theme,
+    theme: 'neutral',
     securityLevel: 'strict',
-    fontFamily: 'inherit',
+    fontFamily: 'Merriweather, "Noto Serif SC", Songti SC, serif',
   });
   await mermaid.run({ querySelector: '.mermaid' });
 </script>

@@ -1,26 +1,27 @@
 ---
 import Base from '../../layouts/Base.astro';
-import PostList from '../../components/PostList.astro';
-import { getYears, getPosts } from '../../lib/posts.js';
+import Listing from '../../components/Listing.astro';
+import { getPosts, getYears } from '../../lib/posts.js';
 
-const years = getYears();
 const posts = getPosts();
+const years = getYears();
 ---
 
-<Base title="归档" description="按年份与月份翻阅小牛壮士的全部文章。">
-  <div class="shell page-intro">
-    <p class="eyebrow">Archive</p>
-    <h1 class="page-title">归档</h1>
-    <p class="lede">共 {posts.length} 篇，按写作日期排列。</p>
-    <div class="chips" style="margin-top:1rem">
-      {
-        years.map((year) => (
-          <a class="chip" href={`/archives/${year.year}/`}>
-            {year.year} · {year.posts.length}
-          </a>
-        ))
-      }
-    </div>
-    <PostList posts={posts} />
-  </div>
+<Base title="归档" description="按年份翻阅全部文章。">
+  <h1 class="page-title">归档</h1>
+  <p class="subnav">
+    {
+      years.map((year, index) => (
+        <>
+          {index > 0 && ' · '}
+          <a href={`/archives/${year.year}/`}>{year.year}</a>
+          <span>
+            {' '}
+            {year.posts.length}
+          </span>
+        </>
+      ))
+    }
+  </p>
+  <Listing posts={posts} page={1} base="/archives/" />
 </Base>

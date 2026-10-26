@@ -1,14 +1,41 @@
 ---
+import Base from '../../../../layouts/Base.astro';
+import Listing from '../../../../components/Listing.astro';
 import Redirect from '../../../../components/Redirect.astro';
+import { getMonths, getYears } from '../../../../lib/posts.js';
+import { pageEntries } from '../../../../lib/paging.js';
 
 export function getStaticPaths() {
-  return [2, 3, 4, 5, 6].map((page) => ({
-    params: { year: '2025', page: String(page) },
-    props: { year: '2025' },
-  }));
+  return getYears().flatMap(({ year, posts }) => {
+    const legacy = year === '2025' ? 6 : 0;
+    return pageEntries(posts.length, legacy).map(({ page, redirect }) => ({
+      params: { year, page: String(page) },
+      props: { year, page, redirect },
+    }));
+  });
 }
 
-const { year } = Astro.props;
+const { year, page, redirect } = Astro.props;
+const months = getMonths(year);
+const posts = months.flatMap((month) => month.posts);
 ---
 
-<Redirect to={`/archives/${year}/`} />
+{
+  redirect ? (
+    <Redirect to={`/archives/${year}/`} />
+  ) : (
+    <Base title={`${year} 年，第 ${page} 页`} description={`${year} 年的文章归档。`}>
+      <h1 class="page-title">{year}</h1>
+      <p class="subnav">
+        <a href="/archives/">归档</a>
+        {months.map((month) => (
+          <>
+            {' · '}
+            <a href={`/archives/${year}/${month.month}/`}>{Number(month.month)} 月</a>
+          </>
+        ))}
+      </p>
+      <Listing posts={posts} page={page} base={`/archives/${year}/`} />
+    </Base>
+  )
+}

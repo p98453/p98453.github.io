@@ -5,23 +5,20 @@ import { getTags } from '../../lib/posts.js';
 const tags = getTags();
 ---
 
-<Base title="标签" description="按标签浏览小牛壮士的文章。">
-  <div class="shell page-intro">
-    <p class="eyebrow">Tags</p>
-    <h1 class="page-title">标签</h1>
-    {
-      tags.length === 0 ? (
-        <p class="empty">还没有标签。在文章前言里写上 tags 就会出现在这里。</p>
-      ) : (
-        <div class="card-grid">
-          {tags.map((tag) => (
-            <a class="card" href={`/tags/${tag.name}/`}>
-              <strong>{tag.name}</strong>
-              <span>{tag.posts.length} 篇</span>
-            </a>
-          ))}
-        </div>
-      )
-    }
-  </div>
+<Base title="标签" description="按标签浏览文章。">
+  <h1 class="page-title">标签</h1>
+  {
+    tags.length === 0 ? (
+      <p class="empty">还没有标签。在文章前言里写上 tags 就会出现在这里。</p>
+    ) : (
+      <ul class="name-list">
+        {tags.map((tag) => (
+          <li>
+            <a href={`/tags/${tag.name}/`}>{tag.name}</a>
+            <span> —— {tag.posts.length} 篇</span>
+          </li>
+        ))}
+      </ul>
+    )
+  }
 </Base>

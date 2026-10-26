@@ -1,0 +1,18 @@
+---
+import { pageHref } from '../lib/paging.js';
+
+const { page, pages, base } = Astro.props;
+const gap = ' \u2014\u2014 ';
+---
+
+{
+  pages > 1 && (
+    <nav class="pagination" aria-label="分页">
+      {page > 1 ? <a href={pageHref(base, page - 1)}>« 上一页</a> : <span>« 上一页</span>}
+      {gap}
+      <strong>{page}</strong>
+      {gap}
+      {page < pages ? <a href={pageHref(base, page + 1)}>下一页 »</a> : <span>下一页 »</span>}
+    </nav>
+  )
+}

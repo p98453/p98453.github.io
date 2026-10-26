@@ -1,13 +1,43 @@
 ---
 import { site } from '../lib/site.js';
+
 const year = new Date().getFullYear();
+const span = year > site.started ? `${site.started}\u2013${year}` : String(site.started);
 ---
 
-<footer class="site-footer">
-  <span>© {year} {site.author}</span>
-  <span>
-    <a href="/rss.xml">RSS</a>
-    <span aria-hidden="true"> · </span>
-    <a href={site.url}>{site.url.replace('https://', '')}</a>
-  </span>
+<footer class="footer">
+  <p>© {span} {site.authorName}（{site.author}）。</p>
+  <p>内容以 <a href={site.licenseUrl}>CC BY-NC 4.0</a> 协议发布。</p>
+  <p>订阅：<a href="/rss.xml">RSS</a>。代码：<a href={site.repo}>GitHub</a>。</p>
+  <p class="theme-selector">
+    配色：
+    <label><input type="radio" name="theme" value="auto" /><span>自动</span></label>、
+    <label><input type="radio" name="theme" value="light" /><span>浅色</span></label>、
+    <label><input type="radio" name="theme" value="dark" /><span>深色</span></label>。
+  </p>
 </footer>
+
+<script is:inline>
+  (function () {
+    var root = document.documentElement;
+    function theme() {
+      return root.dataset.theme === 'light' || root.dataset.theme === 'dark' ? root.dataset.theme : 'auto';
+    }
+    function sync(value) {
+      root.dataset.theme = value;
+      try {
+        if (value === 'auto') localStorage.removeItem('theme');
+        else localStorage.setItem('theme', value);
+      } catch (error) {}
+      document.querySelectorAll('.theme-selector input').forEach(function (input) {
+        input.checked = input.value === value;
+      });
+    }
+    document.querySelectorAll('.theme-selector input').forEach(function (input) {
+      input.addEventListener('change', function () {
+        if (input.checked) sync(input.value);
+      });
+    });
+    sync(theme());
+  })();
+</script>

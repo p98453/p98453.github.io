@@ -104,6 +104,12 @@ function listImages(directory) {
     .sort();
 }
 
+function descriptionOf(data) {
+  const value = data && data.description;
+  if (typeof value !== 'string') return '';
+  return value.replace(/\s+/g, ' ').trim();
+}
+
 function excerptOf(body) {
   const text = body
     .replace(/```[\s\S]*?```/g, ' ')
@@ -146,6 +152,7 @@ function loadPosts() {
       permalink,
       categories: asList(parsed.data.categories),
       tags: asList(parsed.data.tags),
+      description: descriptionOf(parsed.data),
       body,
       prepared: prepared.markdown,
       usedImages: prepared.used,

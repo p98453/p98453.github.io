@@ -1,60 +1,32 @@
 ---
 const path = Astro.url.pathname;
 const items = [
-  ['/', '文章'],
+  ['/', '博客'],
   ['/archives/', '归档'],
   ['/categories/', '分类'],
   ['/tags/', '标签'],
 ];
 
 function current(href) {
-  if (href === '/') return path === '/';
+  if (href === '/') return path === '/' || /^\/page\/\d+\/$/.test(path);
   return path === href || path.startsWith(href);
 }
 ---
 
-<header class="site-header">
-  <div class="header-inner">
-    <a class="brand" href="/">
-      <span class="seal" aria-hidden="true">牛</span>
-      <span>
-        <span class="brand-name">小牛壮士</span>
-        <span class="brand-sub">个人博客</span>
-      </span>
-    </a>
-    <nav class="nav" aria-label="主导航">
-      {
-        items.map(([href, label]) => (
-          <a href={href} aria-current={current(href) ? 'page' : undefined}>
-            {label}
-          </a>
-        ))
-      }
-    </nav>
-    <button class="theme-toggle" id="theme-toggle" type="button" aria-label="切换深色模式" aria-pressed="false">
-      <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M21 14.5A8.5 8.5 0 0 1 9.5 3 7 7 0 1 0 21 14.5z"></path>
-      </svg>
-      <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
-        <path fill="currentColor" d="M12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zm0-5h0v2.2h0V2zm0 17.8V22h0v-2.2zM4.2 10.9H2v2.2h2.2v-2.2zm17.8 0h-2.2v2.2H22v-2.2zM5.6 4.5 4.1 6l1.6 1.6 1.5-1.5L5.6 4.5zm12.7 12.8-1.5 1.5 1.6 1.6 1.5-1.6-1.6-1.5zM18.4 6l-1.6 1.6 1.5 1.5L19.9 7.5 18.4 6zM6.2 16.3 4.6 17.9 6.1 19.4l1.6-1.5-1.5-1.6z"></path>
-      </svg>
-    </button>
+<div class="masthead">
+  <div class="brand">
+    <a href="/">
+      <span class="seal" aria-hidden="true">林</span>
+      <span class="name">小牛壮士</span>
+    </a>的个人博客
   </div>
-</header>
-
-<script is:inline>
-  (function () {
-    var button = document.getElementById('theme-toggle');
-    if (!button) return;
-    var sync = function () {
-      button.setAttribute('aria-pressed', document.documentElement.dataset.theme === 'dark' ? 'true' : 'false');
-    };
-    sync();
-    button.addEventListener('click', function () {
-      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
-      document.documentElement.dataset.theme = next;
-      try { localStorage.setItem('theme', next); } catch (error) {}
-      sync();
-    });
-  })();
-</script>
+  <nav class="navigation" aria-label="主导航">
+    {
+      items.map(([href, label]) => (
+        <a href={href} aria-current={current(href) ? 'page' : undefined}>
+          {label}
+        </a>
+      ))
+    }
+  </nav>
+</div>

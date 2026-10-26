@@ -1,6 +1,6 @@
 ---
 import Base from '../../../../layouts/Base.astro';
-import PostList from '../../../../components/PostList.astro';
+import Listing from '../../../../components/Listing.astro';
 import { getYears, getMonths } from '../../../../lib/posts.js';
 
 export function getStaticPaths() {
@@ -15,12 +15,12 @@ const { year, month } = Astro.params;
 const posts = getMonths(year).find((item) => item.month === month)?.posts ?? [];
 ---
 
-<Base title={`${year} 年 ${month} 月`} description={`${year} 年 ${month} 月的文章。`}>
-  <div class="shell page-intro">
-    <p class="eyebrow">
-      <a href="/archives/">归档</a> / <a href={`/archives/${year}/`}>{year}</a>
-    </p>
-    <h1 class="page-title">{year}.{month}</h1>
-    <PostList posts={posts} />
-  </div>
+<Base title={`${year} 年 ${Number(month)} 月`} description={`${year} 年 ${Number(month)} 月的文章。`}>
+  <h1 class="page-title">{year} 年 {Number(month)} 月</h1>
+  <p class="subnav">
+    <a href="/archives/">归档</a>
+    {' · '}
+    <a href={`/archives/${year}/`}>{year}</a>
+  </p>
+  <Listing posts={posts} page={1} base={`/archives/${year}/${month}/`} />
 </Base>
