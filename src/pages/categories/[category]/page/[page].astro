@@ -1,17 +1,38 @@
 ---
+import Base from '../../../../layouts/Base.astro';
+import Listing from '../../../../components/Listing.astro';
 import Redirect from '../../../../components/Redirect.astro';
+import { getCategories, getCategory } from '../../../../lib/posts.js';
+import { pageEntries } from '../../../../lib/paging.js';
 
 export function getStaticPaths() {
-  return [
-    { category: '人工智能基础', page: '2' },
-    { category: '实习笔记', page: '2' },
-  ].map((item) => ({
-    params: item,
-    props: { category: item.category },
-  }));
+  const legacy = new Map([
+    ['人工智能基础', 2],
+    ['实习笔记', 2],
+  ]);
+  return getCategories().flatMap((category) =>
+    pageEntries(category.posts.length, legacy.get(category.key) || 0).map(({ page, redirect }) => ({
+      params: { category: category.key, page: String(page) },
+      props: { key: category.key, page, redirect },
+    })),
+  );
 }
 
-const { category } = Astro.props;
+const { key, page, redirect } = Astro.props;
+const category = getCategory(key);
 ---
 
-<Redirect to={`/categories/${category}/`} />
+{
+  redirect ? (
+    <Redirect to={`/categories/${key}/`} />
+  ) : (
+    <Base title={`${category.label}，第 ${page} 页`} description={`${category.label} 分类下的文章。`}>
+      <h1 class="page-title">{category.label}</h1>
+      <p class="subnav">
+        <a href="/categories/">分类</a>
+        <span> · {category.posts.length} 篇</span>
+      </p>
+      <Listing posts={category.posts} page={page} base={`/categories/${key}/`} />
+    </Base>
+  )
+}

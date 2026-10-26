@@ -1,6 +1,6 @@
 ---
 import Base from '../../../layouts/Base.astro';
-import PostList from '../../../components/PostList.astro';
+import Listing from '../../../components/Listing.astro';
 import { getMonths, getYears } from '../../../lib/posts.js';
 
 export function getStaticPaths() {
@@ -13,18 +13,19 @@ const posts = months.flatMap((month) => month.posts);
 ---
 
 <Base title={`${year} 年`} description={`${year} 年的文章归档。`}>
-  <div class="shell page-intro">
-    <p class="eyebrow"><a href="/archives/">归档</a></p>
-    <h1 class="page-title">{year}</h1>
-    <div class="chips" style="margin-top:1rem">
-      {
-        months.map((month) => (
-          <a class="chip" href={`/archives/${year}/${month.month}/`}>
-            {month.month} 月 · {month.posts.length}
+  <h1 class="page-title">{year}</h1>
+  <p class="subnav">
+    <a href="/archives/">归档</a>
+    {
+      months.map((month) => (
+        <>
+          {' · '}
+          <a href={`/archives/${year}/${month.month}/`}>
+            {Number(month.month)} 月
           </a>
-        ))
-      }
-    </div>
-    <PostList posts={posts} />
-  </div>
+        </>
+      ))
+    }
+  </p>
+  <Listing posts={posts} page={1} base={`/archives/${year}/`} />
 </Base>

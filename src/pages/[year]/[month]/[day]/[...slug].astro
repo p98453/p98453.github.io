@@ -4,6 +4,7 @@ import Mermaid from '../../../../components/Mermaid.astro';
 import { getPosts, getPost } from '../../../../lib/posts.js';
 import { renderPost } from '../../../../lib/render.js';
 import { categoryKey, site } from '../../../../lib/site.js';
+import { writtenOn } from '../../../../lib/format.js';
 
 export function getStaticPaths() {
   return getPosts().map((post) => ({
@@ -20,64 +21,51 @@ export function getStaticPaths() {
 const { permalink } = Astro.props;
 const post = getPost(permalink);
 const html = await renderPost(post);
-const posts = getPosts();
-const index = posts.findIndex((item) => item.permalink === permalink);
-const newer = index > 0 ? posts[index - 1] : null;
-const older = index < posts.length - 1 ? posts[index + 1] : null;
-const description = post.excerpt || site.description;
+const description = post.description || post.excerpt || site.description;
+
+function separator(index, total) {
+  if (index === 0) return '';
+  if (index === total - 1) return ' 和 ';
+  return '、';
+}
 ---
 
 <Base title={post.title} description={description} ogType="article">
-  <article class="shell article">
-    {
-      post.categories.length > 0 && (
-        <p class="article-kicker chips">
-          {post.categories.map((category) => (
-            <a class="chip" href={`/categories/${categoryKey(category)}/`}>
-              {category}
-            </a>
-          ))}
-        </p>
-      )
-    }
+  <article class="post">
     <h1>{post.title}</h1>
-    <p class="meta">
-      <time datetime={post.date.toISOString()}>{post.dateText}</time>
-      <span aria-hidden="true"> · </span>
-      <span>{post.readingMinutes} 分钟阅读</span>
-      {
-        post.tags.length > 0 &&
-          post.tags.map((tag) => (
-            <>
-              <span aria-hidden="true"> · </span>
-              <a href={`/tags/${tag}/`}>{tag}</a>
-            </>
-          ))
-      }
+    <p class="pdate">
+      <time datetime={post.dateText}>{writtenOn(post)}</time>
     </p>
     <div class="prose" set:html={html} />
     {post.hasMermaid && <Mermaid />}
-    <nav class="pager" aria-label="相邻文章">
+    <div class="end-matter">
       {
-        older ? (
-          <a href={older.permalink}>
-            <span>较早</span>
-            {older.title}
-          </a>
-        ) : (
-          <span></span>
+        post.categories.length > 0 && (
+          <p class="tags">
+            分类：
+            {post.categories.map((category, index) => (
+              <>
+                {separator(index, post.categories.length)}
+                <a href={`/categories/${categoryKey(category)}/`}>{category}</a>
+              </>
+            ))}
+          </p>
         )
       }
       {
-        newer ? (
-          <a class="next" href={newer.permalink}>
-            <span>较新</span>
-            {newer.title}
-          </a>
-        ) : (
-          <span></span>
+        post.tags.length > 0 && (
+          <p class="tags">
+            本文标签：
+            {post.tags.map((tag, index) => (
+              <>
+                {separator(index, post.tags.length)}
+                <a href={`/tags/${tag}/`}>{tag}</a>
+              </>
+            ))}
+          </p>
         )
       }
-    </nav>
+      <p class="source-link"><a href="source.md">查看 Markdown 原文</a></p>
+    </div>
   </article>
 </Base>

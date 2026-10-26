@@ -1,9 +1,37 @@
 ---
+import Base from '../../../layouts/Base.astro';
+import Listing from '../../../components/Listing.astro';
 import Redirect from '../../../components/Redirect.astro';
+import { getPosts, getYears } from '../../../lib/posts.js';
+import { pageEntries } from '../../../lib/paging.js';
 
 export function getStaticPaths() {
-  return [2, 3, 4, 5, 6, 7].map((page) => ({ params: { page: String(page) } }));
+  return pageEntries(getPosts().length, 7).map(({ page, redirect }) => ({
+    params: { page: String(page) },
+    props: { page, redirect },
+  }));
 }
+
+const { page, redirect } = Astro.props;
+const posts = getPosts();
+const years = getYears();
 ---
 
-<Redirect to="/archives/" />
+{
+  redirect ? (
+    <Redirect to="/archives/" />
+  ) : (
+    <Base title={`归档，第 ${page} 页`} description="按年份翻阅全部文章。">
+      <h1 class="page-title">归档</h1>
+      <p class="subnav">
+        {years.map((year, index) => (
+          <>
+            {index > 0 && ' · '}
+            <a href={`/archives/${year.year}/`}>{year.year}</a>
+          </>
+        ))}
+      </p>
+      <Listing posts={posts} page={page} base="/archives/" />
+    </Base>
+  )
+}

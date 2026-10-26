@@ -1,6 +1,7 @@
 ---
 import '../styles/global.css';
 import 'katex/dist/katex.min.css';
+import Blobs from '../components/Blobs.astro';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import { site } from '../lib/site.js';
@@ -20,9 +21,19 @@ const fullTitle = title === site.title ? `${site.title} · ${site.subtitle}` : `
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script is:inline>
+      (function () {
+        try {
+          var stored = localStorage.getItem('theme');
+          document.documentElement.dataset.theme = stored === 'light' || stored === 'dark' ? stored : 'auto';
+        } catch (error) {
+          document.documentElement.dataset.theme = 'auto';
+        }
+      })();
+    </script>
     <title>{fullTitle}</title>
     <meta name="description" content={description} />
-    <meta name="author" content={site.author} />
+    <meta name="author" content={site.authorName} />
     <link rel="canonical" href={canonical} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="alternate" type="application/rss+xml" title={site.title} href="/rss.xml" />
@@ -32,24 +43,24 @@ const fullTitle = title === site.title ? `${site.title} · ${site.subtitle}` : `
     <meta property="og:type" content={ogType} />
     <meta property="og:locale" content="zh_CN" />
     <meta property="og:site_name" content={site.title} />
-    <script is:inline>
-      (function () {
-        try {
-          var stored = localStorage.getItem('theme');
-          var theme = stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-          document.documentElement.dataset.theme = theme;
-        } catch (error) {
-          document.documentElement.dataset.theme = 'light';
-        }
-      })();
-    </script>
   </head>
   <body>
     <a class="skip" href="#main">跳到正文</a>
-    <Header />
-    <main id="main">
-      <slot />
-    </main>
-    <Footer />
+    <Blobs variant="top" />
+    <div class="container">
+      <Header />
+      <div class="body">
+        <main id="main">
+          <slot />
+        </main>
+      </div>
+      <Footer />
+    </div>
+    <Blobs variant="bottom" />
+    <script is:inline>
+      requestAnimationFrame(function () {
+        document.documentElement.classList.add('theme-ready');
+      });
+    </script>
   </body>
 </html>

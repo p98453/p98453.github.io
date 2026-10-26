@@ -13,9 +13,9 @@ const TYPES = {
   '.bmp': 'image/bmp',
 };
 
-function matchPost(urlPath) {
+function matchPost(urlPath, requireAssets = true) {
   const posts = getPosts()
-    .filter((post) => post.assetDir)
+    .filter((post) => !requireAssets || post.assetDir)
     .sort((a, b) => b.permalink.length - a.permalink.length);
   return posts.find((post) => urlPath.startsWith(post.permalink) && urlPath.length > post.permalink.length);
 }
@@ -29,6 +29,13 @@ export function postAssets() {
           try {
             const raw = (req.url || '').split('?')[0];
             const urlPath = decodeURIComponent(raw);
+            const sourcePost = matchPost(urlPath, false);
+            if (sourcePost && urlPath.slice(sourcePost.permalink.length) === 'source.md') {
+              res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+              res.setHeader('Cache-Control', 'public, max-age=3600');
+              fs.createReadStream(sourcePost.file).pipe(res);
+              return;
+            }
             const post = matchPost(urlPath);
             if (!post) return next();
             const relative = urlPath.slice(post.permalink.length);
@@ -48,9 +55,9 @@ export function postAssets() {
         const dist = fileURLToPath(dir);
         let copied = 0;
         for (const post of getPosts()) {
-          if (!post.images.length) continue;
           const destDir = path.join(dist, ...post.permalink.split('/').filter(Boolean));
           fs.mkdirSync(destDir, { recursive: true });
+          fs.copyFileSync(post.file, path.join(destDir, 'source.md'));
           for (const image of post.images) {
             fs.copyFileSync(image, path.join(destDir, path.basename(image)));
             copied += 1;

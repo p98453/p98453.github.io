@@ -76,13 +76,39 @@ for (const [permalink, filename] of spots) {
   }
 }
 
-const home = fs.readFileSync(path.join(dist, 'index.html'), 'utf8');
-if (!home.includes('小牛壮士')) errors.push('home page missing site title');
-for (const post of posts) {
-  if (!home.includes(post.permalink) && !home.includes(encodeURI(post.permalink))) {
-    errors.push(`home page missing link ${post.permalink}`);
+function readHtml(file) {
+  return fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
+}
+
+const indexPages = [path.join(dist, 'index.html')];
+const pageDir = path.join(dist, 'page');
+if (fs.existsSync(pageDir)) {
+  for (const entry of fs.readdirSync(pageDir)) {
+    indexPages.push(path.join(pageDir, entry, 'index.html'));
   }
 }
+const home = readHtml(indexPages[0]);
+const indexHtml = indexPages.map(readHtml).join('\n');
+if (!home.includes('小牛壮士')) errors.push('home page missing site title');
+if (!home.includes('class="seal"') || !home.includes('>林<')) errors.push('home seal is not 林');
+const placeholders = [
+  '一次把博客迁移交给 AI 助手：写作还是我，运营交给它。',
+  '从 HTTPS Token 换到 SSH 密钥，顺手清理泄露隐患。',
+  'pip 太慢了，试试 uv。',
+];
+for (const text of placeholders) {
+  if (indexHtml.includes(text)) errors.push(`placeholder summary shipped: ${text}`);
+}
+if (!posts.some((post) => post.description) && indexHtml.includes('class="summary"')) {
+  errors.push('summary rendered without a frontmatter description');
+}
+for (const post of posts) {
+  if (!indexHtml.includes(post.permalink) && !indexHtml.includes(encodeURI(post.permalink))) {
+    errors.push(`index pages missing link ${post.permalink}`);
+  }
+}
+const sampleSource = path.join(dist, ...posts[0].permalink.split('/').filter(Boolean), 'source.md');
+if (!fs.existsSync(sampleSource)) errors.push(`markdown source missing for ${posts[0].permalink}`);
 
 console.log(`copied image files checked: ${copiedImages}`);
 console.log(`unresolved image refs: ${posts.reduce((sum, post) => sum + post.missingImages.length, 0)}`);
