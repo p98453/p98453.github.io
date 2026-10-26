@@ -4,15 +4,24 @@ import { approveEmail, declineEmail, reviewEmail } from '../worker/src/emails.js
 
 function createKv() {
   const map = new Map();
+  const meta = new Map();
   return {
     async get(key) {
       return map.has(key) ? map.get(key) : null;
     },
-    async put(key, value) {
-      map.set(key, String(value));
+    async getWithMetadata(key) {
+      return { value: map.has(key) ? map.get(key) : null, metadata: meta.get(key) || null };
+    },
+    async put(key, value, options = {}) {
+      map.set(key, value instanceof ArrayBuffer ? value : String(value));
+      if (options.metadata) meta.set(key, options.metadata);
     },
     async delete(key) {
       map.delete(key);
+      meta.delete(key);
+    },
+    async list({ prefix = '' } = {}) {
+      return { keys: [...map.keys()].filter((name) => name.startsWith(prefix)).map((name) => ({ name })), list_complete: true };
     },
   };
 }
@@ -159,6 +168,38 @@ assert.equal(items.items[0].markdown, undefined);
 const post = await call(request('/api/thoughts/rainy-afternoon', { origin, cookie }));
 const article = await post.json();
 assert.match(article.markdown, /script/);
+
+assert.deepEqual(article.tags, []);
+
+const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
+const assetPut = (auth, type = 'image/jpeg') => call(new Request('https://thoughts.kukudelin.top/admin/thoughts/rainy-afternoon/assets/rain.jpg', {
+  method: 'PUT',
+  headers: { authorization: auth, 'content-type': type },
+  body: jpeg,
+}));
+assert.equal((await assetPut('Bearer wrong')).status, 401);
+assert.equal((await assetPut('Bearer test-upload-token', 'text/html')).status, 415);
+assert.equal((await assetPut('Bearer test-upload-token')).status, 200);
+const lockedImage = await call(request('/api/thoughts/rainy-afternoon/assets/rain.jpg'));
+assert.equal(lockedImage.status, 401);
+const image = await call(request('/api/thoughts/rainy-afternoon/assets/rain.jpg', { cookie }));
+assert.equal(image.status, 200);
+assert.equal(image.headers.get('content-type'), 'image/jpeg');
+assert.match(image.headers.get('cache-control'), /private/);
+assert.equal(new Uint8Array(await image.arrayBuffer()).length, 4);
+assert.equal((await call(request('/api/thoughts/rainy-afternoon/assets/..%2Fx', { cookie }))).status, 404);
+
+const tagged = await call(request('/admin/thoughts', {
+  method: 'PUT',
+  auth: 'Bearer test-upload-token',
+  body: { slug: 'tagged', title: '有标签', date: '2026-02-02', tags: ['分享', '日常'], markdown: '正文' },
+}));
+assert.equal(tagged.status, 200);
+const taggedPost = await (await call(request('/api/thoughts/tagged', { cookie }))).json();
+assert.deepEqual(taggedPost.tags, ['分享', '日常']);
+const removed = await call(request('/admin/thoughts/rainy-afternoon', { method: 'DELETE', auth: 'Bearer test-upload-token' }));
+assert.equal(removed.status, 200);
+assert.equal((await call(request('/api/thoughts/rainy-afternoon/assets/rain.jpg', { cookie }))).status, 404);
 
 const foreign = await call(request('/admin/thoughts', {
   method: 'PUT',
