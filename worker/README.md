@@ -34,7 +34,9 @@ npx wrangler deploy
 
 | 方法 | 路径 | 作用 |
 | --- | --- | --- |
-| POST | `/api/apply` | 提交答案和邮箱 |
+| POST | `/api/apply` | 提交答案和邮箱；暗语仍从这里直接进入 |
+| POST | `/api/enter` | 已通过的邮箱换取同一种会话 cookie |
+| GET | `/enter` | 通过信里的一次性链接，校验后写入 cookie 并跳到随想目录 |
 | POST | `/api/session` | 用入口 token 换 HttpOnly cookie |
 | POST | `/api/logout` | 清掉这次会话 |
 | GET | `/api/thoughts` | 已解锁时返回目录 |

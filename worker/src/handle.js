@@ -1,5 +1,5 @@
 import { sendSmtp } from './smtp.js';
-import { APPROVE_SUBJECT, DECLINE_SUBJECT, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, reviewEmail, reviewText } from './emails.js';
+import { APPROVE_SUBJECT, DECLINE_SUBJECT, ENTER_UNAVAILABLE, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, entryUrl, reviewEmail, reviewText } from './emails.js';
 
 const ANSWER_MIN = 2;
 const ANSWER_MAX = 2000;
@@ -8,6 +8,11 @@ const IP_LIMIT = 5;
 const EMAIL_DAY_LIMIT = 3;
 const PASS_LIMIT = 5;
 const PASS_WINDOW_MS = 10 * 60 * 1000;
+const ENTER_IP_LIMIT = 5;
+const ENTER_EMAIL_LIMIT = 5;
+const ENTER_WINDOW_MS = 10 * 60 * 1000;
+const ENTRY_LINK_MS = 7 * 24 * 60 * 60 * 1000;
+const ENTRY_USED_TTL = 8 * 24 * 60 * 60;
 const REVIEW_MS = 7 * 24 * 60 * 60 * 1000;
 const REVOKE_MS = 30 * 24 * 60 * 60 * 1000;
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
@@ -97,16 +102,16 @@ export function normalizeToken(raw) {
   return value.replace(/[^A-Za-z0-9_.-]+$/, '').replace(/^[^A-Za-z0-9_-]+/, '');
 }
 
-async function readPayload(secret, token, now) {
+async function readPayload(secret, token, now, options = {}) {
   const parts = normalizeToken(token).split('.');
-  if (parts.length !== 2) return null;
+  if (parts.length !== 2 || !secret) return null;
   const [body, signature] = parts;
   const expected = await hmac(secret, body);
   if (!safeEqual(expected, signature)) return null;
   try {
     const payload = JSON.parse(new TextDecoder().decode(b64ToBytes(body)));
     if (!payload || typeof payload.exp !== 'number') return null;
-    if (payload.exp < now) return { expired: true };
+    if (payload.exp < now) return options.keepExpired ? { ...payload, expired: true } : { expired: true };
     return payload;
   } catch {
     return null;
@@ -156,6 +161,10 @@ function clientIp(request) {
 
 function validEmail(value) {
   return typeof value === 'string' && value.length <= EMAIL_MAX && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function normalizeEmail(value) {
+  return typeof value === 'string' ? value.trim().toLowerCase() : '';
 }
 
 function cookieHeader(env, token, clear) {
@@ -294,7 +303,7 @@ async function apply(request, env, fetchImpl, headers) {
   if (body.website) return json(200, { ok: true, status: 'pending' }, headers);
 
   const answer = typeof body.answer === 'string' ? body.answer.trim() : '';
-  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const email = normalizeEmail(body.email);
   if (answer.length <= ANSWER_MAX) {
     const now = nowMs(env);
     const pass = await ownerPass(env, request, answer, now);
@@ -559,9 +568,143 @@ async function actReview(request, env, deps, url) {
   return html(400, decisionPage({ heading: '链接无效', message: '这个链接不能识别。' }));
 }
 
+function redirect(location, extra = {}) {
+  return new Response(null, {
+    status: 302,
+    headers: {
+      location,
+      'cache-control': 'no-store',
+      'referrer-policy': 'no-referrer',
+      ...extra,
+    },
+  });
+}
+
+function gateLocation(env, email) {
+  const url = new URL(`${siteOrigin(env)}/thoughts/`);
+  url.searchParams.set('link', '1');
+  if (validEmail(email)) url.searchParams.set('email', email);
+  return url.toString();
+}
+
+function enterWindow(now) {
+  return Math.floor(now / ENTER_WINDOW_MS);
+}
+
+async function enterLimited(kv, ip, email, now) {
+  const windowId = enterWindow(now);
+  const ipKey = `rate:enter:ip:${ip}:${windowId}`;
+  const mailKey = `rate:enter:mail:${email}:${windowId}`;
+  const ipCount = Number((await kv.get(ipKey)) || '0');
+  const mailCount = Number((await kv.get(mailKey)) || '0');
+  if (ipCount >= ENTER_IP_LIMIT || mailCount >= ENTER_EMAIL_LIMIT) return true;
+  await kv.put(ipKey, String(ipCount + 1), { expirationTtl: 1200 });
+  await kv.put(mailKey, String(mailCount + 1), { expirationTtl: 1200 });
+  return false;
+}
+
+async function ipEnterLimited(kv, ip, now) {
+  const key = `rate:enter:ip:${ip}:${enterWindow(now)}`;
+  const count = Number((await kv.get(key)) || '0');
+  if (count >= ENTER_IP_LIMIT) return true;
+  await kv.put(key, String(count + 1), { expirationTtl: 1200 });
+  return false;
+}
+
+// Unknown, pending, rejected, and revoked addresses all take these three reads.
+async function approvedAccessToken(env, email) {
+  const id = (await env.THOUGHTS.get(`email:${email}`)) || '';
+  const application = await readJson(env.THOUGHTS, `apply:${id || '_'}`);
+  const accessToken = application?.accessToken || '';
+  const access = await readJson(env.THOUGHTS, `access:${accessToken || '_'}`);
+  if (
+    !id
+    || !application
+    || application.status !== 'approved'
+    || application.email !== email
+    || !accessToken
+    || !access
+    || access.revoked
+  ) return '';
+  return accessToken;
+}
+
+async function enterByEmail(request, env, headers) {
+  let body;
+  try {
+    const text = await request.text();
+    if (text.length > 2000) return json(400, { error: 'invalid' }, headers);
+    body = JSON.parse(text);
+  } catch {
+    return json(400, { error: 'invalid' }, headers);
+  }
+  const email = normalizeEmail(body?.email);
+  const now = nowMs(env);
+  const ip = clientIp(request);
+  if (!validEmail(email)) {
+    if (await ipEnterLimited(env.THOUGHTS, ip, now)) return json(429, { error: 'rate_limited' }, headers);
+    return json(400, { error: 'invalid' }, headers);
+  }
+  if (await enterLimited(env.THOUGHTS, ip, email, now)) return json(429, { error: 'rate_limited' }, headers);
+  const accessToken = await approvedAccessToken(env, email);
+  if (!accessToken) return json(200, { ok: false, message: ENTER_UNAVAILABLE }, headers);
+  return json(200, { ok: true, status: 'granted' }, {
+    ...headers,
+    'set-cookie': cookieHeader(env, accessToken, false),
+  });
+}
+
+function entryJti(value) {
+  return typeof value === 'string' && /^[A-Za-z0-9_-]{16,128}$/.test(value);
+}
+
+async function openEntryLink(request, env, url) {
+  if (request.method !== 'GET') return redirect(gateLocation(env));
+  const payload = await readPayload(env.HMAC_SECRET, url.searchParams.get('token') || '', nowMs(env), { keepExpired: true });
+  const email = payload?.action === 'enter' && validEmail(payload.email) ? payload.email : '';
+  if (!payload || payload.action !== 'enter' || !entryJti(payload.jti) || !email) return redirect(gateLocation(env));
+  if (payload.expired) return redirect(gateLocation(env, email));
+
+  const usedKey = `enter-used:${payload.jti}`;
+  if (await env.THOUGHTS.get(usedKey)) return redirect(gateLocation(env, email));
+
+  const application = await readJson(env.THOUGHTS, `apply:${payload.id}`);
+  const access = application?.accessToken ? await readJson(env.THOUGHTS, `access:${application.accessToken}`) : null;
+  if (
+    !application
+    || application.status !== 'approved'
+    || application.email !== email
+    || !access
+    || access.revoked
+  ) {
+    return redirect(gateLocation(env, email));
+  }
+
+  await env.THOUGHTS.put(usedKey, '1', { expirationTtl: ENTRY_USED_TTL });
+  return redirect(`${siteOrigin(env)}/thoughts/list/`, {
+    'set-cookie': cookieHeader(env, application.accessToken, false),
+  });
+}
+
+async function enterByLink(request, env, url) {
+  try {
+    return await openEntryLink(request, env, url);
+  } catch {
+    return redirect(gateLocation(env));
+  }
+}
+
 async function approve(env, deps, application) {
   const token = randomToken();
-  const accessUrl = `${siteOrigin(env)}/thoughts/list/#${token}`;
+  const now = nowMs(env);
+  const entryToken = await signPayload(env.HMAC_SECRET, {
+    action: 'enter',
+    id: application.id,
+    email: application.email,
+    jti: randomToken(),
+    exp: now + ENTRY_LINK_MS,
+  });
+  const accessUrl = entryUrl(workerOrigin(env), entryToken);
   const mailed = await sendVisitorMail(env, deps, {
     to: application.email,
     subject: APPROVE_SUBJECT,
@@ -569,7 +712,6 @@ async function approve(env, deps, application) {
     text: approveText({ accessUrl }),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '入口还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
-  const now = nowMs(env);
   await env.THOUGHTS.put(`access:${token}`, JSON.stringify({
     email: application.email,
     appId: application.id,
@@ -635,6 +777,7 @@ export async function handle(request, env, fetchImpl = fetch, deps = {}) {
   }
 
   if (path === '/review') return reviewRoute(request, env, deps, url);
+  if (path === '/enter') return enterByLink(request, env, url);
 
   if (request.method === 'OPTIONS') {
     const headers = cors(env, request);
@@ -646,6 +789,7 @@ export async function handle(request, env, fetchImpl = fetch, deps = {}) {
   if (!headers) return json(403, { error: 'forbidden' });
 
   if (request.method === 'POST' && path === '/api/apply') return apply(request, env, fetchImpl, headers);
+  if (request.method === 'POST' && path === '/api/enter') return enterByEmail(request, env, headers);
   if (request.method === 'POST' && path === '/api/session') return session(request, env, headers);
   if (request.method === 'POST' && path === '/api/logout') return logout(env, headers);
   if (request.method === 'GET' && path === '/api/thoughts') return listThoughts(env, request, headers);

@@ -4,7 +4,7 @@ import { createSmtpServer, parseMime } from './smtp-mock.mjs';
 
 // Visitor mail goes over SMTP; record it in the same `sent` list in the Resend body shape.
 const handle = (request, env, fetchImpl) => handleWorker(request, env, fetchImpl, { connect: env.__smtp.connect });
-import { approveEmail, declineEmail, reviewEmail } from '../worker/src/emails.js';
+import { ENTER_UNAVAILABLE, approveEmail, declineEmail, entryUrl, reviewEmail } from '../worker/src/emails.js';
 
 function createKv() {
   const map = new Map();
@@ -187,9 +187,49 @@ assert.match(visitorMail.body.text, /^个人随想\n\n我想起你了\n\n/);
 assert.match(visitorMail.body.html, /进入个人随想/);
 assert.equal(visitorMail.body.subject, '我想起你了');
 assert.match(visitorMail.body.text, /这个链接只属于你，请别转给别人。/);
-const accessUrl = visitorMail.body.html.match(/href="(https:\/\/kukudelin\.top\/thoughts\/list\/#[^"]+)"/)[1];
-const accessToken = decodeURIComponent(accessUrl.split('#')[1]);
+assert.match(visitorMail.body.text, /七天内点开一次就能进来/);
+const accessUrl = visitorMail.body.html.match(/href="(https:\/\/thoughts\.kukudelin\.top\/enter\?token=[^"]+)"/)[1];
 assert.ok(visitorMail.body.text.includes(accessUrl));
+assert.doesNotMatch(visitorMail.body.html, /thoughts\/list\/#/);
+assert.doesNotMatch(visitorMail.body.text, /thoughts\/list\/#/);
+const entryPath = new URL(accessUrl).pathname + new URL(accessUrl).search;
+const previewEntry = await call(request(entryPath, { method: 'POST' }));
+assert.equal(previewEntry.status, 302);
+assert.equal(new URL(previewEntry.headers.get('location')).searchParams.get('email'), null);
+const entered = await call(request(entryPath));
+assert.equal(entered.status, 302);
+assert.equal(entered.headers.get('location'), 'https://kukudelin.top/thoughts/list/');
+const cookie = entered.headers.get('set-cookie');
+assert.match(cookie, /HttpOnly/);
+assert.match(cookie, /Domain=\.kukudelin\.top/);
+const reused = await call(request(entryPath));
+assert.equal(reused.status, 302);
+assert.equal(reused.headers.get('set-cookie'), null);
+const reusedBack = new URL(reused.headers.get('location'));
+assert.equal(reusedBack.origin + reusedBack.pathname, 'https://kukudelin.top/thoughts/');
+assert.equal(reusedBack.searchParams.get('link'), '1');
+assert.equal(reusedBack.searchParams.get('email'), 'person@example.com');
+assert.equal(reusedBack.searchParams.get('token'), null);
+const appId = await env.THOUGHTS.get('email:person@example.com');
+const expiredToken = await signPayload(env.HMAC_SECRET, {
+  action: 'enter',
+  id: appId,
+  email: 'person@example.com',
+  jti: crypto.randomUUID(),
+  exp: env.now() - 1,
+});
+const expiredEntry = await call(request(`/enter?token=${encodeURIComponent(expiredToken)}`));
+assert.equal(expiredEntry.status, 302);
+assert.equal(expiredEntry.headers.get('set-cookie'), null);
+const expiredBack = new URL(expiredEntry.headers.get('location'));
+assert.equal(expiredBack.searchParams.get('link'), '1');
+assert.equal(expiredBack.searchParams.get('email'), 'person@example.com');
+const tampered = await call(request(`/enter?token=${encodeURIComponent(`${expiredToken.split('.')[0]}.aaaa`)}`));
+assert.equal(tampered.status, 302);
+assert.equal(tampered.headers.get('set-cookie'), null);
+const tamperedBack = new URL(tampered.headers.get('location'));
+assert.equal(tamperedBack.searchParams.get('link'), '1');
+assert.equal(tamperedBack.searchParams.get('email'), null);
 
 const approvedAgain = await call(request('/review', { method: 'POST', origin: 'null', form: { token: approveUrl.searchParams.get('token') } }));
 assert.equal(approvedAgain.status, 200);
@@ -200,11 +240,15 @@ assert.equal(sent.at(-1), visitorMail);
 const flipped = await call(request(new URL(rejectUrl).pathname + new URL(rejectUrl).search, { method: 'GET' }));
 assert.match(await flipped.text(), /已经同意过了/);
 
+const accessNames = (await env.THOUGHTS.list({ prefix: 'access:' })).keys.map((key) => key.name);
+assert.equal(accessNames.length, 1);
+const accessToken = accessNames[0].slice('access:'.length);
+assert.equal(visitorMail.body.html.includes(accessToken), false);
+assert.equal(visitorMail.body.text.includes(accessToken), false);
 const session = await call(request('/api/session', { method: 'POST', origin, body: { token: accessToken } }));
 assert.equal(session.status, 200);
-const cookie = session.headers.get('set-cookie');
-assert.match(cookie, /HttpOnly/);
-assert.match(cookie, /Domain=\.kukudelin\.top/);
+assert.match(session.headers.get('set-cookie'), /HttpOnly/);
+assert.equal(decodeURIComponent(/thoughts_session=([^;]+)/.exec(cookie)[1]), accessToken);
 const saved = await call(request('/admin/thoughts', {
   method: 'PUT',
   auth: 'Bearer test-upload-token',
@@ -313,6 +357,7 @@ assert.equal(expired.status, 410);
 
 assert.match(reviewEmail({ answer: '<b>', email: 'a@b.co', approveUrl: 'https://example.com/a', rejectUrl: 'https://example.com/b' }), /&lt;b&gt;/);
 assert.match(approveEmail({ accessUrl: 'https://kukudelin.top/thoughts/list/#abc' }), /abc/);
+assert.equal(entryUrl('https://thoughts.kukudelin.top/', 'abc.def'), 'https://thoughts.kukudelin.top/enter?token=abc.def');
 assert.match(declineEmail(), /—— 小牛/);
 
 {
@@ -355,6 +400,117 @@ assert.match(declineEmail(), /—— 小牛/);
   const later = new Request(request('/api/apply', { method: 'POST', origin, body: { answer: env3.OWNER_PASSPHRASE, email: '' } }));
   later.headers.set('cf-connecting-ip', '198.51.100.9');
   assert.equal((await handle(later, nextWindow, fetch3)).status, 200);
+}
+
+{
+  const { env: enterEnv, fetchImpl: enterFetch } = createEnv();
+  const callEnter = (email, ip = '203.0.113.20') => {
+    const req = request('/api/enter', { method: 'POST', origin, body: { email } });
+    req.headers.set('cf-connecting-ip', ip);
+    return handle(req, enterEnv, enterFetch);
+  };
+  const sessionToken = crypto.randomUUID();
+  const rejectedToken = crypto.randomUUID();
+  const revokedToken = crypto.randomUUID();
+  await enterEnv.THOUGHTS.put('email:ok@example.com', 'app-ok');
+  await enterEnv.THOUGHTS.put('apply:app-ok', JSON.stringify({
+    id: 'app-ok', email: 'ok@example.com', status: 'approved', accessToken: sessionToken,
+  }));
+  await enterEnv.THOUGHTS.put(`access:${sessionToken}`, JSON.stringify({
+    email: 'ok@example.com', appId: 'app-ok', createdAt: 1, revoked: false,
+  }));
+  await enterEnv.THOUGHTS.put('email:wait@example.com', 'app-wait');
+  await enterEnv.THOUGHTS.put('apply:app-wait', JSON.stringify({
+    id: 'app-wait', email: 'wait@example.com', status: 'pending',
+  }));
+  await enterEnv.THOUGHTS.put('email:no@example.com', 'app-no');
+  await enterEnv.THOUGHTS.put('apply:app-no', JSON.stringify({
+    id: 'app-no', email: 'no@example.com', status: 'rejected', accessToken: rejectedToken,
+  }));
+  await enterEnv.THOUGHTS.put('email:revoked@example.com', 'app-revoked');
+  await enterEnv.THOUGHTS.put('apply:app-revoked', JSON.stringify({
+    id: 'app-revoked', email: 'revoked@example.com', status: 'approved', accessToken: revokedToken,
+  }));
+  await enterEnv.THOUGHTS.put(`access:${revokedToken}`, JSON.stringify({
+    email: 'revoked@example.com', appId: 'app-revoked', createdAt: 1, revoked: true,
+  }));
+
+  const granted = await callEnter('  OK@Example.com  ');
+  assert.equal(granted.status, 200);
+  const grantedBody = await granted.json();
+  assert.deepEqual(grantedBody, { ok: true, status: 'granted' });
+  const enterCookie = granted.headers.get('set-cookie');
+  assert.match(enterCookie, /thoughts_session=[^;]+; HttpOnly; Secure; SameSite=Lax/);
+  assert.equal(decodeURIComponent(/thoughts_session=([^;]+)/.exec(enterCookie)[1]), sessionToken);
+  const listed = await handle(request('/api/thoughts', { origin, cookie: enterCookie }), enterEnv, enterFetch);
+  assert.equal(listed.status, 200);
+
+  let gets = 0;
+  const inner = enterEnv.THOUGHTS;
+  enterEnv.THOUGHTS = {
+    async get(key) {
+      gets += 1;
+      return inner.get(key);
+    },
+    getWithMetadata: (key) => inner.getWithMetadata(key),
+    put: (key, value, options) => inner.put(key, value, options),
+    delete: (key) => inner.delete(key),
+    list: (options) => inner.list(options),
+  };
+  async function denied(email, ip) {
+    gets = 0;
+    const response = await callEnter(email, ip);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get('set-cookie'), null);
+    const reads = gets;
+    return { body: await response.json(), reads };
+  }
+  const pending = await denied('Wait@Example.com', '203.0.113.21');
+  const rejected = await denied('no@example.com', '203.0.113.22');
+  const missing = await denied('missing@example.com', '203.0.113.23');
+  const revoked = await denied('revoked@example.com', '203.0.113.24');
+  assert.deepEqual(pending.body, { ok: false, message: ENTER_UNAVAILABLE });
+  assert.equal(ENTER_UNAVAILABLE, '这个邮箱暂时进不来。可以先提交申请，或者过会儿再试。');
+  assert.deepEqual(pending.body, rejected.body);
+  assert.deepEqual(pending.body, missing.body);
+  assert.deepEqual(pending.body, revoked.body);
+  assert.equal(pending.reads, rejected.reads);
+  assert.equal(pending.reads, missing.reads);
+  assert.equal(pending.reads, revoked.reads);
+  assert.doesNotMatch(JSON.stringify(pending.body), /pending|rejected|missing|revoked|不存在|待审|拒绝|无权限|验证失败/);
+
+  for (let index = 0; index < 4; index += 1) {
+    const again = await callEnter('ok@example.com', `203.0.113.${30 + index}`);
+    assert.equal(again.status, 200);
+    assert.equal((await again.json()).status, 'granted');
+  }
+  const limitedEmail = await callEnter('ok@example.com', '203.0.113.40');
+  assert.equal(limitedEmail.status, 429);
+  assert.equal(limitedEmail.headers.get('set-cookie'), null);
+  assert.deepEqual(await limitedEmail.json(), { error: 'rate_limited' });
+
+  const ip = '198.51.100.50';
+  for (let index = 0; index < 5; index += 1) {
+    const response = await callEnter(`nobody${index}@example.com`, ip);
+    assert.equal(response.status, 200);
+    assert.deepEqual(await response.json(), pending.body);
+  }
+  const limitedIp = await callEnter('nobody5@example.com', ip);
+  assert.equal(limitedIp.status, 429);
+  const otherIp = await callEnter('nobody5@example.com', '198.51.100.51');
+  assert.equal(otherIp.status, 200);
+  assert.deepEqual(await otherIp.json(), pending.body);
+
+  const later = { ...enterEnv, now: () => enterEnv.now() + 11 * 60 * 1000 };
+  const retry = request('/api/enter', { method: 'POST', origin, body: { email: 'ok@example.com' } });
+  retry.headers.set('cf-connecting-ip', '203.0.113.40');
+  const after = await handle(retry, later, enterFetch);
+  assert.equal(after.status, 200);
+  assert.equal((await after.json()).status, 'granted');
+
+  const badMail = await callEnter('not-an-email', '203.0.113.60');
+  assert.equal(badMail.status, 400);
+  assert.equal(badMail.headers.get('set-cookie'), null);
 }
 
 console.log('thoughts worker tests ok');

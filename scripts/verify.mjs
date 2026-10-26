@@ -92,7 +92,18 @@ const home = entryPage;
 const indexHtml = indexPages.map(readHtml).join('\n');
 if (!home.includes('小牛壮士')) errors.push('home page missing site title');
 if (!home.includes('技术博客') || !home.includes('个人随想')) errors.push('home page missing the two doors');
-if (!home.includes('class="seal portal-seal"') || !home.includes('>林<')) errors.push('home seal is not 林');
+const portraits = [
+  [path.join(dist, 'index.html'), 'home'],
+  [path.join(dist, 'blog', 'index.html'), 'blog'],
+  [path.join(dist, 'thoughts', 'index.html'), 'gate'],
+  [path.join(dist, 'thoughts', 'list', 'index.html'), 'list'],
+  [path.join(dist, 'thoughts', 'view', 'index.html'), 'view'],
+];
+for (const [file, label] of portraits) {
+  const html = readHtml(file);
+  if (!html.includes('src="/avatar.webp"') || !html.includes('alt="小牛"')) errors.push(`${label} portrait is missing`);
+  if (html.includes('>林<')) errors.push(`${label} still shows the old seal`);
+}
 if (home.includes('示例随想')) errors.push('placeholder thought shipped on the public entry page');
 const publicHtml = [home, indexHtml, readHtml(path.join(dist, 'thoughts', 'index.html')), readHtml(path.join(dist, 'thoughts', 'list', 'index.html'))].join('\n');
 if (publicHtml.includes('RESEND_API_KEY') || publicHtml.includes('HMAC_SECRET') || publicHtml.includes('UPLOAD_TOKEN')) {

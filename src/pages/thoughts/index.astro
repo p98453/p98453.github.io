@@ -1,27 +1,25 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Seal from '../../components/Seal.astro';
 import { site } from '../../lib/site.js';
-
-const askLead = '如果你能描述某个和我有关的瞬间，';
-const askTail = '也许我会想起你是谁。';
-const question = askLead + askTail;
+import { ASK_LEAD, ASK_TAIL, QUESTION } from '../../../worker/src/emails.js';
 ---
 
-<Base quiet documentTitle={`个人随想 · ${site.title}`} description={question}>
+<Base quiet documentTitle={`个人随想 · ${site.title}`} description={QUESTION}>
   <div class="portal gate" data-api={site.thoughtsApi}>
-    <a class="seal portal-seal" href="/" aria-label={site.title}>林</a>
+    <a class="seal-link" href="/" aria-label={site.title}><Seal /></a>
     <h1>个人随想</h1>
-    <p class="portal-lead">回答一个问题，便可进入</p>
+    <p class="portal-lead">想进来的话，先留一句话。</p>
     <form id="thought-apply" data-api={site.thoughtsApi} novalidate>
-      <p class="ask"><span class="ask-part">{askLead}</span><wbr /><span class="ask-part">{askTail}</span></p>
+      <p class="ask"><span class="ask-part">{ASK_LEAD}</span><wbr /><span class="ask-part">{ASK_TAIL}</span></p>
       <div class="apply-fields">
         <label class="answer-label">
-          <span class="visually-hidden">你的答案</span>
-          <textarea name="answer" rows="1" maxlength="2000" placeholder="你的答案" required></textarea>
+          <span class="visually-hidden">想说的话</span>
+          <textarea name="answer" rows="1" maxlength="2000" placeholder="写在这里" required></textarea>
         </label>
         <label class="email-label">
-          <span class="visually-hidden">你的邮箱（可不填）</span>
-          <input type="email" name="email" maxlength="254" placeholder="你的邮箱" autocomplete="email" />
+          <span class="visually-hidden">邮箱，用来收结果</span>
+          <input type="email" name="email" maxlength="254" placeholder="邮箱，用来收结果" autocomplete="email" />
         </label>
         <p class="honeypot">
           <label>网站 <input name="website" tabindex="-1" autocomplete="off" /></label>
@@ -30,10 +28,22 @@ const question = askLead + askTail;
       </div>
       <p class="form-status" role="status" hidden></p>
     </form>
-    <p class="lock-note">每一份回答，我都会亲自读完；结果会在某个安静的时刻，寄到你的邮箱。</p>
+    <p class="lock-note">我看完会回你，有消息就寄到这个邮箱。</p>
     <div class="gate-actions">
       <button type="submit" form="thought-apply">进入</button>
       <a class="back-link" href="/">← 返回</a>
+    </div>
+    <div class="email-entry">
+      <p class="gate-or">或者</p>
+      <form id="thought-email" data-api={site.thoughtsApi} novalidate>
+        <p class="email-entry-lead" id="email-entry-label">已经通过的话，填邮箱就能进来。</p>
+        <label class="email-label">
+          <span class="visually-hidden">用来进入的邮箱</span>
+          <input type="email" name="email" maxlength="254" placeholder="你的邮箱" autocomplete="email" aria-describedby="email-entry-label" />
+        </label>
+        <p class="form-status" role="status" hidden></p>
+        <button type="submit">凭邮箱进入</button>
+      </form>
     </div>
   </div>
 </Base>

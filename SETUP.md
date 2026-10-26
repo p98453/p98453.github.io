@@ -2,7 +2,7 @@
 
 静态博客仍然由 GitHub Pages 发布，`CNAME` 不要改。随想的申请、审核和正文走 Cloudflare Worker，正文不进 `dist/`。
 
-下面每一项都还没在这个仓库里完成。做完之前，网站上的申请表会因为连不上 Worker 而显示「网络异常」。
+下面每一项都还没在这个仓库里完成。做完之前，网站上的申请表会因为连不上 Worker 而显示「网络抖了一下，没送出去」。
 
 ## 账号
 
@@ -17,8 +17,8 @@
 | --- | --- | --- |
 | `OWNER_EMAIL` | `3224688576@qq.com` | 审核信收件人 |
 | `ALLOWED_ORIGIN` | `https://kukudelin.top` | 浏览器跨域只允许这个来源 |
-| `SITE_ORIGIN` | `https://kukudelin.top` | 同意信里的入口链接 |
-| `WORKER_ORIGIN` | `https://thoughts.kukudelin.top` | 同意 / 拒绝链接的主机 |
+| `SITE_ORIGIN` | `https://kukudelin.top` | 入口打开后回到的站点 |
+| `WORKER_ORIGIN` | `https://thoughts.kukudelin.top` | 审核链接，以及通过信里的一次性入口 |
 | `RESEND_FROM` | `林勇 <thoughts@kukudelin.top>` | Resend 发件人，域名必须已验证 |
 
 KV 的 `id` 和 `preview_id` 仍是占位符 `REPLACE_WITH_KV_NAMESPACE_ID`。

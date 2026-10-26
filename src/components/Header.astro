@@ -1,4 +1,6 @@
 ---
+import Seal from './Seal.astro';
+
 const path = Astro.url.pathname;
 const items = [
   ['/blog/', '博客'],
@@ -16,7 +18,7 @@ function current(href) {
 <div class="masthead">
   <div class="brand">
     <a href="/">
-      <span class="seal" aria-hidden="true">林</span>
+      <Seal />
       <span class="name">小牛壮士</span>
     </a>的个人博客
   </div>

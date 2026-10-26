@@ -1,5 +1,14 @@
+import { ENTER_UNAVAILABLE } from '../../worker/src/emails.js';
+
+const LINK_READY = '这个链接用不了了。邮箱已经填上，可以直接再试一次。';
+const LINK_BARE = '这个链接用不了了。填一下邮箱试试，或者先留一句申请。';
+
 function endpoint(root) {
   return root.dataset.api.replace(/\/$/, '');
+}
+
+function validEmail(value) {
+  return value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function showStatus(node, text, kind) {
@@ -120,9 +129,23 @@ async function openSession(api) {
   return true;
 }
 
+function bootLinkFallback() {
+  const params = new URLSearchParams(location.search);
+  if (params.get('link') !== '1') return;
+  const form = document.querySelector('#thought-email');
+  if (!form) return;
+  const raw = (params.get('email') || '').trim();
+  const email = validEmail(raw) ? raw : '';
+  if (email) form.email.value = email;
+  showStatus(form.querySelector('.form-status'), email ? LINK_READY : LINK_BARE, 'note');
+  form.email.focus();
+  history.replaceState(null, '', `${location.pathname}${location.hash}`);
+}
+
 export function bootGate() {
   const form = document.querySelector('#thought-apply');
   if (!form) return;
+  bootLinkFallback();
   const status = form.querySelector('.form-status');
   const fields = form.querySelector('.apply-fields');
   form.addEventListener('submit', async (event) => {
@@ -130,12 +153,12 @@ export function bootGate() {
     const answer = form.answer.value.trim();
     const email = form.email.value.trim();
     if (answer.length < 2) {
-      showStatus(status, '请先写下那个瞬间。', 'error');
+      showStatus(status, '再写几个字吧。', 'error');
       form.answer.focus();
       return;
     }
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      showStatus(status, '邮箱看起来不对，请再核对一次。', 'error');
+    if (email && !validEmail(email)) {
+      showStatus(status, '这个邮箱好像不太对，再看一眼。', 'error');
       form.email.focus();
       return;
     }
@@ -158,20 +181,55 @@ export function bootGate() {
         location.href = '/thoughts/list/';
         return;
       }
-      if (response.status === 429) showStatus(status, '提交太频繁了，请稍后再试。', 'error');
+      if (response.status === 429) showStatus(status, '刚刚提交得有点勤，过一会儿再来。', 'error');
       else if (response.status === 400 && !email) {
-        showStatus(status, '请留下邮箱，结果会寄到那里。', 'error');
+        showStatus(status, '留个邮箱吧，我好把结果寄回来。', 'error');
         form.email.focus();
-      } else if (response.status === 400) showStatus(status, '有一项没有通过检查，请改一改再送出。', 'error');
-      else if (!response.ok) showStatus(status, '网络异常，没有送出。请稍后再试。', 'error');
+      } else if (response.status === 400) showStatus(status, '有一处不太对，改改再送出吧。', 'error');
+      else if (!response.ok) showStatus(status, '网络抖了一下，没送出去。过会儿再试。', 'error');
       else {
-        showStatus(status, '已收到。如果通过，入口会寄到你的邮箱。', 'ok');
+        showStatus(status, '收到了。要是能进来，我会把链接寄到你的邮箱。', 'ok');
         fields.hidden = true;
         button.hidden = true;
         return;
       }
     } catch {
-      showStatus(status, '网络异常，没有送出。请稍后再试。', 'error');
+      showStatus(status, '网络抖了一下，没送出去。过会儿再试。', 'error');
+    }
+    button.disabled = false;
+  });
+
+  const emailForm = document.querySelector('#thought-email');
+  if (!emailForm) return;
+  const emailStatus = emailForm.querySelector('.form-status');
+  emailForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const email = emailForm.email.value.trim();
+    if (!validEmail(email)) {
+      showStatus(emailStatus, '这个邮箱好像不太对，再看一眼。', 'error');
+      emailForm.email.focus();
+      return;
+    }
+    const button = emailForm.querySelector('button');
+    button.disabled = true;
+    try {
+      const response = await fetch(`${endpoint(emailForm)}/api/enter`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const result = response.ok ? await response.json().catch(() => ({})) : {};
+      if (response.ok && result.ok && result.status === 'granted') {
+        location.href = '/thoughts/list/';
+        return;
+      }
+      if (response.ok) showStatus(emailStatus, ENTER_UNAVAILABLE, 'note');
+      else if (response.status === 429) showStatus(emailStatus, '试得有点勤，过一会儿再来。', 'error');
+      else if (response.status === 400) showStatus(emailStatus, '这个邮箱好像不太对，再看一眼。', 'error');
+      else showStatus(emailStatus, '网络抖了一下，没进去。过会儿再试。', 'error');
+    } catch {
+      showStatus(emailStatus, '网络抖了一下，没进去。过会儿再试。', 'error');
     }
     button.disabled = false;
   });

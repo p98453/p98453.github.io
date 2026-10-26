@@ -1,22 +1,23 @@
 ---
 import Base from '../layouts/Base.astro';
+import Seal from '../components/Seal.astro';
 import { site } from '../lib/site.js';
 ---
 
 <Base quiet documentTitle={`${site.title} · ${site.authorName}`} description="技术博客与个人随想。">
   <div class="portal">
-    <a class="seal portal-seal" href="/" aria-label={site.title}>林</a>
+    <a class="seal-link" href="/" aria-label={site.title}><Seal /></a>
     <p class="portal-name">{site.title} · {site.authorName}</p>
     <nav class="doors" aria-label="去处">
       <a class="door" href="/blog/">
         <span class="door-title">技术博客</span>
         <span class="door-rule"></span>
-        <span class="door-note">代码、工具与实践</span>
+        <span class="door-note">饭碗</span>
       </a>
       <a class="door" href="/thoughts/">
         <span class="door-title">个人随想</span>
         <span class="door-rule"></span>
-        <span class="door-note">一些不那么技术的事</span>
+        <span class="door-note">碎碎念</span>
       </a>
     </nav>
   </div>
