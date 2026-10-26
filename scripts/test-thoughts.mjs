@@ -1,5 +1,9 @@
 import assert from 'node:assert/strict';
-import { handle, signPayload } from '../worker/src/handle.js';
+import { handle as handleWorker, signPayload } from '../worker/src/handle.js';
+import { createSmtpServer, parseMime } from './smtp-mock.mjs';
+
+// Visitor mail goes over SMTP; record it in the same `sent` list in the Resend body shape.
+const handle = (request, env, fetchImpl) => handleWorker(request, env, fetchImpl, { connect: env.__smtp.connect });
 import { approveEmail, declineEmail, reviewEmail } from '../worker/src/emails.js';
 
 function createKv() {
@@ -39,7 +43,14 @@ function createEnv() {
     HMAC_SECRET: 'test-hmac-secret',
     UPLOAD_TOKEN: 'test-upload-token',
     now: () => 1_700_000_000_000,
+    QQ_SMTP_PASS: 'test-smtp-pass',
   };
+  env.__smtp = createSmtpServer({
+    onMessage({ rcpt, data }) {
+      const mime = parseMime(data);
+      sent.push({ url: 'smtp://smtp.qq.com:465', mime, body: { from: mime.decoded.from, to: [rcpt], subject: mime.decoded.subject, reply_to: mime.decoded.replyTo, text: mime.parts['text/plain'], html: mime.parts['text/html'] } });
+    },
+  });
   const fetchImpl = async (url, options = {}) => {
     sent.push({ url: String(url), body: options.body ? JSON.parse(options.body) : null });
     return new Response('{}', { status: 200 });
@@ -99,6 +110,10 @@ assert.match(sent[0].body.html, /我想回到那个下雨的下午/);
 assert.match(sent[0].body.html, /person@example.com/);
 assert.match(sent[0].body.html, /同意/);
 assert.match(sent[0].body.html, /拒绝/);
+assert.match(sent[0].body.text, /我想回到那个下雨的下午/);
+assert.match(sent[0].body.text, /同意：https:\/\/thoughts\.kukudelin\.top\/review\?token=/);
+assert.doesNotMatch(sent[0].body.text, /<|&amp;/);
+assert.equal(sent[0].body.reply_to, undefined);
 const approveUrl = new URL(sent[0].body.html.match(/href="(https:\/\/thoughts\.kukudelin\.top\/review\?token=[^"]+)"/)[1].replaceAll('&amp;', '&'));
 const rejectUrl = [...sent[0].body.html.matchAll(/href="(https:\/\/thoughts\.kukudelin\.top\/review\?token=[^"]+)"/g)][1][1].replaceAll('&amp;', '&');
 
@@ -160,6 +175,15 @@ assert.equal(approved.status, 200);
 assert.match(await approved.text(), /已同意/);
 const visitorMail = sent.at(-1);
 assert.equal(visitorMail.body.to[0], 'person@example.com');
+assert.equal(visitorMail.url, 'smtp://smtp.qq.com:465');
+assert.equal(visitorMail.body.from, '林勇 <3224688576@qq.com>');
+assert.equal(visitorMail.body.reply_to, '林勇 <3224688576@qq.com>');
+assert.equal(env.__smtp.sessions.at(-1).username, '3224688576@qq.com');
+assert.equal(env.__smtp.sessions.at(-1).password, 'test-smtp-pass');
+assert.deepEqual(env.__smtp.sessions.at(-1).options, { secureTransport: 'on', allowHalfOpen: false });
+assert.equal(env.__smtp.sessions.at(-1).address.hostname, 'smtp.qq.com');
+assert.ok(env.__smtp.sessions.at(-1).closed);
+assert.match(visitorMail.body.text, /^个人随想\n\n我想起你了\n\n/);
 assert.match(visitorMail.body.html, /进入个人随想/);
 assert.equal(visitorMail.body.subject, '我想起你了');
 assert.match(visitorMail.body.text, /这个链接只属于你，请别转给别人。/);
@@ -253,10 +277,35 @@ assert.match(await declined.text(), /已拒绝/);
 assert.match(sent2.at(-1).body.html, /我还没能想起你是谁/);
 assert.equal(sent2.at(-1).body.subject, '关于你讲的那个瞬间');
 assert.match(sent2.at(-1).body.text, /—— 小牛/);
+assert.equal(sent2.at(-1).url, 'smtp://smtp.qq.com:465');
+assert.equal(sent2.at(-1).body.reply_to, '林勇 <3224688576@qq.com>');
 assert.doesNotMatch(sent2.at(-1).body.html, /thoughts\/list/);
 const declinedAgain = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), env2, fetch2);
 assert.match(await declinedAgain.text(), /已经拒绝过了/);
 assert.equal(sent2.length, 2);
+
+// A failed SMTP send must answer 502 and leave the application pending, for approve and reject alike.
+for (const [failAt, linkIndex] of [['AUTH password', 0], ['RCPT TO', 1], ['greeting', 0]]) {
+  const { env: env4, sent: sent4, fetchImpl: fetch4 } = createEnv();
+  env4.__smtp = createSmtpServer({ failAt });
+  await handle(request('/api/apply', { method: 'POST', origin, body: { answer: '那年冬天的车站。', email: 'fail@example.com' } }), env4, fetch4);
+  const links = [...sent4[0].body.html.matchAll(/href="(https:\/\/thoughts\.kukudelin\.top\/review\?token=[^"]+)"/g)].map((m) => m[1].replaceAll('&amp;', '&'));
+  const token = new URL(links[linkIndex]).searchParams.get('token');
+  const failed = await handle(request('/review', { method: 'POST', form: { token } }), env4, fetch4);
+  assert.equal(failed.status, 502, failAt);
+  const appKey = (await env4.THOUGHTS.list({ prefix: 'apply:' })).keys[0].name;
+  assert.equal(JSON.parse(await env4.THOUGHTS.get(appKey)).status, 'pending');
+  assert.equal((await env4.THOUGHTS.list({ prefix: 'access:' })).keys.length, 0);
+}
+{
+  const { env: env5, sent: sent5, fetchImpl: fetch5 } = createEnv();
+  delete env5.QQ_SMTP_PASS;
+  await handle(request('/api/apply', { method: 'POST', origin, body: { answer: '没有授权码的时候。', email: 'nopass@example.com' } }), env5, fetch5);
+  const link = sent5[0].body.html.match(/href="(https:\/\/thoughts\.kukudelin\.top\/review\?token=[^"]+)"/)[1].replaceAll('&amp;', '&');
+  const failed = await handle(request('/review', { method: 'POST', form: { token: new URL(link).searchParams.get('token') } }), env5, fetch5);
+  assert.equal(failed.status, 502);
+  assert.equal(env5.__smtp.sessions.length, 0);
+}
 
 const stale = await signPayload(env.HMAC_SECRET, { action: 'approve', id: 'missing', exp: 1 });
 const expired = await call(request(`/review?token=${encodeURIComponent(stale)}`));

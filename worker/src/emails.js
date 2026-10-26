@@ -40,6 +40,11 @@ export function reviewEmail({ answer, email, approveUrl, rejectUrl }) {
   `);
 }
 
+export function reviewText({ answer, email, approveUrl, rejectUrl }) {
+  const quoted = String(answer).split('\n').map((line) => `> ${line}`).join('\n');
+  return `个人随想\n\n有人想进来\n\n${QUESTION}\n\n${quoted}\n\n对方的邮箱：${email}\n\n同意：${approveUrl}\n\n拒绝：${rejectUrl}\n\n这两个链接七天内有效。打开后还需要再确认一次，避免邮箱自动预览把决定点掉。\n`;
+}
+
 export const APPROVE_SUBJECT = '我想起你了';
 export const DECLINE_SUBJECT = '关于你讲的那个瞬间';
 
@@ -62,7 +67,7 @@ export function approveEmail({ accessUrl }) {
 }
 
 export function approveText({ accessUrl }) {
-  return `${APPROVE_BODY}\n\n进入个人随想：${accessUrl}\n\n${APPROVE_NOTE}\n\n${SIGNATURE}\n`;
+  return `个人随想\n\n${APPROVE_SUBJECT}\n\n${APPROVE_BODY}\n\n进入个人随想：${accessUrl}\n\n${APPROVE_NOTE}\n\n${SIGNATURE}\n`;
 }
 
 export function declineEmail() {
@@ -75,7 +80,7 @@ export function declineEmail() {
 }
 
 export function declineText() {
-  return `${DECLINE_BODY}\n\n${SIGNATURE}\n`;
+  return `个人随想\n\n${DECLINE_SUBJECT}\n\n${DECLINE_BODY}\n\n${SIGNATURE}\n`;
 }
 export function decisionPage({ heading, message, confirm, token }) {
   const form = confirm
