@@ -1,4 +1,5 @@
-import { APPROVE_SUBJECT, DECLINE_SUBJECT, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, reviewEmail } from './emails.js';
+import { sendSmtp } from './smtp.js';
+import { APPROVE_SUBJECT, DECLINE_SUBJECT, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, reviewEmail, reviewText } from './emails.js';
 
 const ANSWER_MIN = 2;
 const ANSWER_MAX = 2000;
@@ -218,6 +219,31 @@ async function sendMail(env, fetchImpl, message) {
   return response.ok;
 }
 
+const QQ_SMTP_USER = '3224688576@qq.com';
+const VISITOR_FROM_NAME = '林勇';
+
+// Visitor mail goes out from the owner's own QQ mailbox so replies land there; failures are logged and reported, never hidden.
+async function sendVisitorMail(env, deps, message) {
+  try {
+    await sendSmtp({
+      connect: deps.connect,
+      host: 'smtp.qq.com',
+      port: 465,
+      username: QQ_SMTP_USER,
+      password: env.QQ_SMTP_PASS,
+      fromName: VISITOR_FROM_NAME,
+      fromAddress: QQ_SMTP_USER,
+      replyTo: QQ_SMTP_USER,
+      heloName: 'kukudelin.top',
+      ...message,
+    });
+    return true;
+  } catch (error) {
+    console.error('visitor mail failed', error?.message || String(error));
+    return false;
+  }
+}
+
 function workerOrigin(env) {
   return (env.WORKER_ORIGIN || 'https://thoughts.kukudelin.top').replace(/\/$/, '');
 }
@@ -318,6 +344,7 @@ async function apply(request, env, fetchImpl, headers) {
       to: env.OWNER_EMAIL,
       subject: '个人随想：有一份新的申请',
       html: reviewEmail({ answer, email, ...links }),
+    text: reviewText({ answer, email, ...links }),
     });
     if (!mailed) return json(502, { error: 'network' }, headers);
     await env.THOUGHTS.put(`apply:${previous.id}`, JSON.stringify({ ...previous, answer, updatedAt: now }));
@@ -331,6 +358,7 @@ async function apply(request, env, fetchImpl, headers) {
     to: env.OWNER_EMAIL,
     subject: '个人随想：有一份新的申请',
     html: reviewEmail({ answer, email, ...links }),
+    text: reviewText({ answer, email, ...links }),
   });
   if (!mailed) return json(502, { error: 'network' }, headers);
   await env.THOUGHTS.put(`apply:${id}`, JSON.stringify(application));
@@ -486,14 +514,14 @@ function reviewOriginOk(env, request) {
   return origin === workerOrigin(env);
 }
 
-async function reviewRoute(request, env, fetchImpl, url) {
+async function reviewRoute(request, env, deps, url) {
   try {
     if (request.method === 'GET' || request.method === 'HEAD') return await showReview(env, url.searchParams.get('token'));
     if (request.method === 'POST') {
       if (!reviewOriginOk(env, request)) {
         return html(403, decisionPage({ heading: '无法确认', message: '这个确认不是从审核页发出的。请回到邮件里重新点开链接。' }));
       }
-      return await actReview(request, env, fetchImpl, url);
+      return await actReview(request, env, deps, url);
     }
     return html(405, decisionPage({ heading: '打开方式不对', message: '请直接点邮件里的链接，在打开的页面上确认。' }));
   } catch {
@@ -501,7 +529,7 @@ async function reviewRoute(request, env, fetchImpl, url) {
   }
 }
 
-async function actReview(request, env, fetchImpl, url) {
+async function actReview(request, env, deps, url) {
   let token = '';
   try {
     const form = await request.formData();
@@ -526,15 +554,15 @@ async function actReview(request, env, fetchImpl, url) {
       message: application.status === 'approved' ? '入口之前已经寄出，这次没有再寄一封。' : '回绝的信之前已经寄出，这次没有再寄一封。',
     }));
   }
-  if (payload.action === 'approve') return approve(env, fetchImpl, application);
-  if (payload.action === 'reject') return reject(env, fetchImpl, application);
+  if (payload.action === 'approve') return approve(env, deps, application);
+  if (payload.action === 'reject') return reject(env, deps, application);
   return html(400, decisionPage({ heading: '链接无效', message: '这个链接不能识别。' }));
 }
 
-async function approve(env, fetchImpl, application) {
+async function approve(env, deps, application) {
   const token = randomToken();
   const accessUrl = `${siteOrigin(env)}/thoughts/list/#${token}`;
-  const mailed = await sendMail(env, fetchImpl, {
+  const mailed = await sendVisitorMail(env, deps, {
     to: application.email,
     subject: APPROVE_SUBJECT,
     html: approveEmail({ accessUrl }),
@@ -561,8 +589,8 @@ async function approve(env, fetchImpl, application) {
   }));
 }
 
-async function reject(env, fetchImpl, application) {
-  const mailed = await sendMail(env, fetchImpl, {
+async function reject(env, deps, application) {
+  const mailed = await sendVisitorMail(env, deps, {
     to: application.email,
     subject: DECLINE_SUBJECT,
     html: declineEmail(),
@@ -591,7 +619,7 @@ async function revoke(env, appId) {
   return html(200, decisionPage({ heading: '已收回', message: '这个入口已经失效。' }));
 }
 
-export async function handle(request, env, fetchImpl = fetch) {
+export async function handle(request, env, fetchImpl = fetch, deps = {}) {
   const url = new URL(request.url);
   const path = url.pathname.replace(/\/$/, '') || '/';
   if (path.startsWith('/admin')) {
@@ -606,7 +634,7 @@ export async function handle(request, env, fetchImpl = fetch) {
     return json(404, { error: 'missing' });
   }
 
-  if (path === '/review') return reviewRoute(request, env, fetchImpl, url);
+  if (path === '/review') return reviewRoute(request, env, deps, url);
 
   if (request.method === 'OPTIONS') {
     const headers = cors(env, request);
