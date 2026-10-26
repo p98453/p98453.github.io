@@ -22,11 +22,32 @@ function inline(value) {
     .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>');
 }
 
-export function renderMarkdown(source) {
+const IMAGE_LINE = /^!\[([^\]]*)\]\(([^)\s]+)\)$/;
+
+function imageSrc(src, api) {
+  if (/^\/api\/thoughts\/[a-z0-9-]+\/assets\/[a-z0-9._-]+(\?v=[a-f0-9]{1,40})?$/.test(src)) return `${api}${src}`;
+  if (/^https:\/\/[^\s"'<>]+$/.test(src)) return src;
+  return '';
+}
+
+function figure(alt, src) {
+  const caption = alt.trim() ? `<figcaption>${escapeHtml(alt.trim())}</figcaption>` : '';
+  return `<figure class="thought-figure"><img src="${escapeHtml(src).replaceAll('"', '&quot;')}" alt="${escapeHtml(alt).replaceAll('"', '&quot;')}" loading="lazy" decoding="async" />${caption}</figure>`;
+}
+
+export function renderMarkdown(source, api = '') {
   const lines = String(source).replaceAll('\r\n', '\n').split('\n');
   let html = '';
   let list = false;
+  let gallery = [];
+  const closeGallery = () => {
+    if (!gallery.length) return;
+    const kind = gallery.length > 1 ? ' thought-gallery--pair' : '';
+    html += `<div class="thought-gallery${kind}">${gallery.join('')}</div>`;
+    gallery = [];
+  };
   const closeList = () => {
+    closeGallery();
     if (!list) return;
     html += '</ul>';
     list = false;
@@ -36,6 +57,15 @@ export function renderMarkdown(source) {
       closeList();
       continue;
     }
+    const image = IMAGE_LINE.exec(line.trim());
+    if (image) {
+      const src = imageSrc(image[2], api);
+      if (src) {
+        gallery.push(figure(image[1], src));
+        continue;
+      }
+    }
+    closeGallery();
     if (line.startsWith('### ')) {
       closeList();
       html += `<h3>${inline(line.slice(4))}</h3>`;
@@ -215,7 +245,7 @@ export async function bootView() {
     const time = root.querySelector('time');
     time.dateTime = thought.date;
     time.textContent = `写于 ${writtenDate(thought.date).replace('年', ' 年 ').replace('月', ' 月 ').replace('日', ' 日')}`;
-    root.querySelector('.prose').innerHTML = renderMarkdown(thought.markdown || '');
+    root.querySelector('.prose').innerHTML = renderMarkdown(thought.markdown || '', api);
     status.hidden = true;
   } catch {
     showStatus(status, '网络异常，这一篇没有读出来。', 'error');
