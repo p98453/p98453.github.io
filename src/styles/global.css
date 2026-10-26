@@ -762,7 +762,8 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   background: var(--border);
 }
 
-.door-note { color: var(--muted); font-family: var(--sans); font-size: 14px; }
+.door-note,
+.door:hover .door-note { color: var(--muted); font-family: var(--sans); font-size: 14px; }
 
 .gate { width: min(100%, 560px); margin: 0 auto; }
 
@@ -775,7 +776,7 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   text-wrap: balance;
 }
 
-/* Each clause stays whole, so a narrow screen breaks before 也许 rather than stranding 是谁。 */
+/* Each clause stays whole, so a narrow screen breaks between them. */
 .ask-part { display: inline-block; }
 
 @media (max-width: 480px) {
@@ -821,16 +822,29 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   cursor: pointer;
 }
 
-.gate button[type="submit"] {
+.gate button[type="submit"],
+.gate-actions .back-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex: none;
+  box-sizing: border-box;
   min-width: 96px;
+  min-height: 40px;
   padding: 7px 16px;
   border: 1px solid var(--link);
   background: transparent;
   color: var(--link);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.4;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
-.gate button[type="submit"]:hover { color: var(--hover); border-color: var(--hover); }
+.gate button[type="submit"]:hover,
+.gate-actions .back-link:hover { color: var(--hover); border-color: var(--hover); }
 .gate button[type="submit"]:disabled { opacity: 0.55; cursor: progress; }
 
 .honeypot {
@@ -856,16 +870,40 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .form-status { margin: 18px 0; line-height: 1.7; }
 .form-status[data-kind="error"] { color: var(--hover); }
 .form-status[data-kind="ok"] { color: var(--heading); }
+.form-status[data-kind="note"] { color: var(--muted); }
 
 .lock-note { margin: 22px 0 0; }
 .gate-actions {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: center;
-  gap: 16px;
+  gap: 12px;
   margin: 26px 0 0;
 }
-.gate-actions .back-link { font-family: var(--sans); font-size: 15px; }
+
+.email-entry { width: 100%; margin-top: 8px; }
+.gate-or,
+.email-entry-lead {
+  color: var(--muted);
+  font-family: var(--sans);
+  font-size: 14px;
+  font-style: normal;
+}
+.gate-or { margin: 28px 0 8px; }
+.email-entry-lead { margin: 0 0 14px; }
+.email-entry .form-status { margin: 14px 0 0; }
+.email-entry button[type="submit"] { margin-top: 16px; }
+
+@media (max-width: 360px) {
+  .gate-actions { gap: 8px; }
+  .gate button[type="submit"],
+  .gate-actions .back-link {
+    min-width: 0;
+    padding: 7px 12px;
+  }
+}
 
 .thoughts-home { max-width: 680px; margin: 12px auto 48px; }
 

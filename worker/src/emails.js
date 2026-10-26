@@ -1,4 +1,13 @@
-export const QUESTION = '如果你能描述某个和我有关的瞬间，也许我会想起你是谁。';
+export const ASK_LEAD = '讲一件和我有关的小事，';
+export const ASK_TAIL = '我想想认不认识你。';
+export const QUESTION = `${ASK_LEAD}${ASK_TAIL}`;
+
+export const ENTER_UNAVAILABLE = '这个邮箱暂时进不来。可以先提交申请，或者过会儿再试。';
+
+export function entryUrl(origin, token) {
+  const base = String(origin || '').replace(/\/$/, '');
+  return `${base}/enter?token=${encodeURIComponent(token)}`;
+}
 
 function escapeHtml(value) {
   return String(value)
@@ -49,7 +58,7 @@ export const APPROVE_SUBJECT = '我想起你了';
 export const DECLINE_SUBJECT = '关于你讲的那个瞬间';
 
 const APPROVE_BODY = '谢谢你讲的那个瞬间，我回忆了很久，入口已经为你打开了，点下面的链接就能进来。里面都是些零碎的日常和想法，谢谢你愿意了解真实的我。';
-const APPROVE_NOTE = '这个链接只属于你，请别转给别人。';
+const APPROVE_NOTE = '这个链接只属于你，请别转给别人。七天内点开一次就能进来；如果打不开了，回到页面填邮箱也行。';
 const DECLINE_BODY = '谢谢你愿意停下来，讲一个和我有关的瞬间。这一次，我还没能想起你是谁，所以入口暂时没为你打开。也许是时间隔得太久，也许我们只是还不够熟。如果哪天你想起了更具体的片段，欢迎回来。';
 const SIGNATURE = '—— 小牛';
 
