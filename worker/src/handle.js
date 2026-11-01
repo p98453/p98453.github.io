@@ -61,13 +61,19 @@ async function digestEqual(left, right) {
   return diff === 0;
 }
 
-async function ownerPass(env, request, answer, now) {
+// rate:pass only counts a passphrase attempt: no valid email. A normal application
+// may still open an owner session on a match, but a miss must not lock this IP.
+async function ownerPass(env, request, answer, now, email) {
   if (!env.OWNER_PASSPHRASE || !answer) return 'skip';
+  const attempt = !validEmail(email);
   const key = `rate:pass:${clientIp(request)}:${Math.floor(now / PASS_WINDOW_MS)}`;
-  const tries = Number((await env.THOUGHTS.get(key)) || '0');
-  if (tries >= PASS_LIMIT) return 'limited';
+  let tries = 0;
+  if (attempt) {
+    tries = Number((await env.THOUGHTS.get(key)) || '0');
+    if (tries >= PASS_LIMIT) return 'limited';
+  }
   if (await digestEqual(answer, env.OWNER_PASSPHRASE)) return 'ok';
-  await env.THOUGHTS.put(key, String(tries + 1), { expirationTtl: 1200 });
+  if (attempt) await env.THOUGHTS.put(key, String(tries + 1), { expirationTtl: 1200 });
   return 'skip';
 }
 
@@ -306,7 +312,7 @@ async function apply(request, env, fetchImpl, headers) {
   const email = normalizeEmail(body.email);
   if (answer.length <= ANSWER_MAX) {
     const now = nowMs(env);
-    const pass = await ownerPass(env, request, answer, now);
+    const pass = await ownerPass(env, request, answer, now, email);
     if (pass === 'ok') {
       const token = randomToken();
       await env.THOUGHTS.put(`access:${token}`, JSON.stringify({ email: 'owner', appId: 'owner', createdAt: now, revoked: false }));
@@ -343,7 +349,9 @@ async function apply(request, env, fetchImpl, headers) {
   const previousId = await env.THOUGHTS.get(`email:${email}`);
   const previous = previousId ? await readJson(env.THOUGHTS, `apply:${previousId}`) : null;
   if (previous && previous.status === 'approved') {
-    return json(200, { ok: true, status: 'pending' }, headers);
+    // Same fields as a new pending application, including the existing id, so the
+    // body cannot be told apart from a pending submit. The id is not a new one.
+    return json(200, { ok: true, status: 'pending', id: previous.id || previousId }, headers);
   }
   if (previous && previous.status === 'pending') {
     // Someone writing again while still waiting should reach the owner rather than vanish;
@@ -357,7 +365,7 @@ async function apply(request, env, fetchImpl, headers) {
     });
     if (!mailed) return json(502, { error: 'network' }, headers);
     await env.THOUGHTS.put(`apply:${previous.id}`, JSON.stringify({ ...previous, answer, updatedAt: now }));
-    return json(200, { ok: true, status: 'pending' }, headers);
+    return json(200, { ok: true, status: 'pending', id: previous.id }, headers);
   }
 
   const id = randomToken();
@@ -372,7 +380,7 @@ async function apply(request, env, fetchImpl, headers) {
   if (!mailed) return json(502, { error: 'network' }, headers);
   await env.THOUGHTS.put(`apply:${id}`, JSON.stringify(application));
   await env.THOUGHTS.put(`email:${email}`, id);
-  return json(200, { ok: true, status: 'pending' }, headers);
+  return json(200, { ok: true, status: 'pending', id }, headers);
 }
 
 async function session(request, env, headers) {
@@ -500,11 +508,8 @@ async function showReview(env, token) {
   const application = await readJson(env.THOUGHTS, `apply:${payload.id}`);
   if (!application) return html(404, decisionPage({ heading: '没有找到申请', message: '这份申请不在记录里。' }));
   if (application.status !== 'pending') {
-    const heading = application.status === 'approved' ? '已经同意过了' : '已经拒绝过了';
-    const message = application.status === 'approved'
-      ? '入口之前已经寄出，这次没有再寄一封。'
-      : '回绝的信之前已经寄出，这次没有再寄一封。';
-    return html(200, decisionPage({ heading, message }));
+    if (mailPending(application, payload.action)) return resendPrompt(payload.action, token);
+    return alreadyDecided(application);
   }
   const verb = payload.action === 'approve' ? '同意' : '拒绝';
   const answer = application.answer.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('\n', '<br />');
@@ -557,11 +562,11 @@ async function actReview(request, env, deps, url) {
   const application = await readJson(env.THOUGHTS, key);
   if (!application) return html(404, decisionPage({ heading: '没有找到申请', message: '这份申请不在记录里。' }));
   if (application.status !== 'pending') {
-    const heading = application.status === 'approved' ? '已经同意过了' : '已经拒绝过了';
-    return html(200, decisionPage({
-      heading,
-      message: application.status === 'approved' ? '入口之前已经寄出，这次没有再寄一封。' : '回绝的信之前已经寄出，这次没有再寄一封。',
-    }));
+    if (mailPending(application, payload.action)) {
+      if (payload.action === 'approve') return deliverApproval(env, deps, application, nowMs(env));
+      return deliverRejection(env, deps, application);
+    }
+    return alreadyDecided(application);
   }
   if (payload.action === 'approve') return approve(env, deps, application);
   if (payload.action === 'reject') return reject(env, deps, application);
@@ -694,9 +699,76 @@ async function enterByLink(request, env, url) {
   }
 }
 
-async function approve(env, deps, application) {
-  const token = randomToken();
-  const now = nowMs(env);
+function alreadyDecided(application) {
+  const approved = application.status === 'approved';
+  return html(200, decisionPage({
+    heading: approved ? '已经同意过了' : '已经拒绝过了',
+    message: approved ? '入口之前已经寄出，这次没有再寄一封。' : '回绝的信之前已经寄出，这次没有再寄一封。',
+  }));
+}
+
+// Decision is stored before the visitor letter. notified stays false until that letter goes out,
+// so a later confirm can send it without rolling the decision back.
+function mailPending(application, action) {
+  if (!application || application.notified !== false) return false;
+  if (action === 'approve') return application.status === 'approved' && Boolean(application.accessToken);
+  if (action === 'reject') return application.status === 'rejected';
+  return false;
+}
+
+function resendPrompt(action, token) {
+  const approve = action === 'approve';
+  return html(200, decisionPage({
+    heading: '信没有送出',
+    message: approve ? '入口还没有寄出。可以再确认一次。' : '回绝的信还没有寄出。可以再确认一次。',
+    confirm: '再寄一次',
+    token: normalizeToken(token),
+  }));
+}
+
+function writeFailedPage(action) {
+  const message = action === 'approve'
+    ? '凭证未写入，未发信。链接仍然有效，可以稍后再确认一次。'
+    : '状态未写入，未发信。链接仍然有效，可以稍后再确认一次。';
+  return html(500, decisionPage({ heading: '没有写入', message }));
+}
+
+async function storeApproval(env, application, token, now) {
+  const accessKey = `access:${token}`;
+  const record = {
+    email: application.email,
+    appId: application.id,
+    createdAt: now,
+    revoked: false,
+  };
+  const next = {
+    ...application,
+    status: 'approved',
+    accessToken: token,
+    decidedAt: now,
+    notified: false,
+  };
+  let wroteAccess = false;
+  try {
+    await env.THOUGHTS.put(accessKey, JSON.stringify(record));
+    wroteAccess = true;
+    await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(next));
+    return next;
+  } catch {
+    console.error('approve write failed');
+    if (wroteAccess) {
+      try {
+        await env.THOUGHTS.delete(accessKey);
+      } catch {
+        console.error('approve cleanup failed');
+      }
+    }
+    return null;
+  }
+}
+
+async function deliverApproval(env, deps, application, now) {
+  if (!application.accessToken) return writeFailedPage('approve');
   const entryToken = await signPayload(env.HMAC_SECRET, {
     action: 'enter',
     id: application.id,
@@ -712,16 +784,12 @@ async function approve(env, deps, application) {
     text: approveText({ accessUrl }),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '入口还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
-  await env.THOUGHTS.put(`access:${token}`, JSON.stringify({
-    email: application.email,
-    appId: application.id,
-    createdAt: now,
-    revoked: false,
-  }));
-  application.status = 'approved';
-  application.accessToken = token;
-  application.decidedAt = now;
-  await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(application));
+  application.notified = true;
+  try {
+    await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(application));
+  } catch {
+    console.error('approve notify flag failed');
+  }
   const revokeToken = await signPayload(env.HMAC_SECRET, { action: 'revoke', id: application.id, exp: now + REVOKE_MS });
   const revokeUrl = `${workerOrigin(env)}/review?token=${encodeURIComponent(revokeToken)}`;
   const safeEmail = application.email.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
@@ -731,7 +799,31 @@ async function approve(env, deps, application) {
   }));
 }
 
-async function reject(env, deps, application) {
+async function approve(env, deps, application) {
+  const token = randomToken();
+  const now = nowMs(env);
+  const stored = await storeApproval(env, application, token, now);
+  if (!stored) return writeFailedPage('approve');
+  return deliverApproval(env, deps, stored, now);
+}
+
+async function storeRejection(env, application) {
+  const next = {
+    ...application,
+    status: 'rejected',
+    decidedAt: nowMs(env),
+    notified: false,
+  };
+  try {
+    await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(next));
+    return next;
+  } catch {
+    console.error('reject write failed');
+    return null;
+  }
+}
+
+async function deliverRejection(env, deps, application) {
   const mailed = await sendVisitorMail(env, deps, {
     to: application.email,
     subject: DECLINE_SUBJECT,
@@ -739,10 +831,19 @@ async function reject(env, deps, application) {
     text: declineText(),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '回绝的信还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
-  application.status = 'rejected';
-  application.decidedAt = nowMs(env);
-  await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(application));
+  application.notified = true;
+  try {
+    await env.THOUGHTS.put(`apply:${application.id}`, JSON.stringify(application));
+  } catch {
+    console.error('reject notify flag failed');
+  }
   return html(200, decisionPage({ heading: '已拒绝', message: '一封短信已经寄给对方。' }));
+}
+
+async function reject(env, deps, application) {
+  const stored = await storeRejection(env, application);
+  if (!stored) return writeFailedPage('reject');
+  return deliverRejection(env, deps, stored);
 }
 
 async function revoke(env, appId) {
