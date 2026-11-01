@@ -62,7 +62,17 @@ const APPROVE_NOTE = '这个链接只属于你，请别转给别人。七天内�
 const DECLINE_BODY = '谢谢你愿意停下来，讲一个和我有关的瞬间。这一次，我还没能想起你是谁，所以入口暂时没为你打开。也许是时间隔得太久，也许我们只是还不够熟。如果哪天你想起了更具体的片段，欢迎回来。';
 const SIGNATURE = '—— 小牛';
 
-export function approveEmail({ accessUrl }) {
+function noteHtml(note) {
+  const message = String(note || '').trim();
+  return message ? `<p style="line-height:1.9;color:#000;margin-top:28px;">小牛想对你说：<br>${escapeHtml(message).replaceAll('\n', '<br>')}</p>` : '';
+}
+
+function noteText(note) {
+  const message = String(note || '').trim();
+  return message ? `\n小牛想对你说：\n${message}\n` : '';
+}
+
+export function approveEmail({ accessUrl, note }) {
   return page(APPROVE_SUBJECT, `
     <p style="letter-spacing:0.12em;color:#7b8894;font-size:13px;">个人随想</p>
     <h1 style="font-weight:500;font-size:28px;margin:8px 0 18px;">${APPROVE_SUBJECT}</h1>
@@ -71,30 +81,32 @@ export function approveEmail({ accessUrl }) {
       <a href="${escapeHtml(accessUrl)}" style="display:inline-block;padding:8px 18px;border:1px solid #115ca1;color:#115ca1;text-decoration:none;">进入个人随想</a>
     </p>
     <p style="line-height:1.9;color:#7b8894;font-size:14px;">${APPROVE_NOTE}</p>
-    <p style="line-height:1.9;color:#1b3156;margin-top:28px;">${SIGNATURE}</p>
+    <p style="line-height:1.9;color:#1b3156;margin-top:28px;">${SIGNATURE}</p>${noteHtml(note)}
   `);
 }
 
-export function approveText({ accessUrl }) {
-  return `个人随想\n\n${APPROVE_SUBJECT}\n\n${APPROVE_BODY}\n\n进入个人随想：${accessUrl}\n\n${APPROVE_NOTE}\n\n${SIGNATURE}\n`;
+export function approveText({ accessUrl, note }) {
+  return `个人随想\n\n${APPROVE_SUBJECT}\n\n${APPROVE_BODY}\n\n进入个人随想：${accessUrl}\n\n${APPROVE_NOTE}\n\n${SIGNATURE}\n${noteText(note)}`;
 }
 
-export function declineEmail() {
+export function declineEmail({ note } = {}) {
   return page(DECLINE_SUBJECT, `
     <p style="letter-spacing:0.12em;color:#7b8894;font-size:13px;">个人随想</p>
     <h1 style="font-weight:500;font-size:28px;margin:8px 0 18px;">${DECLINE_SUBJECT}</h1>
     <p style="line-height:1.9;color:#000;">${DECLINE_BODY}</p>
-    <p style="line-height:1.9;color:#1b3156;margin-top:28px;">${SIGNATURE}</p>
+    <p style="line-height:1.9;color:#1b3156;margin-top:28px;">${SIGNATURE}</p>${noteHtml(note)}
   `);
 }
 
-export function declineText() {
-  return `个人随想\n\n${DECLINE_SUBJECT}\n\n${DECLINE_BODY}\n\n${SIGNATURE}\n`;
+export function declineText({ note } = {}) {
+  return `个人随想\n\n${DECLINE_SUBJECT}\n\n${DECLINE_BODY}\n\n${SIGNATURE}\n${noteText(note)}`;
 }
-export function decisionPage({ heading, message, confirm, token }) {
+export function decisionPage({ heading, message, confirm, token, allowNote = false }) {
   const form = confirm
     ? `<form method="post" action="/review" style="margin-top:28px;">
         <input type="hidden" name="token" value="${escapeHtml(token)}" />
+        ${allowNote ? `<label for="review-note" style="display:block;line-height:1.9;margin-bottom:8px;">想对 TA 说点什么（可不填）</label>
+        <textarea id="review-note" name="note" maxlength="500" rows="5" style="box-sizing:border-box;width:100%;margin-bottom:20px;padding:10px 12px;border:1px solid #adbac7;background:#fff;color:#1b3156;font:inherit;line-height:1.9;resize:vertical;"></textarea>` : ''}
         <button type="submit" style="font:inherit;padding:8px 18px;border:1px solid #115ca1;background:#fff;color:#115ca1;cursor:pointer;">${escapeHtml(confirm)}</button>
       </form>`
     : '';
