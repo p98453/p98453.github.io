@@ -88,6 +88,7 @@ const bot = await call(request('/api/apply', {
   body: { answer: '一段足够长的话', email: 'bot@example.com', website: 'https://spam.test' },
 }));
 assert.equal(bot.status, 200);
+assert.deepEqual(await bot.json(), { ok: true, status: 'pending' });
 assert.equal(sent.length, 0);
 assert.equal(await env.THOUGHTS.get('email:bot@example.com'), null);
 
@@ -104,6 +105,11 @@ const applied = await call(request('/api/apply', {
   body: { answer: '我想回到那个下雨的下午。', email: 'Person@Example.com' },
 }));
 assert.equal(applied.status, 200);
+const appliedBody = await applied.json();
+assert.equal(appliedBody.ok, true);
+assert.equal(appliedBody.status, 'pending');
+assert.match(appliedBody.id, /^[A-Za-z0-9_-]{20,}$/);
+assert.deepEqual(Object.keys(appliedBody).sort(), ['id', 'ok', 'status']);
 assert.equal(sent.length, 1);
 assert.equal(sent[0].body.to[0], 'owner@example.com');
 assert.match(sent[0].body.html, /我想回到那个下雨的下午/);
@@ -128,6 +134,7 @@ const again = await call(request('/api/apply', {
   body: { answer: '另一段话也写在这里。', email: 'person@example.com' },
 }));
 assert.equal(again.status, 200);
+assert.deepEqual(await again.json(), { ok: true, status: 'pending', id: appliedBody.id });
 // A second answer while still pending reaches the owner again instead of silently vanishing.
 assert.equal(sent.length, 2);
 assert.equal(sent[1].body.to[0], 'owner@example.com');
@@ -211,6 +218,7 @@ assert.equal(reusedBack.searchParams.get('link'), '1');
 assert.equal(reusedBack.searchParams.get('email'), 'person@example.com');
 assert.equal(reusedBack.searchParams.get('token'), null);
 const appId = await env.THOUGHTS.get('email:person@example.com');
+assert.equal(appId, appliedBody.id);
 const expiredToken = await signPayload(env.HMAC_SECRET, {
   action: 'enter',
   id: appId,
@@ -235,6 +243,17 @@ const approvedAgain = await call(request('/review', { method: 'POST', origin: 'n
 assert.equal(approvedAgain.status, 200);
 assert.match(approvedAgain.headers.get('content-type'), /text\/html/);
 assert.match(await approvedAgain.text(), /已经同意过了/);
+assert.equal(sent.at(-1), visitorMail);
+
+const reapply = request('/api/apply', {
+  method: 'POST',
+  origin,
+  body: { answer: '已经通过了再写一次。', email: 'person@example.com' },
+});
+reapply.headers.set('cf-connecting-ip', '203.0.113.99');
+const reappliedApproved = await call(reapply);
+assert.equal(reappliedApproved.status, 200);
+assert.deepEqual(await reappliedApproved.json(), { ok: true, status: 'pending', id: appId });
 assert.equal(sent.at(-1), visitorMail);
 
 const flipped = await call(request(new URL(rejectUrl).pathname + new URL(rejectUrl).search, { method: 'GET' }));
@@ -327,9 +346,23 @@ assert.doesNotMatch(sent2.at(-1).body.html, /thoughts\/list/);
 const declinedAgain = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), env2, fetch2);
 assert.match(await declinedAgain.text(), /已经拒绝过了/);
 assert.equal(sent2.length, 2);
+const rejectedId = await env2.THOUGHTS.get('email:quiet@example.com');
+const reapplied = await handle(request('/api/apply', {
+  method: 'POST',
+  origin,
+  body: { answer: '被拒绝后再写一次。', email: 'quiet@example.com' },
+}), env2, fetch2);
+assert.equal(reapplied.status, 200);
+const reappliedBody = await reapplied.json();
+assert.deepEqual(Object.keys(reappliedBody).sort(), ['id', 'ok', 'status']);
+assert.equal(reappliedBody.ok, true);
+assert.equal(reappliedBody.status, 'pending');
+assert.notEqual(reappliedBody.id, rejectedId);
+assert.equal(JSON.parse(await env2.THOUGHTS.get(`apply:${rejectedId}`)).status, 'rejected');
+assert.equal(JSON.parse(await env2.THOUGHTS.get(`apply:${reappliedBody.id}`)).status, 'pending');
 
-// A failed SMTP send must answer 502 and leave the application pending, for approve and reject alike.
-for (const [failAt, linkIndex] of [['AUTH password', 0], ['RCPT TO', 1], ['greeting', 0]]) {
+// A failed SMTP send answers 502 after the decision is stored. Mail is not sent; a later confirm can send it.
+for (const [failAt, linkIndex, status] of [['AUTH password', 0, 'approved'], ['RCPT TO', 1, 'rejected'], ['greeting', 0, 'approved']]) {
   const { env: env4, sent: sent4, fetchImpl: fetch4 } = createEnv();
   env4.__smtp = createSmtpServer({ failAt });
   await handle(request('/api/apply', { method: 'POST', origin, body: { answer: '那年冬天的车站。', email: 'fail@example.com' } }), env4, fetch4);
@@ -337,9 +370,13 @@ for (const [failAt, linkIndex] of [['AUTH password', 0], ['RCPT TO', 1], ['greet
   const token = new URL(links[linkIndex]).searchParams.get('token');
   const failed = await handle(request('/review', { method: 'POST', form: { token } }), env4, fetch4);
   assert.equal(failed.status, 502, failAt);
+  assert.match(await failed.text(), /信没有送出/);
   const appKey = (await env4.THOUGHTS.list({ prefix: 'apply:' })).keys[0].name;
-  assert.equal(JSON.parse(await env4.THOUGHTS.get(appKey)).status, 'pending');
-  assert.equal((await env4.THOUGHTS.list({ prefix: 'access:' })).keys.length, 0);
+  const stored = JSON.parse(await env4.THOUGHTS.get(appKey));
+  assert.equal(stored.status, status, failAt);
+  assert.equal(stored.notified, false, failAt);
+  assert.equal((await env4.THOUGHTS.list({ prefix: 'access:' })).keys.length, status === 'approved' ? 1 : 0, failAt);
+  assert.equal(sent4.length, 1, failAt);
 }
 {
   const { env: env5, sent: sent5, fetchImpl: fetch5 } = createEnv();
@@ -348,7 +385,12 @@ for (const [failAt, linkIndex] of [['AUTH password', 0], ['RCPT TO', 1], ['greet
   const link = sent5[0].body.html.match(/href="(https:\/\/thoughts\.kukudelin\.top\/review\?token=[^"]+)"/)[1].replaceAll('&amp;', '&');
   const failed = await handle(request('/review', { method: 'POST', form: { token: new URL(link).searchParams.get('token') } }), env5, fetch5);
   assert.equal(failed.status, 502);
+  assert.match(await failed.text(), /入口还没有寄出/);
   assert.equal(env5.__smtp.sessions.length, 0);
+  const stored = JSON.parse(await env5.THOUGHTS.get((await env5.THOUGHTS.list({ prefix: 'apply:' })).keys[0].name));
+  assert.equal(stored.status, 'approved');
+  assert.equal(stored.notified, false);
+  assert.equal((await env5.THOUGHTS.list({ prefix: 'access:' })).keys.length, 1);
 }
 
 const stale = await signPayload(env.HMAC_SECRET, { action: 'approve', id: 'missing', exp: 1 });
@@ -400,6 +442,47 @@ assert.match(declineEmail(), /—— 小牛/);
   const later = new Request(request('/api/apply', { method: 'POST', origin, body: { answer: env3.OWNER_PASSPHRASE, email: '' } }));
   later.headers.set('cf-connecting-ip', '198.51.100.9');
   assert.equal((await handle(later, nextWindow, fetch3)).status, 200);
+
+  const passKey = (await env3.THOUGHTS.list({ prefix: 'rate:pass:198.51.100.9:' })).keys[0].name;
+  assert.equal(await env3.THOUGHTS.get(passKey), '5');
+  const stillApply = await call3(request('/api/apply', {
+    method: 'POST',
+    origin,
+    body: { answer: '普通的答案，带合法邮箱', email: 'stillok@example.com' },
+  }), '198.51.100.9');
+  assert.equal(stillApply.status, 200);
+  const stillBody = await stillApply.json();
+  assert.equal(stillBody.status, 'pending');
+  assert.match(stillBody.id, /^[A-Za-z0-9_-]{20,}$/);
+  assert.equal(await env3.THOUGHTS.get(passKey), '5');
+  const limitedOwner = await call3(request('/api/apply', {
+    method: 'POST',
+    origin,
+    body: { answer: env3.OWNER_PASSPHRASE, email: 'ownerbox@example.com' },
+  }), '198.51.100.9');
+  assert.equal(limitedOwner.status, 200);
+  assert.equal((await limitedOwner.json()).status, 'owner');
+  assert.equal(await env3.THOUGHTS.get(passKey), '5');
+
+  const quietIp = '203.0.113.80';
+  for (let index = 0; index < 5; index += 1) {
+    const response = await call3(request('/api/apply', {
+      method: 'POST',
+      origin,
+      body: { answer: `普通申请${index}，不是入口`, email: `ordinary${index}@example.com` },
+    }), quietIp);
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).status, 'pending');
+  }
+  assert.equal((await env3.THOUGHTS.list({ prefix: `rate:pass:${quietIp}:` })).keys.length, 0);
+  const afterApplies = await call3(request('/api/apply', {
+    method: 'POST',
+    origin,
+    body: { answer: env3.OWNER_PASSPHRASE, email: '' },
+  }), quietIp);
+  assert.equal(afterApplies.status, 200);
+  assert.equal((await afterApplies.json()).status, 'owner');
+  assert.equal((await env3.THOUGHTS.list({ prefix: `rate:pass:${quietIp}:` })).keys.length, 0);
 }
 
 {
@@ -511,6 +594,156 @@ assert.match(declineEmail(), /—— 小牛/);
   const badMail = await callEnter('not-an-email', '203.0.113.60');
   assert.equal(badMail.status, 400);
   assert.equal(badMail.headers.get('set-cookie'), null);
+}
+
+async function reviewToken(sentMail, index) {
+  const links = [...sentMail.body.html.matchAll(/href="(https:\/\/thoughts\.kukudelin\.top\/review\?token=[^"]+)"/g)].map((match) => match[1].replaceAll('&amp;', '&'));
+  return new URL(links[index]).searchParams.get('token');
+}
+
+function recordSmtp(sent) {
+  return createSmtpServer({
+    onMessage({ rcpt, data }) {
+      const mime = parseMime(data);
+      sent.push({
+        url: 'smtp://smtp.qq.com:465',
+        body: { to: [rcpt], subject: mime.decoded.subject, html: mime.parts['text/html'], text: mime.parts['text/plain'] },
+      });
+    },
+  });
+}
+
+{
+  const { env: kvEnv, sent: kvSent, fetchImpl: kvFetch } = createEnv();
+  const applied = await handle(request('/api/apply', {
+    method: 'POST', origin, body: { answer: '先写库再谈寄信。', email: 'kvfail@example.com' },
+  }), kvEnv, kvFetch);
+  assert.equal((await applied.json()).status, 'pending');
+  const approveToken = await reviewToken(kvSent[0], 0);
+  const rejectToken = await reviewToken(kvSent[0], 1);
+  const inner = kvEnv.THOUGHTS;
+  kvEnv.THOUGHTS = {
+    get: (key) => inner.get(key),
+    getWithMetadata: (key) => inner.getWithMetadata(key),
+    delete: (key) => inner.delete(key),
+    list: (options) => inner.list(options),
+    async put(key, value, options) {
+      const text = String(value);
+      if (key.startsWith('access:') || (key.startsWith('apply:') && text.includes('"status":"approved"'))) {
+        throw new Error('kv down');
+      }
+      return inner.put(key, value, options);
+    },
+  };
+  const failed = await handle(request('/review', { method: 'POST', form: { token: approveToken } }), kvEnv, kvFetch);
+  assert.equal(failed.status, 500);
+  const failedText = await failed.text();
+  assert.match(failedText, /凭证未写入，未发信/);
+  assert.doesNotMatch(failedText, /已同意/);
+  assert.equal(kvSent.length, 1);
+  assert.equal(kvEnv.__smtp.sessions.length, 0);
+  const pending = JSON.parse(await inner.get((await inner.list({ prefix: 'apply:' })).keys[0].name));
+  assert.equal(pending.status, 'pending');
+  assert.equal((await inner.list({ prefix: 'access:' })).keys.length, 0);
+
+  kvEnv.THOUGHTS = {
+    get: (key) => inner.get(key),
+    getWithMetadata: (key) => inner.getWithMetadata(key),
+    delete: (key) => inner.delete(key),
+    list: (options) => inner.list(options),
+    async put(key, value, options) {
+      if (key.startsWith('apply:') && String(value).includes('"status":"approved"')) throw new Error('apply down');
+      return inner.put(key, value, options);
+    },
+  };
+  const partial = await handle(request('/review', { method: 'POST', form: { token: approveToken } }), kvEnv, kvFetch);
+  assert.equal(partial.status, 500);
+  assert.match(await partial.text(), /凭证未写入，未发信/);
+  assert.equal(kvSent.length, 1);
+  assert.equal(JSON.parse(await inner.get(`apply:${pending.id}`)).status, 'pending');
+  assert.equal((await inner.list({ prefix: 'access:' })).keys.length, 0);
+
+  kvEnv.THOUGHTS = inner;
+  const rejectedWrite = {
+    get: (key) => inner.get(key),
+    getWithMetadata: (key) => inner.getWithMetadata(key),
+    delete: (key) => inner.delete(key),
+    list: (options) => inner.list(options),
+    async put(key, value, options) {
+      if (key.startsWith('apply:') && String(value).includes('"status":"rejected"')) throw new Error('reject down');
+      return inner.put(key, value, options);
+    },
+  };
+  kvEnv.THOUGHTS = rejectedWrite;
+  const rejectFailed = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), kvEnv, kvFetch);
+  assert.equal(rejectFailed.status, 500);
+  assert.match(await rejectFailed.text(), /状态未写入，未发信/);
+  assert.equal(kvSent.length, 1);
+  assert.equal(kvEnv.__smtp.sessions.length, 0);
+  assert.equal(JSON.parse(await inner.get(`apply:${pending.id}`)).status, 'pending');
+}
+
+{
+  const { env: mailEnv, sent: mailSent, fetchImpl: mailFetch } = createEnv();
+  mailEnv.__smtp = createSmtpServer({ failAt: 'RCPT TO' });
+  await handle(request('/api/apply', {
+    method: 'POST', origin, body: { answer: '信失败了凭证还在。', email: 'retry@example.com' },
+  }), mailEnv, mailFetch);
+  const approveToken = await reviewToken(mailSent[0], 0);
+  const first = await handle(request('/review', { method: 'POST', form: { token: approveToken } }), mailEnv, mailFetch);
+  assert.equal(first.status, 502);
+  const appKey = (await mailEnv.THOUGHTS.list({ prefix: 'apply:' })).keys[0].name;
+  const stored = JSON.parse(await mailEnv.THOUGHTS.get(appKey));
+  assert.equal(stored.status, 'approved');
+  assert.equal(stored.notified, false);
+  const accessToken = stored.accessToken;
+  assert.equal(Boolean(await mailEnv.THOUGHTS.get(`access:${accessToken}`)), true);
+  const preview = await handle(request(`/review?token=${encodeURIComponent(approveToken)}`), mailEnv, mailFetch);
+  assert.equal(preview.status, 200);
+  const previewText = await preview.text();
+  assert.match(previewText, /再寄一次/);
+  assert.doesNotMatch(previewText, /已经同意过了/);
+  mailEnv.__smtp = recordSmtp(mailSent);
+  const retried = await handle(request('/review', { method: 'POST', form: { token: approveToken } }), mailEnv, mailFetch);
+  assert.equal(retried.status, 200);
+  assert.match(await retried.text(), /已同意/);
+  assert.equal(mailSent.at(-1).body.to[0], 'retry@example.com');
+  const after = JSON.parse(await mailEnv.THOUGHTS.get(appKey));
+  assert.equal(after.status, 'approved');
+  assert.equal(after.notified, true);
+  assert.equal(after.accessToken, accessToken);
+  assert.equal((await mailEnv.THOUGHTS.list({ prefix: 'access:' })).keys.length, 1);
+  const third = await handle(request('/review', { method: 'POST', form: { token: approveToken } }), mailEnv, mailFetch);
+  assert.match(await third.text(), /已经同意过了/);
+  assert.equal(mailSent.length, 2);
+}
+
+{
+  const { env: declineEnv, sent: declineSent, fetchImpl: declineFetch } = createEnv();
+  declineEnv.__smtp = createSmtpServer({ failAt: 'MAIL FROM' });
+  await handle(request('/api/apply', {
+    method: 'POST', origin, body: { answer: '拒绝信也要先落库。', email: 'retry-no@example.com' },
+  }), declineEnv, declineFetch);
+  const rejectToken = await reviewToken(declineSent[0], 1);
+  const first = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), declineEnv, declineFetch);
+  assert.equal(first.status, 502);
+  assert.match(await first.text(), /回绝的信还没有寄出/);
+  const appKey = (await declineEnv.THOUGHTS.list({ prefix: 'apply:' })).keys[0].name;
+  assert.equal(JSON.parse(await declineEnv.THOUGHTS.get(appKey)).status, 'rejected');
+  assert.equal(JSON.parse(await declineEnv.THOUGHTS.get(appKey)).notified, false);
+  assert.equal((await declineEnv.THOUGHTS.list({ prefix: 'access:' })).keys.length, 0);
+  assert.equal(declineSent.length, 1);
+  const preview = await handle(request(`/review?token=${encodeURIComponent(rejectToken)}`), declineEnv, declineFetch);
+  assert.match(await preview.text(), /再寄一次/);
+  declineEnv.__smtp = recordSmtp(declineSent);
+  const retried = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), declineEnv, declineFetch);
+  assert.equal(retried.status, 200);
+  assert.match(await retried.text(), /已拒绝/);
+  assert.equal(declineSent.at(-1).body.to[0], 'retry-no@example.com');
+  assert.equal(JSON.parse(await declineEnv.THOUGHTS.get(appKey)).notified, true);
+  const third = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), declineEnv, declineFetch);
+  assert.match(await third.text(), /已经拒绝过了/);
+  assert.equal(declineSent.length, 2);
 }
 
 console.log('thoughts worker tests ok');
