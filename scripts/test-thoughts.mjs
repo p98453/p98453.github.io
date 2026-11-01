@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { handle as handleWorker, signPayload } from '../worker/src/handle.js';
 import { createSmtpServer, parseMime } from './smtp-mock.mjs';
 
 // Visitor mail goes over SMTP; record it in the same `sent` list in the Resend body shape.
 const handle = (request, env, fetchImpl) => handleWorker(request, env, fetchImpl, { connect: env.__smtp.connect });
-import { ENTER_UNAVAILABLE, approveEmail, declineEmail, entryUrl, reviewEmail } from '../worker/src/emails.js';
+import { ENTER_UNAVAILABLE, approveEmail, approveText, declineEmail, declineText, entryUrl, reviewEmail } from '../worker/src/emails.js';
 
 function createKv() {
   const map = new Map();
@@ -744,6 +745,86 @@ function recordSmtp(sent) {
   const third = await handle(request('/review', { method: 'POST', form: { token: rejectToken } }), declineEnv, declineFetch);
   assert.match(await third.text(), /已经拒绝过了/);
   assert.equal(declineSent.length, 2);
+}
+
+// These hashes were captured before adding notes: an empty note must preserve
+// every byte of both existing visitor letters, including whitespace.
+for (const [render, expected] of [
+  [approveEmail, 'e43e088c352a0f329e07bced33cf41f171c51d5adbd3ce421d0f0ff929675d33'],
+  [approveText, '52833d083e7aaa58b27d28d9e0fbc03128cb5e8b25e57e9b44800106e41b0888'],
+  [declineEmail, '2d5d6aa1010167a7aa1d37ffe7c12c671ba28596c34902308a357f4685b7f3cd'],
+  [declineText, 'ae85bd0ae5180a8f2b0b68e8c62a2e758b3e23b0dbc926be6b5e31854d8a46eb'],
+]) {
+  for (const note of [undefined, '', ' \n ']) {
+    const rendered = render({ accessUrl: 'https://example.com/enter?token=abc', note });
+    assert.equal(createHash('sha256').update(rendered).digest('hex'), expected, render.name);
+  }
+}
+
+async function noteReview(action) {
+  const context = createEnv();
+  const application = { id: 'note-test', email: 'note@example.com', answer: '那天的瞬间。', status: 'pending' };
+  const key = `apply:${application.id}`;
+  await context.env.THOUGHTS.put(key, JSON.stringify(application));
+  const token = await signPayload(context.env.HMAC_SECRET, { action, id: application.id, exp: context.env.now() + 60000 });
+  return {
+    ...context, key, token,
+    post: (note) => handle(request('/review', { method: 'POST', form: { token, ...(note === undefined ? {} : { note }) } }), context.env, context.fetchImpl),
+  };
+}
+
+for (const action of ['approve', 'reject']) {
+  for (const note of [undefined, '', ' \n\t\u0000 ']) {
+    const context = await noteReview(action);
+    assert.equal((await context.post(note)).status, 200);
+    const mail = context.sent.at(-1).body;
+    const accessUrl = action === 'approve' ? mail.html.match(/href="([^"]+)"/)[1].replaceAll('&amp;', '&') : '';
+    assert.equal(mail.html, action === 'approve' ? approveEmail({ accessUrl }) : declineEmail());
+    assert.equal(mail.text, action === 'approve' ? approveText({ accessUrl }) : declineText());
+  }
+
+  const context = await noteReview(action);
+  const preview = await handle(request(`/review?token=${encodeURIComponent(context.token)}`), context.env, context.fetchImpl);
+  const markup = await preview.text();
+  assert.match(markup, /<textarea[^>]*name="note"[^>]*maxlength="500"/);
+  assert.match(markup, /<label[^>]*>想对 TA 说点什么（可不填）<\/label>/);
+  assert.equal(JSON.parse(await context.env.THOUGHTS.get(context.key)).status, 'pending');
+
+  const rawNote = '  <script>alert("你好")</script> & 再见\r\n下次见\u0000\t\u000b\u001f\u007f\u0085  ';
+  const cleanNote = '<script>alert("你好")</script> & 再见\n下次见';
+  // A failed send must leave the decision and sanitized note persisted together.
+  context.env.__smtp = createSmtpServer({ failAt: 'RCPT TO' });
+  assert.equal((await context.post(rawNote)).status, 502);
+  const stored = JSON.parse(await context.env.THOUGHTS.get(context.key));
+  assert.equal(stored.note, cleanNote);
+  assert.equal(stored.status, action === 'approve' ? 'approved' : 'rejected');
+  assert.equal(stored.notified, false);
+
+  context.env.__smtp = recordSmtp(context.sent);
+  // Retrying with a different note cannot replace the original decision's note.
+  assert.equal((await context.post('替换留言')).status, 200);
+  const mail = context.sent.at(-1).body;
+  assert.match(mail.html, /小牛想对你说：<br>&lt;script&gt;alert\(&quot;你好&quot;\)&lt;\/script&gt; &amp; 再见<br>下次见/);
+  assert.doesNotMatch(mail.html, /<script>|替换留言/);
+  assert.ok(mail.html.indexOf('小牛想对你说：') > mail.html.indexOf('—— 小牛'));
+  assert.ok(mail.text.endsWith(`\n小牛想对你说：\n${cleanNote}\n`));
+  assert.equal(JSON.parse(await context.env.THOUGHTS.get(context.key)).note, cleanNote);
+
+  const tooLong = await noteReview(action);
+  const before = await tooLong.env.THOUGHTS.get(tooLong.key);
+  const writes = [];
+  const put = tooLong.env.THOUGHTS.put.bind(tooLong.env.THOUGHTS);
+  tooLong.env.THOUGHTS.put = (...args) => { writes.push(args[0]); return put(...args); };
+  const response = await tooLong.post('牛'.repeat(501));
+  assert.equal(response.status, 400);
+  assert.match(await response.text(), /留言最多可以写 500 个字/);
+  assert.equal(await tooLong.env.THOUGHTS.get(tooLong.key), before);
+  assert.deepEqual(writes, []);
+  assert.equal(tooLong.sent.length, 0);
+  assert.equal(tooLong.env.__smtp.sessions.length, 0);
+  assert.equal((await tooLong.env.THOUGHTS.list({ prefix: 'access:' })).keys.length, 0);
+  assert.equal((await tooLong.post('牛'.repeat(500))).status, 200);
+  assert.equal(JSON.parse(await tooLong.env.THOUGHTS.get(tooLong.key)).note, '牛'.repeat(500));
 }
 
 console.log('thoughts worker tests ok');

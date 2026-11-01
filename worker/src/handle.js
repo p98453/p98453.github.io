@@ -519,6 +519,7 @@ async function showReview(env, token) {
     message: `邮箱 ${safeEmail}。<br /><br />${answer}`,
     confirm: `确认${verb}`,
     token: normalizeToken(token),
+    allowNote: true,
   }));
 }
 
@@ -545,9 +546,11 @@ async function reviewRoute(request, env, deps, url) {
 
 async function actReview(request, env, deps, url) {
   let token = '';
+  let note = '';
   try {
     const form = await request.formData();
     token = String(form.get('token') || '');
+    note = String(form.get('note') || '').replace(/\r\n/g, '\n');
   } catch {
     token = '';
   }
@@ -558,6 +561,10 @@ async function actReview(request, env, deps, url) {
     return html(410, decisionPage({ heading: '链接过期了', message: '这个链接已经过了有效期。如果还要处理，请让对方再提交一次。' }));
   }
   if (payload.action === 'revoke') return revoke(env, payload.id);
+  if (note.length > 500) {
+    return html(400, decisionPage({ heading: '留言有点长', message: '留言最多可以写 500 个字，请返回上一页缩短后再确认。这次还没有处理申请，也没有发信。' }));
+  }
+  note = note.replace(/[\u0000-\u0009\u000b-\u001f\u007f-\u009f]/g, '').trim();
   const key = `apply:${payload.id}`;
   const application = await readJson(env.THOUGHTS, key);
   if (!application) return html(404, decisionPage({ heading: '没有找到申请', message: '这份申请不在记录里。' }));
@@ -568,8 +575,8 @@ async function actReview(request, env, deps, url) {
     }
     return alreadyDecided(application);
   }
-  if (payload.action === 'approve') return approve(env, deps, application);
-  if (payload.action === 'reject') return reject(env, deps, application);
+  if (payload.action === 'approve') return approve(env, deps, { ...application, note });
+  if (payload.action === 'reject') return reject(env, deps, { ...application, note });
   return html(400, decisionPage({ heading: '链接无效', message: '这个链接不能识别。' }));
 }
 
@@ -780,8 +787,8 @@ async function deliverApproval(env, deps, application, now) {
   const mailed = await sendVisitorMail(env, deps, {
     to: application.email,
     subject: APPROVE_SUBJECT,
-    html: approveEmail({ accessUrl }),
-    text: approveText({ accessUrl }),
+    html: approveEmail({ accessUrl, note: application.note }),
+    text: approveText({ accessUrl, note: application.note }),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '入口还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
   application.notified = true;
@@ -827,8 +834,8 @@ async function deliverRejection(env, deps, application) {
   const mailed = await sendVisitorMail(env, deps, {
     to: application.email,
     subject: DECLINE_SUBJECT,
-    html: declineEmail(),
-    text: declineText(),
+    html: declineEmail({ note: application.note }),
+    text: declineText({ note: application.note }),
   });
   if (!mailed) return html(502, decisionPage({ heading: '信没有送出', message: '回绝的信还没有寄出。链接仍然有效，可以稍后再确认一次。' }));
   application.notified = true;
