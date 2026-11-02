@@ -285,10 +285,20 @@ export async function bootList() {
       const time = document.createElement('time');
       time.dateTime = item.date;
       time.textContent = writtenDate(item.date);
-      const link = document.createElement('a');
-      link.href = `/thoughts/view/#${encodeURIComponent(item.slug)}`;
-      link.textContent = item.title;
-      row.append(time, link);
+      row.append(time);
+      if (item.title) {
+        const title = document.createElement('h2');
+        title.className = 'thought-heading';
+        const link = document.createElement('a');
+        link.href = `/thoughts/view/#${encodeURIComponent(item.slug)}`;
+        link.textContent = item.title;
+        title.append(link);
+        row.append(title);
+      }
+      const body = document.createElement('div');
+      body.className = 'prose';
+      body.innerHTML = renderMarkdown(item.markdown || '', api);
+      row.append(body);
       list.append(row);
     }
     root.querySelector('.thought-count').textContent = `共 ${items.length} 篇 · 仅本机会话内可见`;

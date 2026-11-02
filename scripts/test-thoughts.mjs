@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { handle as handleWorker, signPayload } from '../worker/src/handle.js';
 import { createSmtpServer, parseMime } from './smtp-mock.mjs';
+import { renderMarkdown } from '../src/scripts/thoughts-client.js';
 
 // Visitor mail goes over SMTP; record it in the same `sent` list in the Resend body shape.
 const handle = (request, env, fetchImpl) => handleWorker(request, env, fetchImpl, { connect: env.__smtp.connect });
@@ -281,7 +282,11 @@ const listed = await call(request('/api/thoughts', { origin, cookie }));
 assert.equal(listed.status, 200);
 const items = await listed.json();
 assert.equal(items.items[0].title, '下雨的下午');
-assert.equal(items.items[0].markdown, undefined);
+assert.equal(items.items[0].markdown, '只写给进得来的人。\n\n<script>alert(1)</script>');
+assert.deepEqual(items.items[0].tags, []);
+const rendered = renderMarkdown(items.items[0].markdown);
+assert.match(rendered, /&lt;script&gt;alert\(1\)&lt;\/script&gt;/);
+assert.doesNotMatch(rendered, /<script>/);
 const post = await call(request('/api/thoughts/rainy-afternoon', { origin, cookie }));
 const article = await post.json();
 assert.match(article.markdown, /script/);
@@ -314,6 +319,15 @@ const tagged = await call(request('/admin/thoughts', {
 assert.equal(tagged.status, 200);
 const taggedPost = await (await call(request('/api/thoughts/tagged', { cookie }))).json();
 assert.deepEqual(taggedPost.tags, ['分享', '日常']);
+const feed = await (await call(request('/api/thoughts', { cookie }))).json();
+assert.deepEqual(feed.items.map(({ slug }) => slug), ['rainy-afternoon', 'tagged']);
+assert.deepEqual(feed.items.map(({ markdown }) => markdown), [article.markdown, '正文']);
+assert.deepEqual(feed.items[1].tags, ['分享', '日常']);
+// An index entry can outlive its body; keep its position and render an empty body.
+await env.THOUGHTS.delete('thought:tagged');
+const missingBodyFeed = await (await call(request('/api/thoughts', { cookie }))).json();
+assert.equal(missingBodyFeed.items[1].slug, 'tagged');
+assert.equal(missingBodyFeed.items[1].markdown, '');
 const removed = await call(request('/admin/thoughts/rainy-afternoon', { method: 'DELETE', auth: 'Bearer test-upload-token' }));
 assert.equal(removed.status, 200);
 assert.equal((await call(request('/api/thoughts/rainy-afternoon/assets/rain.jpg', { cookie }))).status, 404);

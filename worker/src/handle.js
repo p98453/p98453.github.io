@@ -403,7 +403,16 @@ function logout(env, headers) {
 async function listThoughts(env, request, headers) {
   if (!(await accessRecord(env, request))) return json(401, { error: 'unauthorized' }, headers);
   const index = (await readJson(env.THOUGHTS, 'thoughts:index')) || [];
-  const items = index.map((item) => ({ slug: item.slug, title: item.title, date: item.date }));
+  const items = await Promise.all(index.map(async (item) => {
+    const thought = await readJson(env.THOUGHTS, `thought:${item.slug}`);
+    return {
+      slug: item.slug,
+      title: item.title,
+      date: item.date,
+      tags: Array.isArray(thought?.tags) ? thought.tags : [],
+      markdown: thought?.markdown || '',
+    };
+  }));
   return json(200, { items }, headers);
 }
 
