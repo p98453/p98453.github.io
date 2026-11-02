@@ -962,17 +962,14 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .thoughts-bar button:hover { color: var(--hover); }
 
 .thought {
-  display: grid;
-  grid-template-columns: 9.5em 1fr;
-  gap: 22px;
-  align-items: baseline;
-  padding: 14px 0;
+  padding: 30px 0 36px;
   border-bottom: 1px solid var(--border);
 }
 
 #thought-list { border-top: 1px solid var(--border); }
 
 .thought time {
+  display: block;
   color: var(--muted);
   font-family: var(--sans);
   font-size: 14px;
@@ -980,12 +977,22 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   text-align: left;
 }
 
-.thought a {
+.thought-heading {
+  margin: 8px 0 18px;
+  font-size: 22px;
+  line-height: 1.5;
+}
+
+.thought-heading a {
   color: var(--heading);
   text-decoration: none;
 }
 
-.thought a:hover { color: var(--hover); }
+.thought-heading a:hover { color: var(--hover); }
+
+.thought .prose { margin-top: 18px; overflow-wrap: anywhere; }
+.thought .prose > :first-child { margin-top: 0; }
+.thought .prose > :last-child { margin-bottom: 0; }
 
 .thought-title:empty,
 .thoughts-home .pdate:has(time:empty) { display: none; }
@@ -994,8 +1001,7 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   .container.quiet { min-height: calc(100vh - 100px - 300px); padding: 12px; }
   .doors { flex-direction: column; gap: 36px; align-items: center; }
   .portal-name { margin-bottom: 36px; }
-  .thought { grid-template-columns: 1fr; gap: 2px; }
-  .thought time { text-align: left; }
+  .thought { padding: 24px 0 30px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
