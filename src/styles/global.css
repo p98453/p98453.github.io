@@ -766,9 +766,12 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .door:hover .door-note { color: var(--muted); font-family: var(--sans); font-size: 14px; }
 
 .gate { width: min(100%, 560px); margin: 0 auto; }
+.gate [hidden] { display: none !important; }
+.gate-forms { width: 100%; max-width: 400px; }
+.gate-forms form { margin: 0; }
 
 .ask {
-  margin: 8px 0 26px;
+  margin: 24px 0 32px;
   font-family: var(--display);
   font-size: 21px;
   line-height: 1.6;
@@ -790,6 +793,9 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 
 .gate textarea,
 .gate input[type="email"] {
+  box-sizing: border-box;
+  display: block;
+  min-width: 0;
   width: 100%;
   border: none;
   border-bottom: 1px solid var(--border);
@@ -797,12 +803,13 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   background: transparent;
   color: var(--text);
   font: inherit;
+  font-size: 16px;
+  line-height: 1.7;
   text-align: center;
   padding: 8px 4px 10px;
-  resize: none;
 }
 
-.gate textarea { overflow: hidden; }
+.gate textarea { min-height: 48px; max-height: 180px; resize: vertical; }
 
 .gate textarea::placeholder,
 .gate input::placeholder {
@@ -830,7 +837,7 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   flex: none;
   box-sizing: border-box;
   min-width: 96px;
-  min-height: 40px;
+  min-height: 44px;
   padding: 7px 16px;
   border: 1px solid var(--link);
   background: transparent;
@@ -843,9 +850,11 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
   cursor: pointer;
 }
 
-.gate button[type="submit"]:hover,
+.gate button[type="submit"] { background: var(--link); color: var(--bg); }
+.gate button[type="submit"]:hover { background: var(--hover); border-color: var(--hover); }
 .gate-actions .back-link:hover { color: var(--hover); border-color: var(--hover); }
 .gate button[type="submit"]:disabled { opacity: 0.55; cursor: progress; }
+.gate :is(button, a):focus-visible { outline: 2px solid var(--link); outline-offset: 4px; }
 
 .honeypot {
   position: absolute;
@@ -873,28 +882,28 @@ html[data-theme="dark"] .theme-selector [value="dark"] + span,
 .form-status[data-kind="note"] { color: var(--muted); }
 
 .lock-note { margin: 22px 0 0; }
+.gate .form-status { margin: 22px 0 0; font-family: var(--sans); font-size: 14px; }
 .gate-actions {
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
   justify-content: center;
   align-items: center;
   gap: 12px;
-  margin: 26px 0 0;
+  margin: 24px 0 0;
 }
 
-.email-entry { width: 100%; margin-top: 8px; }
-.gate-or,
-.email-entry-lead {
+.gate .gate-switch {
+  display: inline-block;
+  margin: 24px 0 0;
+  padding: 6px 0;
+  border: 0;
+  background: transparent;
   color: var(--muted);
-  font-family: var(--sans);
-  font-size: 14px;
+  font: 14px/1.7 var(--sans);
   font-style: normal;
 }
-.gate-or { margin: 28px 0 8px; }
-.email-entry-lead { margin: 0 0 14px; }
-.email-entry .form-status { margin: 14px 0 0; }
-.email-entry button[type="submit"] { margin-top: 16px; }
+.gate .gate-switch:hover { color: var(--link); }
+.gate .gate-switch:disabled { opacity: 0.55; cursor: progress; }
 
 @media (max-width: 360px) {
   .gate-actions { gap: 8px; }

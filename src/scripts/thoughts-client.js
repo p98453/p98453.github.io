@@ -1,7 +1,7 @@
 import { ENTER_UNAVAILABLE } from '../../worker/src/emails.js';
 
-const LINK_READY = '这个链接用不了了。邮箱已经填上，可以直接再试一次。';
-const LINK_BARE = '这个链接用不了了。填一下邮箱试试，或者先留一句申请。';
+const LINK_READY = '链接失效了，用这个邮箱再试试。';
+const LINK_BARE = '链接失效了，填邮箱再试试。';
 
 function endpoint(root) {
   return root.dataset.api.replace(/\/$/, '');
@@ -12,6 +12,8 @@ function validEmail(value) {
 }
 
 function showStatus(node, text, kind) {
+  const note = node.closest('form')?.querySelector('.lock-note');
+  if (note) note.hidden = true;
   node.hidden = false;
   node.dataset.kind = kind;
   node.textContent = text;
@@ -129,11 +131,12 @@ async function openSession(api) {
   return true;
 }
 
-function bootLinkFallback() {
+function bootLinkFallback(setMode) {
   const params = new URLSearchParams(location.search);
   if (params.get('link') !== '1') return;
   const form = document.querySelector('#thought-email');
   if (!form) return;
+  setMode('email', false);
   const raw = (params.get('email') || '').trim();
   const email = validEmail(raw) ? raw : '';
   if (email) form.email.value = email;
@@ -145,7 +148,25 @@ function bootLinkFallback() {
 export function bootGate() {
   const form = document.querySelector('#thought-apply');
   if (!form) return;
-  bootLinkFallback();
+  const emailForm = document.querySelector('#thought-email');
+  const switchButton = document.querySelector('.gate-switch');
+  if (!emailForm || !switchButton) return;
+  const setMode = (mode, focus = true) => {
+    const entering = mode === 'email';
+    const source = entering ? form : emailForm;
+    const target = entering ? emailForm : form;
+    target.email.value = source.email.value;
+    form.hidden = entering;
+    emailForm.hidden = !entering;
+    switchButton.textContent = entering ? '还没申请，留一句话' : '已通过，用邮箱进入';
+    if (focus) {
+      const field = entering ? target.email
+        : form.querySelector('.apply-fields').hidden ? form.querySelector('.back-link') : form.answer;
+      field.focus();
+    }
+  };
+  switchButton.addEventListener('click', () => setMode(form.hidden ? 'apply' : 'email'));
+  bootLinkFallback(setMode);
   const status = form.querySelector('.form-status');
   const fields = form.querySelector('.apply-fields');
   form.addEventListener('submit', async (event) => {
@@ -162,8 +183,9 @@ export function bootGate() {
       form.email.focus();
       return;
     }
-    const button = document.querySelector('button[form="thought-apply"]') || form.querySelector('button');
+    const button = form.querySelector('button[type="submit"]');
     button.disabled = true;
+    switchButton.disabled = true;
     try {
       const response = await fetch(`${endpoint(form)}/api/apply`, {
         method: 'POST',
@@ -188,19 +210,19 @@ export function bootGate() {
       } else if (response.status === 400) showStatus(status, '有一处不太对，改改再送出吧。', 'error');
       else if (!response.ok) showStatus(status, '网络抖了一下，没送出去。过会儿再试。', 'error');
       else {
-        showStatus(status, '收到了。要是能进来，我会把链接寄到你的邮箱。', 'ok');
+        showStatus(status, '收到了，我会把结果寄到邮箱。', 'ok');
         fields.hidden = true;
         button.hidden = true;
+        switchButton.disabled = false;
         return;
       }
     } catch {
       showStatus(status, '网络抖了一下，没送出去。过会儿再试。', 'error');
     }
     button.disabled = false;
+    switchButton.disabled = false;
   });
 
-  const emailForm = document.querySelector('#thought-email');
-  if (!emailForm) return;
   const emailStatus = emailForm.querySelector('.form-status');
   emailForm.addEventListener('submit', async (event) => {
     event.preventDefault();
@@ -212,6 +234,7 @@ export function bootGate() {
     }
     const button = emailForm.querySelector('button');
     button.disabled = true;
+    switchButton.disabled = true;
     try {
       const response = await fetch(`${endpoint(emailForm)}/api/enter`, {
         method: 'POST',
@@ -232,6 +255,7 @@ export function bootGate() {
       showStatus(emailStatus, '网络抖了一下，没进去。过会儿再试。', 'error');
     }
     button.disabled = false;
+    switchButton.disabled = false;
   });
 }
 
