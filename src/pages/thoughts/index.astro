@@ -9,41 +9,42 @@ import { ASK_LEAD, ASK_TAIL, QUESTION } from '../../../worker/src/emails.js';
   <div class="portal gate" data-api={site.thoughtsApi}>
     <a class="seal-link" href="/" aria-label={site.title}><Seal /></a>
     <h1>个人随想</h1>
-    <p class="portal-lead">想进来的话，先留一句话。</p>
-    <form id="thought-apply" data-api={site.thoughtsApi} novalidate>
-      <p class="ask"><span class="ask-part">{ASK_LEAD}</span><wbr /><span class="ask-part">{ASK_TAIL}</span></p>
-      <div class="apply-fields">
-        <label class="answer-label">
-          <span class="visually-hidden">想说的话</span>
-          <textarea name="answer" rows="1" maxlength="2000" placeholder="写在这里" required></textarea>
-        </label>
-        <label class="email-label">
-          <span class="visually-hidden">邮箱，用来收结果</span>
-          <input type="email" name="email" maxlength="254" placeholder="邮箱，用来收结果" autocomplete="email" />
-        </label>
-        <p class="honeypot">
-          <label>网站 <input name="website" tabindex="-1" autocomplete="off" /></label>
-        </p>
-        {site.turnstileSiteKey && <div class="cf-turnstile" data-sitekey={site.turnstileSiteKey}></div>}
-      </div>
-      <p class="form-status" role="status" hidden></p>
-    </form>
-    <p class="lock-note">我看完会回你，有消息就寄到这个邮箱。</p>
-    <div class="gate-actions">
-      <button type="submit" form="thought-apply">进入</button>
-      <a class="back-link" href="/">← 返回</a>
-    </div>
-    <div class="email-entry">
-      <p class="gate-or">或者</p>
-      <form id="thought-email" data-api={site.thoughtsApi} novalidate>
-        <p class="email-entry-lead" id="email-entry-label">已经通过的话，填邮箱就能进来。</p>
+    <p class="ask"><span class="ask-part">{ASK_LEAD}</span><wbr /><span class="ask-part">{ASK_TAIL}</span></p>
+    <div class="gate-forms">
+      <form id="thought-apply" data-api={site.thoughtsApi} novalidate>
+        <div class="apply-fields">
+          <label class="answer-label">
+            <span class="visually-hidden">想说的话</span>
+            <textarea name="answer" rows="1" maxlength="2000" placeholder="写在这里" required></textarea>
+          </label>
+          <label class="email-label">
+            <span class="visually-hidden">邮箱，用来收结果</span>
+            <input type="email" name="email" maxlength="254" placeholder="邮箱，用来收结果" autocomplete="email" />
+          </label>
+          <p class="honeypot">
+            <label>网站 <input name="website" tabindex="-1" autocomplete="off" /></label>
+          </p>
+          {site.turnstileSiteKey && <div class="cf-turnstile" data-sitekey={site.turnstileSiteKey}></div>}
+        </div>
+        <p class="form-status" role="status" hidden></p>
+        <p class="lock-note">我看完会回你，结果寄到邮箱。</p>
+        <div class="gate-actions">
+          <button type="submit">留一句话</button>
+          <a class="back-link" href="/">← 返回</a>
+        </div>
+      </form>
+      <form id="thought-email" data-api={site.thoughtsApi} novalidate hidden>
         <label class="email-label">
           <span class="visually-hidden">用来进入的邮箱</span>
-          <input type="email" name="email" maxlength="254" placeholder="你的邮箱" autocomplete="email" aria-describedby="email-entry-label" />
+          <input type="email" name="email" maxlength="254" placeholder="申请时的邮箱" autocomplete="email" />
         </label>
         <p class="form-status" role="status" hidden></p>
-        <button type="submit">凭邮箱进入</button>
+        <div class="gate-actions">
+          <button type="submit">进入</button>
+          <a class="back-link" href="/">← 返回</a>
+        </div>
       </form>
+      <button class="gate-switch" type="button" aria-controls="thought-apply thought-email">已通过，用邮箱进入</button>
     </div>
   </div>
 </Base>
