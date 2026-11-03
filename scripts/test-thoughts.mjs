@@ -2,7 +2,17 @@ import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { handle as handleWorker, signPayload } from '../worker/src/handle.js';
 import { createSmtpServer, parseMime } from './smtp-mock.mjs';
-import { renderMarkdown } from '../src/scripts/thoughts-client.js';
+import { renderMarkdown, writtenDate } from '../src/scripts/thoughts-client.js';
+import { normalizeThoughtDate } from '../worker/src/thought-date.js';
+
+assert.equal(writtenDate('2026-11-03'), '2026年11月3日');
+assert.equal(writtenDate('2026-11-03 22:19'), '2026年11月3日 22:19');
+assert.equal(writtenDate('2026-11-03 22:19:48'), '2026年11月3日 22:19');
+assert.equal(writtenDate('2026-11-03T14:19:00.000Z'), '2026年11月3日 22:19');
+assert.equal(writtenDate('2026-11-03T22:19:00+08:00'), '2026年11月3日 22:19');
+assert.equal(writtenDate('2026-11-03T18:19:00Z'), '2026年11月4日 02:19');
+assert.equal(writtenDate('2026-11-03 00:00'), '2026年11月3日 00:00');
+assert.equal(normalizeThoughtDate(new Date('2026-11-03T18:19:00Z')), '2026-11-04 02:19');
 
 // Visitor mail goes over SMTP; record it in the same `sent` list in the Resend body shape.
 const handle = (request, env, fetchImpl) => handleWorker(request, env, fetchImpl, { connect: env.__smtp.connect });
@@ -292,6 +302,36 @@ const article = await post.json();
 assert.match(article.markdown, /script/);
 
 assert.deepEqual(article.tags, []);
+
+// Exercise timestamp writes and reads separately from the existing date-only fixtures.
+{
+  const { env: timeEnv, fetchImpl: timeFetch } = createEnv();
+  const timeCall = (req) => handle(req, timeEnv, timeFetch);
+  for (const [slug, date, expected] of [
+    ['local', '2026-11-03 22:19', '2026-11-03 22:19'],
+    ['seconds', '2026-11-03 22:19:48', '2026-11-03 22:19'],
+    ['utc', '2026-11-03T14:20:00.000Z', '2026-11-03 22:20'],
+    ['offset', '2026-11-03T23:19:00+09:00', '2026-11-03 22:19'],
+    ['next-day', '2026-11-03T18:19:00Z', '2026-11-04 02:19'],
+  ]) {
+    const response = await timeCall(request('/admin/thoughts', {
+      method: 'PUT', auth: 'Bearer test-upload-token',
+      body: { slug, title: slug, date, markdown: '正文' },
+    }));
+    assert.equal(response.status, 200, date);
+    const stored = JSON.parse(await timeEnv.THOUGHTS.get(`thought:${slug}`));
+    assert.equal(stored.date, expected);
+  }
+  const index = JSON.parse(await timeEnv.THOUGHTS.get('thoughts:index'));
+  assert.deepEqual(index.map(({ slug }) => slug), ['next-day', 'utc', 'local', 'offset', 'seconds']);
+  for (const date of ['2026-11-03 24:19', '2026-11-03 22:60', '2026-02-30', '2026-11-03junk']) {
+    const response = await timeCall(request('/admin/thoughts', {
+      method: 'PUT', auth: 'Bearer test-upload-token',
+      body: { slug: 'invalid', title: 'invalid', date, markdown: '正文' },
+    }));
+    assert.equal(response.status, 400, date);
+  }
+}
 
 const jpeg = new Uint8Array([0xff, 0xd8, 0xff, 0xd9]);
 const assetPut = (auth, type = 'image/jpeg') => call(new Request('https://thoughts.kukudelin.top/admin/thoughts/rainy-afternoon/assets/rain.jpg', {

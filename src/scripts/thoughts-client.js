@@ -1,4 +1,5 @@
 import { ENTER_UNAVAILABLE } from '../../worker/src/emails.js';
+import { normalizeThoughtDate } from '../../worker/src/thought-date.js';
 
 const LINK_READY = '链接失效了，用这个邮箱再试试。';
 const LINK_BARE = '链接失效了，填邮箱再试试。';
@@ -107,10 +108,11 @@ export function renderMarkdown(source, api = '') {
   return html;
 }
 
-function writtenDate(iso) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+export function writtenDate(iso) {
+  const date = normalizeThoughtDate(iso);
+  const match = /^(\d{4})-(\d{2})-(\d{2})(.*)$/.exec(date || '');
   if (!match) return iso || '';
-  return `${Number(match[1])}年${Number(match[2])}月${Number(match[3])}日`;
+  return `${Number(match[1])}年${Number(match[2])}月${Number(match[3])}日${match[4]}`;
 }
 
 function looksLikeToken(value) {
