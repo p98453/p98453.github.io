@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import matter from 'gray-matter';
+import { normalizeThoughtDate } from '../worker/src/thought-date.js';
 
 const endpoint = (process.env.THOUGHTS_WORKER_ORIGIN || 'https://thoughts.kukudelin.top').replace(/\/$/, '');
 const token = process.env.UPLOAD_TOKEN || '';
@@ -76,9 +77,11 @@ if (!files.length) {
 for (const name of files) {
   const file = path.join(root, name);
   const parsed = matter(fs.readFileSync(file, 'utf8'));
-  const date = parsed.data.date instanceof Date
-    ? parsed.data.date.toISOString().slice(0, 10)
-    : String(parsed.data.date || '').slice(0, 10);
+  const date = normalizeThoughtDate(parsed.data.date);
+  if (!date) {
+    console.error(`${name}: date must be YYYY-MM-DD, YYYY-MM-DD HH:mm, or an ISO timestamp.`);
+    process.exit(1);
+  }
   const slug = slugFrom(name, parsed.data);
   const tags = Array.isArray(parsed.data.tags)
     ? parsed.data.tags.map(String)

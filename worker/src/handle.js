@@ -1,4 +1,5 @@
 import { sendSmtp } from './smtp.js';
+import { normalizeThoughtDate } from './thought-date.js';
 import { APPROVE_SUBJECT, DECLINE_SUBJECT, ENTER_UNAVAILABLE, QUESTION, approveEmail, approveText, declineEmail, declineText, decisionPage, entryUrl, reviewEmail, reviewText } from './emails.js';
 
 const ANSWER_MIN = 2;
@@ -470,12 +471,12 @@ async function saveThought(request, env) {
   }
   const slug = String(body.slug || '');
   const title = String(body.title || '').trim();
-  const date = String(body.date || '');
+  const date = normalizeThoughtDate(body.date);
   const markdown = String(body.markdown || '');
   const tags = Array.isArray(body.tags)
     ? body.tags.map((tag) => String(tag).trim()).filter(Boolean).slice(0, 20)
     : [];
-  if (!SLUG.test(slug) || !title || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !markdown || markdown.length > 100000) {
+  if (!SLUG.test(slug) || !title || !date || !markdown || markdown.length > 100000) {
     return json(400, { error: 'invalid' });
   }
   await env.THOUGHTS.put(`thought:${slug}`, JSON.stringify({ slug, title, date, tags, markdown }));
