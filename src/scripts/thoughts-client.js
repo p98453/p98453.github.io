@@ -54,8 +54,20 @@ export function renderMarkdown(source, api = '') {
   let gallery = [];
   const closeGallery = () => {
     if (!gallery.length) return;
-    const kind = gallery.length > 1 ? ' thought-gallery--pair' : '';
-    html += `<div class="thought-gallery${kind}">${gallery.join('')}</div>`;
+    if (gallery.length > 3) {
+      const slides = gallery.map((image, index) => `<div class="thought-gallery__slide" role="group" aria-roledescription="幻灯片" aria-label="${index + 1}/${gallery.length}">${image}</div>`).join('');
+      html += `<div class="thought-gallery thought-gallery--carousel" role="region" aria-roledescription="轮播" aria-label="随想图片">
+        <div class="thought-gallery__track" tabindex="0" aria-label="图片，可左右滑动">${slides}</div>
+        <div class="thought-gallery__controls">
+          <button type="button" data-gallery-prev aria-label="上一张" disabled>←</button>
+          <span class="thought-gallery__count" aria-live="polite" aria-atomic="true">1/${gallery.length}</span>
+          <button type="button" data-gallery-next aria-label="下一张">→</button>
+        </div>
+      </div>`;
+    } else {
+      const kind = gallery.length > 1 ? ' thought-gallery--pair' : '';
+      html += `<div class="thought-gallery${kind}">${gallery.join('')}</div>`;
+    }
     gallery = [];
   };
   const closeList = () => {
@@ -106,6 +118,95 @@ export function renderMarkdown(source, api = '') {
   }
   closeList();
   return html;
+}
+
+let imageDialog;
+const enhancedRoots = new WeakSet();
+const enhancedTracks = new WeakSet();
+
+function openThoughtImage(image) {
+  if (!imageDialog) {
+    imageDialog = document.createElement('dialog');
+    imageDialog.className = 'thought-lightbox';
+    imageDialog.setAttribute('aria-label', '查看完整图片');
+    imageDialog.innerHTML = `<button type="button" class="thought-lightbox__close" aria-label="关闭图片">×</button><div class="thought-lightbox__scroll"><img alt="" /></div>`;
+    document.body.append(imageDialog);
+    imageDialog.addEventListener('click', (event) => {
+      if (event.target !== imageDialog.querySelector('img')) imageDialog.close();
+    });
+  }
+  if (imageDialog.open) return;
+  const fullImage = imageDialog.querySelector('img');
+  fullImage.src = image.currentSrc || image.src;
+  fullImage.alt = image.alt;
+  const htmlOverflow = document.documentElement.style.overflow;
+  const bodyOverflow = document.body.style.overflow;
+  imageDialog.showModal();
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
+  imageDialog.querySelector('.thought-lightbox__scroll').scrollTop = 0;
+  imageDialog.addEventListener('close', () => {
+    document.documentElement.style.overflow = htmlOverflow;
+    document.body.style.overflow = bodyOverflow;
+    fullImage.removeAttribute('src');
+    if (image.isConnected) image.focus({ preventScroll: true });
+  }, { once: true });
+}
+
+// Safe to call again after rendering new content; listeners are installed only once.
+export function enhanceThoughtImages(root) {
+  root.querySelectorAll('.thought-figure img').forEach((image) => {
+    image.tabIndex = 0;
+    image.setAttribute('role', 'button');
+    image.setAttribute('aria-label', image.alt ? `查看完整图片：${image.alt}` : '查看完整图片');
+    image.draggable = false;
+  });
+  root.querySelectorAll('.thought-gallery__track').forEach((track) => {
+    if (enhancedTracks.has(track)) return;
+    enhancedTracks.add(track);
+    const gallery = track.closest('.thought-gallery');
+    const update = () => {
+      const index = Math.round(track.scrollLeft / (track.clientWidth || 1));
+      gallery.querySelector('.thought-gallery__count').textContent = `${index + 1}/${track.children.length}`;
+      gallery.querySelector('[data-gallery-prev]').disabled = index === 0;
+      gallery.querySelector('[data-gallery-next]').disabled = index === track.children.length - 1;
+    };
+    track.addEventListener('scroll', update, { passive: true });
+    update();
+  });
+  if (enhancedRoots.has(root)) return;
+  enhancedRoots.add(root);
+  let pointerStart;
+  let ignoreClickUntil = 0;
+  root.addEventListener('pointerdown', (event) => {
+    pointerStart = { x: event.clientX, y: event.clientY };
+  }, { passive: true });
+  const endGesture = (event) => {
+    if (pointerStart && (event.type === 'pointercancel' || Math.hypot(event.clientX - pointerStart.x, event.clientY - pointerStart.y) > 10)) {
+      ignoreClickUntil = Date.now() + 400;
+    }
+    pointerStart = null;
+  };
+  root.addEventListener('pointerup', endGesture, { passive: true });
+  root.addEventListener('pointercancel', endGesture, { passive: true });
+  root.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-gallery-prev], [data-gallery-next]');
+    if (button) {
+      const track = button.closest('.thought-gallery').querySelector('.thought-gallery__track');
+      const index = Math.round(track.scrollLeft / (track.clientWidth || 1));
+      const next = Math.max(0, Math.min(track.children.length - 1, index + (button.hasAttribute('data-gallery-next') ? 1 : -1)));
+      track.scrollTo({ left: next * track.clientWidth, behavior: 'instant' });
+      return;
+    }
+    const image = event.target.closest('.thought-figure img');
+    if (image && Date.now() >= ignoreClickUntil) openThoughtImage(image);
+  });
+  root.addEventListener('keydown', (event) => {
+    if (event.target.matches('.thought-figure img') && (event.key === 'Enter' || event.key === ' ')) {
+      event.preventDefault();
+      openThoughtImage(event.target);
+    }
+  });
 }
 
 export function writtenDate(iso) {
@@ -303,6 +404,7 @@ export async function bootList() {
       row.append(body);
       list.append(row);
     }
+    enhanceThoughtImages(list);
     root.querySelector('.thought-count').textContent = `共 ${items.length} 篇 · 仅本机会话内可见`;
     status.hidden = true;
   } catch {
@@ -349,6 +451,7 @@ export async function bootView() {
     time.dateTime = thought.date;
     time.textContent = `写于 ${writtenDate(thought.date).replace('年', ' 年 ').replace('月', ' 月 ').replace('日', ' 日')}`;
     root.querySelector('.prose').innerHTML = renderMarkdown(thought.markdown || '', api);
+    enhanceThoughtImages(root.querySelector('.prose'));
     status.hidden = true;
   } catch {
     showStatus(status, '网络异常，这一篇没有读出来。', 'error');

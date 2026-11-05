@@ -5,6 +5,27 @@ import { createSmtpServer, parseMime } from './smtp-mock.mjs';
 import { renderMarkdown, writtenDate } from '../src/scripts/thoughts-client.js';
 import { normalizeThoughtDate } from '../worker/src/thought-date.js';
 
+const imageLines = (count) => Array.from({ length: count }, (_, i) => `![图片 ${i + 1}](/api/thoughts/test/assets/${i + 1}.png)`).join('\n');
+for (const count of [1, 2, 3, 4, 6]) {
+  const html = renderMarkdown(imageLines(count), 'https://thoughts.example.com');
+  assert.equal((html.match(/class="thought-figure"/g) || []).length, count);
+  assert.match(html, /src="https:\/\/thoughts\.example\.com\/api\/thoughts\/test\/assets\/1.png"/);
+  if (count > 3) {
+    assert.match(html, /thought-gallery--carousel/);
+    assert.match(html, /thought-gallery__track/);
+    assert.equal((html.match(/class="thought-gallery__slide"/g) || []).length, count);
+    assert.match(html, new RegExp(`thought-gallery__count[^>]*>1/${count}<`));
+    assert.match(html, /data-gallery-prev/);
+    assert.match(html, /data-gallery-next/);
+    assert.doesNotMatch(html, /thought-gallery--pair/);
+  } else {
+    assert.doesNotMatch(html, /thought-gallery--carousel|thought-gallery__track/);
+    assert.equal(html.includes('thought-gallery--pair'), count > 1);
+  }
+}
+assert.doesNotMatch(renderMarkdown(`${imageLines(2)}\n\n${imageLines(2)}`), /thought-gallery--carousel/);
+assert.doesNotMatch(renderMarkdown('![bad](javascript:alert)\n![bad](data:image/png;base64,AAAA)'), /<img/);
+
 assert.equal(writtenDate('2026-11-03'), '2026年11月3日');
 assert.equal(writtenDate('2026-11-03 22:19'), '2026年11月3日 22:19');
 assert.equal(writtenDate('2026-11-03 22:19:48'), '2026年11月3日 22:19');
