@@ -1,0 +1,26 @@
+---
+import Base from '../../layouts/Base.astro';
+
+const tools = [
+  {
+    title: '网络入门实验室',
+    description: '拖零件、连线、发请求，一关一关搞懂建站背后的网络。',
+    href: '/tools/net-sandbox/',
+  },
+];
+---
+
+<Base title="工具合集">
+  <h1 class="page-title">工具合集</h1>
+  <ul class="name-list">
+    {
+      tools.map((tool) => (
+        <li>
+          <a href={tool.href} title={tool.title} target="_blank" rel="noopener">{tool.title}</a>
+          <br />
+          <span>{tool.description}</span>
+        </li>
+      ))
+    }
+  </ul>
+</Base>
